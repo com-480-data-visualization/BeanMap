@@ -2,9 +2,9 @@
 
 | Student's name | SCIPER |
 | -------------- | ------ |
-| | |
-| | |
-| | |
+|Massimo Berardi|345943|
+|Noam Ifergan|341405|
+|Victor Nahoul|339407|
 
 [Milestone 1](#milestone-1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
 

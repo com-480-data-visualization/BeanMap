@@ -42,7 +42,6 @@ Please, fill the following sections about your project.
 > - What source of inspiration do you take? Visualizations that you found on other websites or magazines (might be unrelated to your data).
 > - In case you are using a dataset that you have already explored in another context (ML or ADA course, semester project...), you are required to share the report of that work to outline the differences with the submission for this class.
 
-## Related work
 
 Several existing projects already visualize global coffee data, but most stop at country-level summaries rather than modeling coffee as a trade network. The GitHub project **[Cartogcoffee](https://github.com/MistaRae/Cartogcoffee)** is a full-stack educational app built around an interactive map with points of interest, regional filters, tooltips, and a possible choropleth of coffee production/consumption. Its focus is mainly educational and descriptive, centered on where coffee is produced or consumed, not on directional trade flows between countries.
 

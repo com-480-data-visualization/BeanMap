@@ -29,6 +29,14 @@ Please, fill the following sections about your project.
 > - What am I trying to show with my visualization?
 > - Think of an overview for the project, your motivation, and the target audience.
 
+#### The Hidden Coffee Chain. Who Really Transforms the Bean?
+Coffee is one of the most traded commodities in the world, yet its supply chain remains deeply misunderstood. When observing only bilateral trade flows between countries, the picture becomes misleading.
+
+Our visualization aims to reveal which countries are the true coffee transformers, those that import raw beans, process them through roasting, encapsulating and packaging, and re-export them as higher-value products. To measure this, we use a composite indicator: roasted coffee exports minus the net of roasted coffee imports and raw coffee exports, which isolates the value genuinely added by each country.
+The central axis is transformation: tracing the journey from raw beans to finished products. Rather than simply mapping who sells to whom, we want to show where economic value is actually captured along the chain.
+
+Our target audience is the general public and students interested in economics or sustainability, who question the North-South inequalities embedded in global value chains. The motivation is straightforward: behind every cup of coffee lies an economic geography.
+
 ### Exploratory Data Analysis
 
 > Pre-processing of the data set you chose

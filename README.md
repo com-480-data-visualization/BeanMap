@@ -73,19 +73,19 @@ All the steps are detailed in the EDA notebook: [EDA.ipynb](./EDA.ipynb)
 > - In case you are using a dataset that you have already explored in another context (ML or ADA course, semester project...), you are required to share the report of that work to outline the differences with the submission for this class.
 
 
-Several existing projects already visualize global coffee data, but most remain focused on country-level summaries or bilateral exchanges rather than modeling coffee as a transformation process along a global value chain.
+Several existing projects already visualize global coffee data, but most focus on country-level summaries or bilateral exchanges rather than modeling coffee as a transformation process along a global value chain.
 
-A closely related project from previous years is the [Sundial Coffee Visualization Project](https://github.com/com-480-data-visualization/Sundial/tree/master?tab=readme-ov-file). Their project explored coffee trade through interactive visualizations, with a particular emphasis on monetary flows and additional dimensions such as aromas and qualitative attributes of coffee. While conceptually similar, their approach differs from ours: it focuses more on value representation and sensory aspects, whereas our project centers on structural transformation within the supply chain, specifically identifying where raw coffee is processed and where value is effectively added.
+A useful reference is the [coffee_worldwide_ETL](https://github.com/datng87/coffee_worldwide_ETL) project, which combines choropleths and standard charts to explore global coffee production, consumption, and trade. It highlights key patterns such as the divide between producing and consuming countries, but treats geography mainly as a set of indicators rather than a system of flows.
 
-From a data and visualization perspective, the closest reference to our work is [Resource Trade Earth](https://resourcetrade.earth/?year=2017&category=904&units=weight&autozoom=1). This platform provides detailed, interactive flow maps of global trade, including coffee, based on international trade data. It allows users to explore bilateral exchanges between countries and offers a clear representation of trade intensity and direction. 
+A closely related project from previous years is the [Sundial Coffee Visualization Project](https://github.com/com-480-data-visualization/Sundial/tree/master?tab=readme-ov-file). It explores coffee trade with an emphasis on monetary flows and qualitative aspects such as aromas. While conceptually similar, it focuses on value representation, whereas our project targets structural transformation in the supply chain, identifying where raw coffee is processed and value is added.
 
-However, our approach diverges in a key way. While Resource Trade Earth focuses on pairwise trade relationships (who trades with whom), it does not explicitly address the role of countries within the transformation chain. In contrast, our project uses trade flows as a foundation to reconstruct the economic function of each country, distinguishing producers, processors, and final consumers. Rather than simply visualizing flows, we aim to interpret them in order to reveal where value is created and captured along the coffee supply chain.
+The closest inspiration is [Resource Trade Earth](https://resourcetrade.earth/?year=2017&category=904&units=weight&autozoom=1), which provides interactive flow maps of global trade. While it effectively shows bilateral exchanges, it does not capture the functional role of countries within the value chain. Our approach builds on such flows to distinguish producers, processors, and consumers, and to reveal where value is created and captured.
 
-Finally, academic work has also approached coffee trade as a networked system. For instance, [Utrilla-Catalan et al. (2022)](https://www.mdpi.com/2071-1050/14/2/672) analyze the global green coffee market using weighted exporter–importer networks derived from UN Comtrade data. Their work provides a rigorous analytical foundation and highlights structural inequalities within the trade network. However, it is primarily oriented toward economic analysis rather than interactive, audience-facing storytelling.
+Academic work, such as [Utrilla-Catalan et al. (2022)](https://www.mdpi.com/2071-1050/14/2/672), models coffee trade as a network and highlights structural inequalities, but remains focused on analysis rather than interactive storytelling.
 
-Our contribution builds on these different strands—interactive trade maps, prior visualization projects, and network-based analyses—while shifting the focus toward a central question: where is coffee actually processed, and who captures its value?
+Our contribution combines these perspectives while shifting the focus toward a central question: where is coffee actually processed, and who captures its value?
 
-Note. This dataset has not been used by our team in any previous course project or external context.
+This dataset has not been used by our team before.
 
 ## Milestone 2 (17th April, 5pm)
 

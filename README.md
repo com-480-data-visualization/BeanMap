@@ -32,7 +32,7 @@ To use the dataset for our project, we will have to narrow it down and reshape i
 
 Our goal is to construct two working datasets: one for coffee trade values and one for coffee trade quantities. In both cases, we aim for a format where each row corresponds to a single, economically meaningful flow of coffee between two countries in a given year, which can then be interpreted within the global transformation chain (from raw beans to processed products).
 
-Note that the original FAO bulk download is too large to be pushed to GitHub. However, the smaller preprocessed coffee-only datasets that result from these steps are included in the repository.
+Note. The original FAO bulk download is too large to be pushed to GitHub. However, the smaller preprocessed coffee-only datasets that result from these steps are included in the repository.
 
 ### Problematic
 
@@ -54,7 +54,7 @@ Our target audience is the general public and students interested in economics o
 > Pre-processing of the data set you chose
 > - Show some basic statistics and get insights about the data
 
-We focused our EDA on the FAO “Detailed Trade Matrix” for food and agricultural trade (1986–2020 in our analysis window). Starting from the full table, we first removed non-coffee products and kept only the two relevant items: “Coffee, green” and “Coffee, decaffeinated or roasted”. We also dropped redundant country-code columns and separated the dataset into two clean tables: one for trade values and one for trade quantities, keeping only import/export elements.
+Starting from the full table, we first removed non-coffee products and kept only the two relevant items: “Coffee, green” and “Coffee, decaffeinated or roasted”. We also dropped redundant country-code columns and separated the dataset into two clean tables: one for trade values and one for trade quantities, keeping only import/export elements.
 
 We then assessed data completeness over time by computing, for each year, the share of non-missing entries in the value and quantity tables. This showed that coverage is comparable across both datasets, but generally low (\<45%). This can be attributed to rare country-combination flows. Next, we inspected the source quality flags (E, X, A, I) associated with each data point. Official statistics (flag A) account for the overwhelming majority of entries, with non-official sources representing at most about 1–2% of the data. Based on this, we discarded the source-flag columns and focused on the main value/quantity series.
 

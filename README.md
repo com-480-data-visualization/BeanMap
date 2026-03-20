@@ -54,9 +54,9 @@ Our target audience is the general public and students interested in economics o
 > Pre-processing of the data set you chose
 > - Show some basic statistics and get insights about the data
 
-Starting from the full table, we first removed non-coffee products and kept only the two relevant items: “Coffee, green” and “Coffee, decaffeinated or roasted”. We also dropped redundant country-code columns and separated the dataset into two clean tables: one for trade values and one for trade quantities, keeping only import/export elements.
+Starting from the full FAO table, we isolated coffee by keeping only “Coffee, green” and “Coffee, decaffeinated or roasted”. We removed redundant columns and split the data into two aligned tables for trade values and quantities, keeping only import and export flows.
 
-We then assessed data completeness over time by computing, for each year, the share of non-missing entries in the value and quantity tables. This showed that coverage is comparable across both datasets, but generally low (\<45%). This can be attributed to rare country-combination flows. Next, we inspected the source quality flags (E, X, A, I) associated with each data point. Official statistics (flag A) account for the overwhelming majority of entries, with non-official sources representing at most about 1–2% of the data. Based on this, we discarded the source-flag columns and focused on the main value/quantity series.
+We then assessed data completeness over time. While coverage is generally low (<45%) due to rare bilateral combinations, quality is high: official national statistics (flag A) account for ~98% of entries. Consequently, we dropped auxiliary source flags to focus on the primary series.
 
 To avoid structural zeros and structurally empty records, we removed: (i) columns that are entirely missing, and (ii) rows with only zero or missing trade across all years. We also aligned the value and quantity tables so that they share the same subset of observations, and saved the resulting matrices for downstream analysis.
 

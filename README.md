@@ -30,9 +30,9 @@ The dataset is designed for global coverage rather than completeness of every bi
 
 To use the dataset for our project, we will have to narrow it down and reshape it. In particular, we will restrict the bulk download to coffee-related products only (for example keeping items such as “Coffee, green” and “Coffee, decaffeinated or roasted”), drop variables that are not relevant for our questions, and ensure that the remaining fields are consistent across years and reporters.
 
-Our goal is to construct two working datasets: one for coffee trade values and one for coffee trade quantities. In both cases, we aim for a format where each row corresponds to a single, economically meaningful flow of coffee between two countries in a given year, which can then be interpreted within the global transformation chain (from raw beans to processed products).
+Our goal is to construct two working datasets: one for trade values and one for trade quantities. In both cases, we aim for a format where each row corresponds to a single, economically meaningful flow of coffee between two countries in a given year. This structure will allow us to interpret the global transformation chain, from raw beans to processed products.
 
-Note. The original FAO bulk download is too large to be pushed to GitHub. However, the smaller preprocessed coffee-only datasets that result from these steps are included in the repository.
+Note. The original FAO bulk download is too large to be pushed to GitHub. However, the smaller preprocessed datasets resulting from these steps are included in the repository.
 
 ### Problematic
 

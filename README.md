@@ -23,6 +23,15 @@ Please, fill the following sections about your project.
 >
 > Hint: some good pointers for finding quality publicly available datasets ([Google dataset search](https://datasetsearch.research.google.com/), [Kaggle](https://www.kaggle.com/datasets), [OpenSwissData](https://opendata.swiss/en/), [SNAP](https://snap.stanford.edu/data/) and [FiveThirtyEight](https://data.fivethirtyeight.com/)).
 
+
+We base our analysis on the **UN Comtrade Detailed Trade Matrix dataset (1986–2020)**, which provides bilateral trade flows between countries for a wide range of commodities. It includes both **trade values (USD)** and **quantities (tons)**, along with metadata such as reporting reliability flags. From this dataset, we extract only the relevant coffee categories: **“Coffee, green” (raw beans)** and **“Coffee, decaffeinated or roasted” (processed coffee)**.
+
+To make the data suitable for our analysis, we perform several preprocessing steps. First, we filter the dataset to retain only coffee-related entries and remove redundant country-code columns. We then separate the data into two consistent tables: one for **trade values** and one for **trade quantities**, keeping only import and export flows. Rows and columns with no meaningful data (all missing or zero values) are removed to avoid structural noise, and both tables are aligned to ensure they contain the same set of observations.
+
+We also assess data quality. Coverage is relatively sparse (generally below 45% non-missing values), which reflects the presence of many rare country-to-country trade flows. However, the dataset is highly reliable: the vast majority of entries come from **official national statistics**, with non-official estimates representing only a small fraction (around 1–2%). Based on this, we retain the main data while discarding auxiliary source flags.
+
+The final result consists of two clean datasets—one for values and one for quantities—that capture global coffee trade over time and form the basis for our analysis of transformation and value creation along the supply chain.
+
 ### Problematic
 
 > Frame the general topic of your visualization and the main axis that you want to develop.

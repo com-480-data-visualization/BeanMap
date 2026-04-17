@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffee Value Chain — Global Dashboard</title>
+<style>
+/* ── VARIABLES ─────────────────────────────────────────── */
+:root {
+  --cream:    #F5ECD7;
+  --sand:     #E8D5B0;
+  --tan:      #C8A96E;
+  --coffee:   #8B5E3C;
+  --espresso: #4A2C17;
+  --roast:    #2C1A0E;
+  --ink:      #1A0F07;
+  --fog:      #F0E8D8;
+  --white:    #FDFAF5;
+  --border:   rgba(245,236,215,0.1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+
+body {
+  display: grid;
+  grid-template-rows: 48px 55vh 12px 36px 1fr;
+  height: 100vh;
+  background: var(--roast);
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  gap: 0;
+}
+
+/* ── ROW 1: TOP BAR ────────────────────────────────────── */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+  background: var(--espresso);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#topbar h1 {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--cream);
+  text-transform: uppercase;
+  flex: 1;
+}
+.coffee-bean { font-size: 16px; opacity: 0.8; }
+.year-badge {
+  background: var(--tan);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 10px;
+  letter-spacing: 0.04em;
+}
+#topbar-play {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--coffee);
+  color: var(--cream);
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+#topbar-play:hover { background: var(--roast); }
+.ph-badge {
+  font-size: 9px;
+  color: rgba(200,169,110,0.55);
+  border: 1px solid rgba(200,169,110,0.3);
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-style: italic;
+}
+
+/* ── ROW 2: MAIN AREA ──────────────────────────────────── */
+#main-row {
+  display: flex;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  min-height: 0;
+}
+
+/* Map container */
+#map-container {
+  flex: 3;
+  position: relative;
+  overflow: hidden;
+  background: var(--roast);
+  border-right: 1px solid var(--border);
+  min-width: 0;
+}
+#map-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+#map-loading {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--roast);
+  font-size: 12px;
+  color: var(--tan);
+  letter-spacing: 0.08em;
+  z-index: 2;
+}
+#map-loading.hidden { display: none; }
+
+/* Side panel */
+#side-panel {
+  flex: 1;
+  min-width: 260px;
+  max-width: 310px;
+  background: var(--fog);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sp-section {
+  border-bottom: 1px solid var(--sand);
+  padding: 10px 12px;
+  position: relative;
+}
+.sp-section:last-child { border-bottom: none; flex: 1; overflow-y: auto; }
+.sp-title {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tan);
+  font-weight: 500;
+  margin-bottom: 7px;
+  font-variant: small-caps;
+}
+
+/* Section A: country header */
+#sp-country-name {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.sp-rank { background: var(--tan); color: var(--ink); font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 8px; margin-left: 6px; vertical-align: middle; }
+.stat-pills { display: flex; gap: 5px; margin-top: 6px; }
+.stat-pill {
+  flex: 1; background: rgba(200,169,110,0.15); border: 1px solid rgba(200,169,110,0.25);
+  border-radius: 4px; padding: 5px 4px; text-align: center;
+}
+.stat-pill .sv { font-size: 11px; font-weight: 600; color: var(--espresso); display: block; }
+.stat-pill .sl { font-size: 7.5px; color: var(--coffee); display: block; margin-top: 1px; line-height: 1.3; }
+.stat-pill .sc { color: var(--coffee); font-weight: 500; }
+
+/* Section B: bar chart */
+.bar-legend { display: flex; gap: 10px; margin-bottom: 6px; }
+.bar-leg-item { display: flex; align-items: center; gap: 4px; font-size: 8px; color: var(--coffee); }
+.bar-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.bar-year { font-size: 8.5px; color: var(--espresso); width: 26px; flex-shrink: 0; font-weight: 500; }
+.bar-track { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.bar-fill {
+  height: 5px; border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.bar-val { font-size: 7.5px; color: var(--tan); width: 36px; flex-shrink: 0; text-align: right; }
+
+/* Section C: trade flows */
+.flow-row { display: flex; align-items: center; gap: 7px; padding: 4px 0; border-bottom: 1px solid rgba(200,169,110,0.12); }
+.flow-row:last-child { border-bottom: none; }
+.flow-arrow { font-size: 11px; flex-shrink: 0; }
+.flow-country { font-size: 9px; color: var(--ink); flex: 1; }
+.flow-bar-wrap { width: 55px; height: 4px; background: rgba(200,169,110,0.15); border-radius: 2px; overflow: hidden; }
+.flow-bar-fill { height: 100%; border-radius: 2px; }
+.flow-pct { font-size: 8.5px; font-weight: 600; color: var(--espresso); width: 26px; text-align: right; }
+
+/* ── ROW 3: TICK LABELS ────────────────────────────────── */
+#tick-row {
+  background: var(--espresso);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 70px 0 58px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tick-labels-inner {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  color: var(--tan);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+/* ── ROW 4: SLIDER ─────────────────────────────────────── */
+#slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--espresso);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#slider-play {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--roast);
+  color: var(--cream);
+  border: 1.5px solid var(--tan);
+  cursor: pointer;
+  font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+#slider-play:hover { background: var(--coffee); }
+#year-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--sand);
+  outline: none;
+  cursor: pointer;
+}
+#year-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--espresso);
+  border: 2px solid var(--tan);
+  cursor: grab;
+  transition: transform 0.1s;
+}
+#year-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.2); }
+#year-slider::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--espresso);
+  border: 2px solid var(--tan);
+  cursor: grab;
+}
+#year-display {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cream);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── ROW 5: BOTTOM PANELS ──────────────────────────────── */
+#bottom-row {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  min-height: 0;
+  overflow: hidden;
+}
+.bot-panel {
+  position: relative;
+  overflow: hidden;
+  padding: 9px 11px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.bot-panel:last-child { border-right: none; }
+.bot-title {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tan);
+  font-weight: 500;
+  margin-bottom: 5px;
+  flex-shrink: 0;
+  font-variant: small-caps;
+}
+
+/* ── WIDGET ANNOTATION ─────────────────────────────────── */
+.w-annot {
+  position: absolute;
+  bottom: 7px; right: 7px;
+  background: rgba(42,28,14,0.72);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 8.5px;
+  font-style: italic;
+  color: rgba(245,236,215,0.42);
+  line-height: 1.5;
+  max-width: 200px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ── TOOLTIP ───────────────────────────────────────────── */
+#map-tooltip {
+  position: fixed;
+  background: var(--roast);
+  border: 1px solid var(--tan);
+  border-radius: 4px;
+  padding: 5px 9px;
+  font-size: 9.5px;
+  color: var(--cream);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+  z-index: 100;
+  white-space: nowrap;
+}
+#map-tooltip.show { opacity: 1; }
+
+/* ── ARC LABELS ────────────────────────────────────────── */
+.arc-label {
+  position: absolute;
+  pointer-events: none;
+  font-size: 9px;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: rgba(42,28,14,0.82);
+  color: #F5ECD7;
+  padding: 2px 7px;
+  border-radius: 3px;
+  z-index: 10;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  letter-spacing: 0.03em;
+}
+
+/* ── ARC LEGEND ────────────────────────────────────────── */
+#arc-legend {
+  position: absolute;
+  bottom: 28px;
+  left: 8px;
+  background: rgba(42,28,14,0.82);
+  border-radius: 4px;
+  padding: 6px 10px;
+  pointer-events: none;
+  z-index: 3;
+}
+.arc-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 8.5px;
+  font-style: italic;
+  color: rgba(245,236,215,0.68);
+  margin-bottom: 4px;
+  letter-spacing: 0.03em;
+}
+.arc-legend-row:last-child { margin-bottom: 0; }
+.alg-sw {
+  display: inline-block;
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  position: relative;
+}
+/* arrowhead hint on swatch */
+.alg-sw::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left: 5px solid currentColor;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+}
+
+/* ── PLACEHOLDER WIDGET ────────────────────────────────── */
+#placeholder-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--sand);
+  border-radius: 4px;
+  margin: 10px;
+  gap: 5px;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--sand); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ══ ROW 1: TOP BAR ═══════════════════════════════════════ -->
+<div id="topbar">
+  <h1><span style="color:#F5ECD7">B</span><span style="color:#E8D5B0">e</span><span style="color:#C8A96E">a</span><span style="color:#8B5E3C">n</span><span style="color:#C8A96E">M</span><span style="color:#E8D5B0">a</span><span style="color:#F5ECD7">p</span></h1>
+  <span class="ph-badge">placeholder data</span>
+  <span style="font-size:10px;color:var(--tan);letter-spacing:.06em;">YEAR</span>
+  <span class="year-badge" id="topbar-year">2023</span>
+  <button id="topbar-play" title="Play timeline">▶</button>
+</div>
+
+<!-- ══ ROW 2: MAIN AREA ════════════════════════════════════ -->
+<div id="main-row">
+
+  <!-- Widget 1: 3D Map -->
+  <div id="map-container">
+    <div id="map-loading">Loading map data…</div>
+
+    <!-- Arc type legend -->
+    <div id="arc-legend">
+      <div class="arc-legend-row">
+        <span class="alg-sw" style="background:#4A2C17;color:#4A2C17"></span>
+        Exports →
+      </div>
+      <div class="arc-legend-row">
+        <span class="alg-sw" style="background:#C8A96E;color:#C8A96E"></span>
+        ← Imports
+      </div>
+    </div>
+
+    <!-- TI color scale legend -->
+    <div id="ti-legend" style="position:absolute;bottom:28px;right:8px;background:rgba(42,28,14,0.82);border-radius:4px;padding:6px 9px;pointer-events:none;z-index:3;">
+      <div style="font-size:8px;font-weight:600;color:#C8A96E;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">Transformation Index</div>
+      <div style="font-size:7px;color:rgba(245,236,215,0.55);margin-bottom:5px;font-style:italic;">% of export value that is processed</div>
+      <div style="display:flex;height:7px;border-radius:2px;overflow:hidden;width:110px;margin-bottom:3px;">
+        <div style="flex:1;background:#E8D5B0;"></div>
+        <div style="flex:1;background:#C8A96E;"></div>
+        <div style="flex:1;background:#8B5E3C;"></div>
+        <div style="flex:1;background:#4A2C17;"></div>
+        <div style="flex:1;background:#2C1A0E;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;width:110px;">
+        <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">0%</span>
+        <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">25%</span>
+        <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">50%</span>
+        <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">75%</span>
+        <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">100%</span>
+      </div>
+    </div>
+
+    <div class="w-annot">
+      Height &amp; color = Transformation Index<br>
+      Hover for TI % · Click to select<br>
+      Drag to rotate · scroll to zoom
+    </div>
+  </div>
+
+  <!-- Widget 2: Country Detail Side Panel -->
+  <div id="side-panel">
+
+    <!-- Section A: Header -->
+    <div class="sp-section" style="flex-shrink:0;">
+      <div>
+        <span id="sp-country-name">Brazil</span>
+        <span class="sp-rank" id="sp-rank">#1 Producer</span>
+      </div>
+      <div class="stat-pills">
+        <div class="stat-pill">
+          <span class="sv" id="sp-ti">—</span>
+          <span class="sl">Transform.<br>Index</span>
+        </div>
+        <div class="stat-pill">
+          <span class="sv" id="sp-top-export">—</span>
+          <span class="sl">Top export<br>partner</span>
+        </div>
+        <div class="stat-pill">
+          <span class="sv" id="sp-vol">—</span>
+          <span class="sl">Total export<br>volume</span>
+        </div>
+      </div>
+      <div class="w-annot" style="position:static;background:none;border:none;padding:2px 0 0;font-size:8px;color:rgba(74,44,23,0.5);max-width:none;">
+        Stat pills update on country select
+      </div>
+    </div>
+
+    <!-- Section B: Processing Margin Bars -->
+    <div class="sp-section" style="flex-shrink:0;">
+      <div class="sp-title">Raw vs. processed export value · USD/tonne</div>
+      <div class="bar-legend">
+        <div class="bar-leg-item"><span class="bar-swatch" style="background:#4A2C17"></span>Raw (green bean)</div>
+        <div class="bar-leg-item"><span class="bar-swatch" style="background:#C8A96E"></span>Processed (roasted)</div>
+      </div>
+      <!-- 2019 -->
+      <div class="bar-row">
+        <span class="bar-year">2019</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:20%;background:#4A2C17"></div>
+          <div class="bar-fill" style="width:60%;background:#C8A96E"></div>
+        </div>
+        <span class="bar-val">1,400 / 4,200</span>
+      </div>
+      <!-- 2020 -->
+      <div class="bar-row">
+        <span class="bar-year">2020</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:17%;background:#4A2C17"></div>
+          <div class="bar-fill" style="width:51%;background:#C8A96E"></div>
+        </div>
+        <span class="bar-val">1,200 / 3,600</span>
+      </div>
+      <!-- 2021 -->
+      <div class="bar-row">
+        <span class="bar-year">2021</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:26%;background:#4A2C17"></div>
+          <div class="bar-fill" style="width:77%;background:#C8A96E"></div>
+        </div>
+        <span class="bar-val">1,800 / 5,400</span>
+      </div>
+      <!-- 2022 -->
+      <div class="bar-row">
+        <span class="bar-year">2022</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:31%;background:#4A2C17"></div>
+          <div class="bar-fill" style="width:94%;background:#C8A96E"></div>
+        </div>
+        <span class="bar-val">2,200 / 6,600</span>
+      </div>
+      <!-- 2023 -->
+      <div class="bar-row">
+        <span class="bar-year">2023</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:36%;background:#4A2C17"></div>
+          <div class="bar-fill" style="width:100%;background:#C8A96E"></div>
+        </div>
+        <span class="bar-val">2,500 / 7,000</span>
+      </div>
+      <div class="w-annot" style="position:static;background:none;padding:4px 0 0;font-size:7.5px;color:rgba(74,44,23,0.45);">
+        Grouped bars = processing margin over time (placeholder)
+      </div>
+    </div>
+
+    <!-- Section C: Trade Flows -->
+    <div class="sp-section">
+      <div class="sp-title">Top export flows</div>
+      <div id="sp-flows-container">
+        <div style="font-size:9px;color:var(--coffee);padding:4px 0;">Click a country to see flows.</div>
+      </div>
+      <div class="w-annot" style="position:static;background:none;padding:4px 0 0;font-size:7.5px;color:rgba(74,44,23,0.45);">
+        → exports (espresso) · ← imports (tan) · bar = relative volume
+      </div>
+    </div>
+
+  </div><!-- /side-panel -->
+</div><!-- /main-row -->
+
+<!-- ══ ROW 3: TICK LABELS ═══════════════════════════════════ -->
+<div id="tick-row">
+  <div style="width:44px;flex-shrink:0;"></div><!-- play btn spacer -->
+  <div class="tick-labels-inner">
+    <span>1986</span><span>1990</span><span>1995</span><span>2000</span>
+    <span>2005</span><span>2010</span><span>2015</span><span>2020</span><span>2024</span>
+  </div>
+  <div style="width:42px;flex-shrink:0;"></div><!-- year display spacer -->
+</div>
+
+<!-- ══ ROW 4: YEAR SLIDER ═══════════════════════════════════ -->
+<div id="slider-row">
+  <button id="slider-play" title="Play / pause">▶</button>
+  <input type="range" id="year-slider" min="1986" max="2024" value="2023">
+  <span id="year-display">2023</span>
+</div>
+
+<!-- ══ ROW 5: BOTTOM PANELS ════════════════════════════════ -->
+<div id="bottom-row">
+
+  <!-- Widget 4: Global Value Timeline -->
+  <div class="bot-panel" id="timeline-panel">
+    <div class="bot-title" style="letter-spacing:0.07em;font-weight:500;color:var(--tan);">PRICE PER TONNE OVER TIME · USD</div>
+    <div style="font-size:8px;color:rgba(200,169,110,0.55);font-style:italic;margin:-3px 0 4px;flex-shrink:0;">Raw bean vs. roasted/processed</div>
+    <svg viewBox="0 0 280 105" preserveAspectRatio="none"
+         style="flex:1;min-height:0;display:block;width:100%;">
+      <!-- Area fills (behind lines) — points set by setupTimeline() -->
+      <polygon id="timeline-raw-area"  points="" fill="rgba(74,44,23,0.18)"/>
+      <polygon id="timeline-proc-area" points="" fill="rgba(200,169,110,0.12)"/>
+      <!-- Grid lines (dashed, at $500/$1500/$2500/$3500) -->
+      <line x1="32" y1="80.7" x2="265" y2="80.7" stroke="rgba(245,236,215,0.07)" stroke-width=".5" stroke-dasharray="3 4"/>
+      <line x1="32" y1="66.1" x2="265" y2="66.1" stroke="rgba(245,236,215,0.07)" stroke-width=".5" stroke-dasharray="3 4"/>
+      <line x1="32" y1="51.5" x2="265" y2="51.5" stroke="rgba(245,236,215,0.07)" stroke-width=".5" stroke-dasharray="3 4"/>
+      <line x1="32" y1="36.9" x2="265" y2="36.9" stroke="rgba(245,236,215,0.07)" stroke-width=".5" stroke-dasharray="3 4"/>
+      <!-- Axes -->
+      <line x1="32" y1="8"  x2="32"  y2="88" stroke="rgba(200,169,110,0.3)" stroke-width=".8"/>
+      <line x1="32" y1="88" x2="265" y2="88" stroke="rgba(200,169,110,0.3)" stroke-width=".8"/>
+      <!-- Y labels -->
+      <text x="29" y="83"   fill="#C8A96E" font-size="7" text-anchor="end">$500</text>
+      <text x="29" y="68.5" fill="#C8A96E" font-size="7" text-anchor="end">$1,500</text>
+      <text x="29" y="54"   fill="#C8A96E" font-size="7" text-anchor="end">$2,500</text>
+      <text x="29" y="39.4" fill="#C8A96E" font-size="7" text-anchor="end">$3,500</text>
+      <!-- X labels -->
+      <text x="32"   y="97" fill="#C8A96E" font-size="7" text-anchor="middle">1986</text>
+      <text x="87.2" y="97" fill="#C8A96E" font-size="7" text-anchor="middle">1995</text>
+      <text x="148.5" y="97" fill="#C8A96E" font-size="7" text-anchor="middle">2005</text>
+      <text x="209.8" y="97" fill="#C8A96E" font-size="7" text-anchor="middle">2015</text>
+      <text x="265"  y="97" fill="#C8A96E" font-size="7" text-anchor="middle">2024</text>
+      <!-- Polylines — points set by setupTimeline() -->
+      <polyline id="timeline-raw"  points="" fill="none" stroke="#4A2C17" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline id="timeline-proc" points="" fill="none" stroke="#C8A96E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Data-point dots — added dynamically by setupTimeline() -->
+      <g id="timeline-dots"></g>
+      <!-- End-of-line labels — y set by setupTimeline() -->
+      <text id="timeline-raw-label"  x="269" y="44" fill="#8B5E3C" font-size="8" font-weight="500">Raw</text>
+      <text id="timeline-proc-label" x="269" y="28" fill="#E8D5B0" font-size="8" font-weight="500">Proc.</text>
+      <!-- Year cursor — x updated by setYear() -->
+      <line id="timeline-cursor" x1="240.5" y1="8" x2="240.5" y2="88" stroke="rgba(245,236,215,0.35)" stroke-width="1" stroke-dasharray="2 3"/>
+    </svg>
+    <div class="w-annot">Cursor tracks year slider · area = price spread</div>
+  </div>
+
+  <!-- Widget 5: Sankey -->
+  <div class="bot-panel" id="sankey-panel">
+    <div class="bot-title">Coffee value chain — Producers · Processors · Consumers</div>
+    <!--
+      Layout (viewBox 0 0 300 108, y range 12..104 = 92px, 2px gaps):
+      Producers  x=8..22   Brazil(12..46) Vietnam(48..66) Colombia(68..79) Others(81..104)
+      Processors x=137..151 EU(12..44) USA(46..69) Asian(71..88) Rest(90..104)
+      Consumers  x=266..280 Europe(12..42) N.Am(44..69) AsiaPac(71..89) Rest(91..104)
+      mid P→Proc = 80 · mid Proc→C = 209
+      Ribbon path: M x1,ya C mid,ya mid,yc x2,yc L x2,yd C mid,yd mid,yb x1,yb Z
+    -->
+    <svg viewBox="0 0 300 108" preserveAspectRatio="xMidYMid meet"
+         style="flex:1;min-height:0;display:block;width:100%;">
+
+      <!-- ── FLOWS: Producers → Processors (drawn first, nodes on top) ── -->
+
+      <!-- Brazil → EU  left(12..33) right(12..33) -->
+      <path d="M22,12 C80,12 80,12 137,12 L137,33 C80,33 80,33 22,33 Z" fill="rgba(58,32,12,0.62)"/>
+      <!-- Brazil → USA  left(33..46) right(46..58) -->
+      <path d="M22,33 C80,33 80,46 137,46 L137,58 C80,58 80,46 22,46 Z" fill="rgba(58,32,12,0.45)"/>
+      <!-- Vietnam → EU  left(48..59) right(33..44) -->
+      <path d="M22,48 C80,48 80,33 137,33 L137,44 C80,44 80,59 22,59 Z" fill="rgba(100,60,30,0.55)"/>
+      <!-- Vietnam → Asian  left(59..66) right(71..78) -->
+      <path d="M22,59 C80,59 80,71 137,71 L137,78 C80,78 80,66 22,66 Z" fill="rgba(100,60,30,0.42)"/>
+      <!-- Colombia → USA  left(68..79) right(58..69) -->
+      <path d="M22,68 C80,68 80,58 137,58 L137,69 C80,69 80,79 22,79 Z" fill="rgba(139,94,60,0.55)"/>
+      <!-- Others → Asian  left(81..90) right(78..88) -->
+      <path d="M22,81 C80,81 80,78 137,78 L137,88 C80,88 80,90 22,90 Z" fill="rgba(175,130,80,0.45)"/>
+      <!-- Others → Rest  left(90..104) right(90..104) -->
+      <path d="M22,90 C80,90 80,90 137,90 L137,104 C80,104 80,104 22,104 Z" fill="rgba(175,130,80,0.32)"/>
+
+      <!-- ── FLOWS: Processors → Consumers ── -->
+
+      <!-- EU → Europe  left(12..32) right(12..32) -->
+      <path d="M151,12 C209,12 209,12 266,12 L266,32 C209,32 209,32 151,32 Z" fill="rgba(58,32,12,0.55)"/>
+      <!-- EU → N.Am  left(32..44) right(44..56) -->
+      <path d="M151,32 C209,32 209,44 266,44 L266,56 C209,56 209,44 151,44 Z" fill="rgba(58,32,12,0.38)"/>
+      <!-- USA → Europe  left(46..56) right(32..42) -->
+      <path d="M151,46 C209,46 209,32 266,32 L266,42 C209,42 209,56 151,56 Z" fill="rgba(100,60,30,0.5)"/>
+      <!-- USA → N.Am  left(56..69) right(56..69) -->
+      <path d="M151,56 C209,56 209,56 266,56 L266,69 C209,69 209,69 151,69 Z" fill="rgba(100,60,30,0.38)"/>
+      <!-- Asian → AsiaPac  left(71..85) right(71..85) -->
+      <path d="M151,71 C209,71 209,71 266,71 L266,85 C209,85 209,85 151,85 Z" fill="rgba(139,94,60,0.5)"/>
+      <!-- Asian → Rest  left(85..88) right(91..94) -->
+      <path d="M151,85 C209,85 209,91 266,91 L266,94 C209,94 209,88 151,88 Z" fill="rgba(139,94,60,0.32)"/>
+      <!-- Rest → AsiaPac  left(90..93) right(85..89) -->
+      <path d="M151,90 C209,90 209,85 266,85 L266,89 C209,89 209,93 151,93 Z" fill="rgba(175,130,80,0.4)"/>
+      <!-- Rest → Rest  left(93..104) right(94..104) -->
+      <path d="M151,93 C209,93 209,94 266,94 L266,104 C209,104 209,104 151,104 Z" fill="rgba(175,130,80,0.28)"/>
+
+      <!-- ── PRODUCER NODES (on top of flows) ── -->
+      <rect x="8" y="12" width="14" height="34" rx="1.5" fill="#3D2010"/>
+      <rect x="8" y="48" width="14" height="18" rx="1.5" fill="#5C3820"/>
+      <rect x="8" y="68" width="14" height="11" rx="1.5" fill="#8B5E3C"/>
+      <rect x="8" y="81" width="14" height="23" rx="1.5" fill="#A07850"/>
+
+      <!-- Producer labels -->
+      <text x="24" y="30" font-size="5.5" fill="#C8A96E">Brazil 40%</text>
+      <text x="24" y="58" font-size="5.5" fill="#C8A96E">Vietnam 20%</text>
+      <text x="24" y="74" font-size="5.5" fill="#C8A96E">Colombia 12%</text>
+      <text x="24" y="93" font-size="5.5" fill="#C8A96E">Others 28%</text>
+
+      <!-- Column headers -->
+      <text x="15"  y="9" font-size="5.5" fill="#C8A96E" text-anchor="middle" opacity=".65">Producers</text>
+      <text x="144" y="9" font-size="5.5" fill="#C8A96E" text-anchor="middle" opacity=".65">Processors</text>
+      <text x="273" y="9" font-size="5.5" fill="#C8A96E" text-anchor="middle" opacity=".65">Consumers</text>
+
+      <!-- ── PROCESSOR NODES ── -->
+      <rect x="137" y="12" width="14" height="32" rx="1.5" fill="#7A5234"/>
+      <rect x="137" y="46" width="14" height="23" rx="1.5" fill="#7A5234" opacity=".85"/>
+      <rect x="137" y="71" width="14" height="17" rx="1.5" fill="#7A5234" opacity=".7"/>
+      <rect x="137" y="90" width="14" height="14" rx="1.5" fill="#7A5234" opacity=".55"/>
+
+      <!-- Processor labels -->
+      <text x="153" y="29" font-size="5.5" fill="#C8A96E">EU 35%</text>
+      <text x="153" y="58" font-size="5.5" fill="#C8A96E">USA 25%</text>
+      <text x="153" y="80" font-size="5.5" fill="#C8A96E">Asia 18%</text>
+      <text x="153" y="97" font-size="5.5" fill="#C8A96E">Rest 22%</text>
+
+      <!-- ── CONSUMER NODES ── -->
+      <rect x="266" y="12" width="14" height="30" rx="1.5" fill="#C8A96E" opacity=".9"/>
+      <rect x="266" y="44" width="14" height="25" rx="1.5" fill="#B8996A" opacity=".85"/>
+      <rect x="266" y="71" width="14" height="18" rx="1.5" fill="#A88960" opacity=".8"/>
+      <rect x="266" y="91" width="14" height="13" rx="1.5" fill="#987850" opacity=".75"/>
+
+      <!-- Consumer labels -->
+      <text x="264" y="28" font-size="5.5" fill="#C8A96E" text-anchor="end">Europe 33%</text>
+      <text x="264" y="57" font-size="5.5" fill="#C8A96E" text-anchor="end">N.Am 28%</text>
+      <text x="264" y="80" font-size="5.5" fill="#C8A96E" text-anchor="end">Asia-Pac 20%</text>
+      <text x="264" y="98" font-size="5.5" fill="#C8A96E" text-anchor="end">Others 19%</text>
+    </svg>
+    <div class="w-annot">Flow width = volume share · 3-stage coffee value chain</div>
+  </div>
+
+  <!-- Widget 6: Placeholder -->
+<!--   <div class="bot-panel" style="border-right:none;">
+    <div id="placeholder-panel">
+      <span style="font-size:14px;color:var(--tan);font-weight:400;">Additional analysis</span>
+      <span style="font-size:11px;color:var(--coffee);font-style:italic;text-align:center;padding:0 12px;">
+        e.g. price volatility index,<br>climate overlay
+      </span>
+    </div>
+    <div class="w-annot">Future widget slot — reserved for volatility or climate data</div>
+  </div> -->
+
+</div><!-- /bottom-row -->
+
+<!-- Tooltip for Three.js map -->
+<div id="map-tooltip"></div>
+
+<!-- ══ SCRIPTS ══════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+// ─── DATA LAYER ──────────────────────────────────────────────────────
+// Source when real data is ready:
+//   TRANSFORMATION_INDEX ← derived from Trade_Matrix_Value.csv
+//   TRADE_QUANTITY       ← Trade_Matrix_Quantity.csv
+//   TRADE_VALUE          ← Trade_Matrix_Value.csv
+//   PRICE_TIMELINE       ← Value / Quantity ratio per year
+// To integrate real data: replace the objects below with parsed CSV.
+// ─────────────────────────────────────────────────────────────────────
+
+// Transformation Index per country (0–100).
+// Formula: processed_export_value / total_export_value * 100
+// Placeholder: using production-based proxy values for now.
+const TRANSFORMATION_INDEX = {
+  "Brazil": 45, "Vietnam": 12, "Colombia": 62, "Indonesia": 18,
+  "Ethiopia": 8, "Honduras": 5, "India": 38, "Uganda": 4,
+  "Mexico": 55, "Guatemala": 7, "Peru": 20, "Nicaragua": 6,
+  "CotedIvoire": 3, "CostaRica": 71, "Kenya": 15, "Tanzania": 9,
+  "PNG": 5, "Laos": 3, "Cameroon": 4, "ElSalvador": 6
+};
+
+// Bilateral trade quantities in tonnes.
+// Structure: TRADE_QUANTITY[exporter][importer] = tonnes
+// Source: Trade_Matrix_Quantity.csv
+const TRADE_QUANTITY = {
+  "Brazil":      {"USA":320000,"Germany":210000,"Italy":140000,
+                  "Belgium":90000,"Japan":80000},
+  "Vietnam":     {"USA":280000,"Germany":190000,"Italy":130000,
+                  "Philippines":110000,"Russia":95000},
+  "Colombia":    {"USA":460000,"Germany":175000,"Japan":92000,
+                  "Canada":81000,"Belgium":69000},
+  "Indonesia":   {"USA":150000,"Germany":100000,"Japan":130000,
+                  "Italy":75000,"Belgium":50000},
+  "Ethiopia":    {"Germany":180000,"USA":150000,"Belgium":115000,
+                  "Japan":82000,"Italy":65000},
+  "Honduras":    {"USA":180000,"Germany":95000,"Belgium":72000,
+                  "Italy":58000,"Japan":42000},
+  "India":       {"Italy":120000,"Germany":98000,"Russia":85000,
+                  "Belgium":76000,"USA":65000},
+  "Uganda":      {"Germany":145000,"Sudan":62000,"Belgium":58000,
+                  "Italy":44000,"USA":38000},
+  "Mexico":      {"USA":285000,"Germany":78000,"Belgium":52000,
+                  "Japan":45000,"Canada":41000},
+  "Guatemala":   {"USA":210000,"Germany":88000,"Belgium":65000,
+                  "Japan":48000,"Canada":38000},
+  "Peru":        {"USA":145000,"Germany":112000,"Belgium":78000,
+                  "Sweden":52000,"Canada":44000},
+  "Nicaragua":   {"USA":122000,"Germany":68000,"Belgium":48000,
+                  "Italy":38000,"Japan":32000},
+  "CotedIvoire": {"Germany":88000,"Belgium":75000,"USA":62000,
+                  "Italy":48000,"France":42000},
+  "CostaRica":   {"USA":98000,"Belgium":62000,"Germany":58000,
+                  "Italy":42000,"Canada":35000},
+  "Kenya":       {"Germany":112000,"Sweden":68000,"Belgium":58000,
+                  "Finland":42000,"USA":38000},
+  "Tanzania":    {"Germany":72000,"Belgium":48000,"Italy":38000,
+                  "USA":32000,"Japan":28000},
+  "PNG":         {"Germany":52000,"Australia":48000,"Japan":38000,
+                  "USA":28000,"Belgium":22000},
+  "Laos":        {"Belgium":42000,"Germany":35000,"Japan":28000,
+                  "Italy":22000,"USA":18000},
+  "Cameroon":    {"Germany":58000,"Belgium":48000,"France":38000,
+                  "Italy":28000,"USA":22000},
+  "ElSalvador":  {"USA":88000,"Germany":52000,"Belgium":38000,
+                  "Japan":28000,"Canada":22000}
+};
+
+// Bilateral trade values in 1000 USD.
+// Structure: TRADE_VALUE[exporter][importer] = 1000 USD
+// Source: Trade_Matrix_Value.csv
+const TRADE_VALUE = {
+  "Brazil":      {"USA":680000,"Germany":450000,"Italy":290000,
+                  "Belgium":195000,"Japan":170000},
+  "Vietnam":     {"USA":420000,"Germany":280000,"Italy":195000,
+                  "Philippines":160000,"Russia":140000},
+  "Colombia":    {"USA":980000,"Germany":370000,"Japan":195000,
+                  "Canada":170000,"Belgium":145000},
+  "Indonesia":   {"USA":240000,"Germany":160000,"Japan":210000,
+                  "Italy":120000,"Belgium":80000},
+  "Ethiopia":    {"Germany":320000,"USA":265000,"Belgium":205000,
+                  "Japan":145000,"Italy":115000},
+  "Honduras":    {"USA":285000,"Germany":152000,"Belgium":115000,
+                  "Italy":92000,"Japan":67000},
+  "India":       {"Italy":198000,"Germany":162000,"Russia":140000,
+                  "Belgium":125000,"USA":107000},
+  "Uganda":      {"Germany":238000,"Sudan":102000,"Belgium":95000,
+                  "Italy":72000,"USA":62000},
+  "Mexico":      {"USA":520000,"Germany":142000,"Belgium":95000,
+                  "Japan":82000,"Canada":75000},
+  "Guatemala":   {"USA":380000,"Germany":158000,"Belgium":118000,
+                  "Japan":86000,"Canada":68000},
+  "Peru":        {"USA":262000,"Germany":202000,"Belgium":140000,
+                  "Sweden":94000,"Canada":79000},
+  "Nicaragua":   {"USA":220000,"Germany":122000,"Belgium":86000,
+                  "Italy":68000,"Japan":57000},
+  "CotedIvoire": {"Germany":145000,"Belgium":123000,"USA":102000,
+                  "Italy":79000,"France":69000},
+  "CostaRica":   {"USA":195000,"Belgium":124000,"Germany":116000,
+                  "Italy":84000,"Canada":70000},
+  "Kenya":       {"Germany":205000,"Sweden":124000,"Belgium":106000,
+                  "Finland":77000,"USA":69000},
+  "Tanzania":    {"Germany":118000,"Belgium":79000,"Italy":62000,
+                  "USA":52000,"Japan":46000},
+  "PNG":         {"Germany":85000,"Australia":79000,"Japan":62000,
+                  "USA":46000,"Belgium":36000},
+  "Laos":        {"Belgium":69000,"Germany":57000,"Japan":46000,
+                  "Italy":36000,"USA":29000},
+  "Cameroon":    {"Germany":95000,"Belgium":79000,"France":62000,
+                  "Italy":46000,"USA":36000},
+  "ElSalvador":  {"USA":158000,"Germany":93000,"Belgium":68000,
+                  "Japan":50000,"Canada":39000}
+};
+
+// Global average price per tonne by year.
+// Derived from Trade_Matrix_Value / Trade_Matrix_Quantity ratio.
+// Structure: PRICE_TIMELINE[year] = { raw, processed }
+const PRICE_TIMELINE = {
+  1986:{raw:1200,processed:1620}, 1990:{raw:1050,processed:1418},
+  1995:{raw:1400,processed:1890}, 2000:{raw:900, processed:1215},
+  2005:{raw:1100,processed:1485}, 2010:{raw:1700,processed:2295},
+  2015:{raw:1250,processed:1688}, 2020:{raw:1300,processed:1755},
+  2024:{raw:3200,processed:4320}
+};
+
+// Country centroids [lat, lng] used for arc routing on the 3D map.
+// Keep all existing centroid values — do not modify.
+const CENTROIDS = {
+  // Producers
+  "Brazil":      [-14.2,-51.9], "Vietnam":     [14.1,108.3],
+  "Colombia":    [4.6,-74.1],   "Indonesia":   [-0.8,113.9],
+  "Ethiopia":    [9.1,40.5],    "Honduras":    [15.2,-86.2],
+  "India":       [20.6,78.9],   "Uganda":      [1.4,32.3],
+  "Mexico":      [23.6,-102.6], "Guatemala":   [15.8,-90.2],
+  "Peru":        [-9.2,-75.0],  "Nicaragua":   [12.9,-85.2],
+  "CotedIvoire": [7.5,-5.5],    "CostaRica":   [9.7,-83.8],
+  "Kenya":       [-0.0,37.9],   "Tanzania":    [-6.4,34.9],
+  "PNG":         [-6.3,143.9],  "Laos":        [17.9,102.6],
+  "Cameroon":    [3.8,11.5],    "ElSalvador":  [13.8,-88.9],
+  // Import partners
+  "USA":         [37.1,-95.7],  "Germany":     [51.2,10.4],
+  "Italy":       [41.9,12.6],   "Belgium":     [50.5,4.5],
+  "Japan":       [36.2,138.3],  "Canada":      [56.1,-106.3],
+  "Philippines": [12.9,121.8],  "Russia":      [61.5,105.3],
+  "Sweden":      [60.1,18.6],   "Finland":     [61.9,25.7],
+  "Sudan":       [12.8,30.2],   "Australia":   [-25.3,133.8],
+  "France":      [46.2,2.2]
+};
+
+// GeoJSON feature name → canonical key in TRANSFORMATION_INDEX / TRADE_QUANTITY
+const GEO_NAME_MAP = {
+  "Viet Nam":                      "Vietnam",
+  "Côte d'Ivoire":                 "CotedIvoire",
+  "Ivory Coast":                   "CotedIvoire",
+  "Cote d'Ivoire":                 "CotedIvoire",
+  "Costa Rica":                    "CostaRica",
+  "Papua New Guinea":              "PNG",
+  "El Salvador":                   "ElSalvador",
+  "United Republic of Tanzania":   "Tanzania",
+  "Lao PDR":                       "Laos"
+};
+
+// Ranking by Transformation Index (1 = highest TI)
+const TI_RANKS = {};
+Object.entries(TRANSFORMATION_INDEX)
+  .sort((a, b) => b[1] - a[1])
+  .forEach(([k], i) => { TI_RANKS[k] = i + 1; });
+
+// Helper: resolve any name (GeoJSON or canonical) → TI value
+function getTI(name) {
+  const key = GEO_NAME_MAP[name] || name;
+  return TRANSFORMATION_INDEX[key] || 0;
+}
+
+// Helper: format large quantity values compactly
+function fmtQty(q) {
+  if (q >= 1000000) return (q / 1000000).toFixed(1) + 'M';
+  if (q >= 1000)    return Math.round(q / 1000) + 'k';
+  return q.toString();
+}
+// ─────────────────────────────────────────────────────────────
+
+/* ── COLOR HELPERS ────────────────────────────────────────── */
+function getTopColor(ti) {
+  if (ti <= 10)  return 0xE8D5B0; // sand
+  if (ti <= 25)  return 0xC8A96E; // tan
+  if (ti <= 50)  return 0x8B5E3C; // coffee
+  if (ti <= 75)  return 0x4A2C17; // espresso
+  return 0x2C1A0E;                 // roast
+}
+function getSideColor(ti) {
+  if (ti <= 10)  return 0xC8A96E;
+  if (ti <= 25)  return 0x8B5E3C;
+  if (ti <= 50)  return 0x4A2C17;
+  if (ti <= 75)  return 0x2C1A0E;
+  return 0x1A0F07;                 // ink
+}
+function getDepth(ti) {
+  return Math.max(0.5, ti * 1.2);
+}
+
+/* ── PROJECTION ───────────────────────────────────────────── */
+function project(lng, lat) {
+  return new THREE.Vector2((lng / 360) * 500, (lat / 180) * 280);
+}
+
+/* ── SHAPE FROM RING ──────────────────────────────────────── */
+function ringToPoints(ring, step) {
+  const pts = [];
+  for (let i = 0; i < ring.length; i += step) {
+    const p = project(ring[i][0], ring[i][1]);
+    pts.push(p);
+  }
+  return pts;
+}
+
+function makeShape(ring, step) {
+  const pts = ringToPoints(ring, step);
+  if (pts.length < 3) return null;
+  const shape = new THREE.Shape();
+  shape.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i].x, pts[i].y);
+  shape.closePath();
+  return shape;
+}
+
+/* ── THREE.JS SETUP ───────────────────────────────────────── */
+let renderer, camera, scene, controls;
+let countryMeshes = [];
+let arcMeshes = [];
+let arcLabels = [];
+let selectedMesh = null;
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2(-9999, -9999);
+let hoveredMesh = null;
+
+function initThree() {
+  const container = document.getElementById('map-container');
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x2C1A0E);
+
+  // Slight fog for depth feel
+  scene.fog = new THREE.Fog(0x2C1A0E, 600, 1200);
+
+  camera = new THREE.PerspectiveCamera(38, W / H, 1, 1500);
+  camera.position.set(10, -90, 420);
+  camera.lookAt(0, 0, 0);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  // Lights
+  const ambient = new THREE.AmbientLight(0xF5ECD7, 0.45);
+  scene.add(ambient);
+
+  const dirLight = new THREE.DirectionalLight(0xFFFAF0, 0.95);
+  dirLight.position.set(120, 180, 280);
+  scene.add(dirLight);
+
+  const fillLight = new THREE.DirectionalLight(0xC8A96E, 0.2);
+  fillLight.position.set(-150, -100, 100);
+  scene.add(fillLight);
+
+  // Controls
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.minDistance = 80;
+  controls.maxDistance = 900;
+  controls.enablePan = true;
+
+  // Resize
+  window.addEventListener('resize', () => {
+    const W2 = container.clientWidth;
+    const H2 = container.clientHeight;
+    camera.aspect = W2 / H2;
+    camera.updateProjectionMatrix();
+    renderer.setSize(W2, H2);
+  });
+
+  // Mouse events
+  renderer.domElement.addEventListener('mousemove', onMouseMove);
+  renderer.domElement.addEventListener('click', onMapClick);
+
+  animate();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+
+  // Raycasting for hover
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(countryMeshes, false);
+
+  const tooltip = document.getElementById('map-tooltip');
+
+  if (hits.length > 0) {
+    const m = hits[0].object;
+    if (m !== hoveredMesh) {
+      if (hoveredMesh && hoveredMesh !== selectedMesh) {
+        hoveredMesh.material[1].emissive.setHex(0x000000);
+      }
+      hoveredMesh = m;
+      if (m !== selectedMesh) {
+        m.material[1].emissive.setHex(0x2a1a0a);
+      }
+    }
+    const name = m.userData.name;
+    const ti   = m.userData.ti;
+    tooltip.textContent = ti > 0
+      ? `${name} · TI: ${ti}%`
+      : `${name} — no TI data`;
+    tooltip.classList.add('show');
+  } else {
+    if (hoveredMesh && hoveredMesh !== selectedMesh) {
+      hoveredMesh.material[1].emissive.setHex(0x000000);
+    }
+    hoveredMesh = null;
+    tooltip.classList.remove('show');
+  }
+
+  // Fade-in arc meshes (0 → targetOpacity over 500 ms)
+  const now = Date.now();
+  arcMeshes.forEach(m => {
+    if (m.userData.fadeStart !== undefined) {
+      const t = Math.min((now - m.userData.fadeStart) / 500, 1);
+      m.material.opacity = t * m.userData.targetOpacity;
+    }
+  });
+
+  // Project arc label anchors to screen coordinates
+  const canvas = renderer.domElement;
+  arcLabels.forEach(({ div, vec }) => {
+    const v = vec.clone().project(camera);
+    const sx = (v.x + 1) / 2 * canvas.clientWidth;
+    const sy = (-v.y + 1) / 2 * canvas.clientHeight;
+    div.style.left = sx + 'px';
+    div.style.top  = sy + 'px';
+  });
+
+  renderer.render(scene, camera);
+}
+
+function onMouseMove(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+  mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+
+  const tooltip = document.getElementById('map-tooltip');
+  tooltip.style.left = (e.clientX + 14) + 'px';
+  tooltip.style.top  = (e.clientY - 34) + 'px';
+}
+
+function onMapClick(e) {
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(countryMeshes, false);
+
+  // Click on empty space: clear arcs and deselect
+  if (!hits.length) {
+    clearArcs();
+    if (selectedMesh) {
+      selectedMesh.material[1].emissive.setHex(0x000000);
+      selectedMesh.material[0].emissive.setHex(0x000000);
+      selectedMesh = null;
+    }
+    return;
+  }
+
+  const m = hits[0].object;
+
+  // Deselect previous
+  if (selectedMesh) {
+    selectedMesh.material[1].emissive.setHex(0x000000);
+    selectedMesh.material[0].emissive.setHex(0x000000);
+  }
+
+  selectedMesh = m;
+  m.material[1].emissive.setHex(0x1a0e06);
+  m.material[0].emissive.setHex(0x0f0804);
+
+  // Update side panel and draw trade flow arcs
+  updateSidePanel(m.userData.name);
+  drawArcs(m.userData.name);
+}
+
+function updateSidePanel(name) {
+  const key = GEO_NAME_MAP[name] || name;
+  const ti  = TRANSFORMATION_INDEX[key] || 0;
+  const rank = TI_RANKS[key];
+
+  document.getElementById('sp-country-name').textContent = name;
+
+  const rankEl = document.getElementById('sp-rank');
+  rankEl.textContent = rank ? `#${rank} by TI` : 'No TI data';
+  rankEl.style.background = rank ? 'var(--tan)' : 'var(--sand)';
+
+  document.getElementById('sp-ti').textContent = ti > 0 ? 'TI: ' + ti + '%' : 'TI: n/a';
+
+  // Top export partner by value
+  const valRow = TRADE_VALUE[key];
+  let topPartner = '—';
+  if (valRow) {
+    topPartner = 'Top export: ' + Object.entries(valRow).sort((a, b) => b[1] - a[1])[0][0];
+  }
+  document.getElementById('sp-top-export').textContent = topPartner;
+
+  // Total export volume (tonnes)
+  const qtyRow = TRADE_QUANTITY[key];
+  let totalTonnes = 0;
+  if (qtyRow) totalTonnes = Object.values(qtyRow).reduce((s, v) => s + v, 0);
+  document.getElementById('sp-vol').textContent = totalTonnes > 0 ? fmtQty(totalTonnes) + 't total' : '—';
+
+  populateTradeFlows(key);
+}
+
+function populateTradeFlows(key) {
+  const container = document.getElementById('sp-flows-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // ── Export rows (top 5, bar proportional to max partner qty) ──
+  const qtyRow = TRADE_QUANTITY[key];
+  if (qtyRow) {
+    const sorted  = Object.entries(qtyRow).sort((a, b) => b[1] - a[1]);
+    const maxQty  = sorted[0][1];
+    sorted.slice(0, 5).forEach(([partner, qty]) => {
+      const barW = Math.round(qty / maxQty * 100);
+      const row = document.createElement('div');
+      row.className = 'flow-row';
+      row.innerHTML = `
+        <span class="flow-arrow" style="color:#4A2C17">→</span>
+        <span class="flow-country">${partner}</span>
+        <div class="flow-bar-wrap" style="background:rgba(74,44,23,0.15)"><div class="flow-bar-fill" style="width:${barW}%;background:#4A2C17"></div></div>
+        <span class="flow-pct">${fmtQty(qty)}t</span>`;
+      container.appendChild(row);
+    });
+  } else {
+    container.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No trade data available</div>';
+    return;
+  }
+
+  // ── Import rows (top 3, scan matrix) ──
+  let importSrcs = [];
+  Object.entries(TRADE_QUANTITY).forEach(([reporter, row]) => {
+    if (reporter === key) return;
+    const qty = row[key];
+    if (qty) importSrcs.push([reporter, qty]);
+  });
+  importSrcs.sort((a, b) => b[1] - a[1]);
+  const top3 = importSrcs.slice(0, 3);
+  if (top3.length > 0) {
+    const maxImp = top3[0][1];
+    top3.forEach(([src, qty]) => {
+      const barW = Math.round(qty / maxImp * 100);
+      const row = document.createElement('div');
+      row.className = 'flow-row';
+      row.innerHTML = `
+        <span class="flow-arrow" style="color:#C8A96E">←</span>
+        <span class="flow-country">${src}</span>
+        <div class="flow-bar-wrap" style="background:rgba(200,169,110,0.15)"><div class="flow-bar-fill" style="width:${barW}%;background:#C8A96E"></div></div>
+        <span class="flow-pct">${fmtQty(qty)}t</span>`;
+      container.appendChild(row);
+    });
+  }
+}
+
+/* ── TRADE FLOW ARC SYSTEM ────────────────────────────────── */
+
+// Step 1: project lat/lng to scene XY + Z at extrusion top
+function latLngToXY(lat, lng, countryName) {
+  const p  = project(lng, lat);
+  const ti = countryName ? getTI(countryName) : 0;
+  const z  = ti * 1.2 + 2;
+  return { x: p.x, y: p.y, z };
+}
+
+// Step 4: remove all arc meshes and labels from scene / DOM
+function clearArcs() {
+  arcMeshes.forEach(m => scene.remove(m));
+  arcMeshes = [];
+  arcLabels.forEach(({ div }) => div.parentNode && div.parentNode.removeChild(div));
+  arcLabels = [];
+}
+
+// Internal: build one arc tube + arrowhead + label
+// qty = tonnes, pct = share of total (0-100), color = hex int, targetOpacity = fade target
+function buildArc(srcPos, dstPos, qty, pct, color, labelText, targetOpacity) {
+  const midX = (srcPos.x + dstPos.x) / 2;
+  const midY = (srcPos.y + dstPos.y) / 2;
+  const dist  = Math.sqrt((dstPos.x - srcPos.x) ** 2 + (dstPos.y - srcPos.y) ** 2);
+  const peakZ = Math.max(srcPos.z, dstPos.z) + 35 + dist * 0.15;
+
+  const src3  = new THREE.Vector3(srcPos.x, srcPos.y, srcPos.z);
+  const ctrl  = new THREE.Vector3(midX, midY, peakZ);
+  const dst3  = new THREE.Vector3(dstPos.x, dstPos.y, dstPos.z);
+  const curve = new THREE.QuadraticBezierCurve3(src3, ctrl, dst3);
+
+  const tubeRadius = 0.25 + (pct / 100) * 3.2;
+
+  // Tube
+  const tubeMat = new THREE.MeshLambertMaterial({ color, transparent: true, opacity: 0 });
+  const tubeGeo = new THREE.TubeGeometry(curve, 48, tubeRadius, 6, false);
+  const tube    = new THREE.Mesh(tubeGeo, tubeMat);
+  tube.userData.fadeStart     = Date.now();
+  tube.userData.targetOpacity = targetOpacity;
+  scene.add(tube);
+  arcMeshes.push(tube);
+
+  // Arrowhead cone at 97% along curve
+  const coneR   = tubeRadius * 2;
+  const coneH   = tubeRadius * 5;
+  const coneMat = new THREE.MeshLambertMaterial({ color, transparent: true, opacity: 0 });
+  const coneGeo = new THREE.ConeGeometry(coneR, coneH, 6);
+  const cone    = new THREE.Mesh(coneGeo, coneMat);
+  const tip     = curve.getPointAt(0.97);
+  const tang    = curve.getTangentAt(0.97).normalize();
+  cone.position.copy(tip);
+  cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tang);
+  cone.userData.fadeStart     = Date.now();
+  cone.userData.targetOpacity = targetOpacity;
+  scene.add(cone);
+  arcMeshes.push(cone);
+
+  // CSS overlay label — appended to map container (position:absolute)
+  const mapContainer = document.getElementById('map-container');
+  const midPt = curve.getPointAt(0.5);
+  const label = document.createElement('div');
+  label.className   = 'arc-label';
+  label.textContent = labelText;
+  mapContainer.appendChild(label);
+  arcLabels.push({ div: label, vec: midPt.clone() });
+}
+
+// Draw export + import arcs for a selected country using TRADE_QUANTITY
+function drawArcs(countryName) {
+  clearArcs();
+  const key     = GEO_NAME_MAP[countryName] || countryName;
+  const srcCent = CENTROIDS[key] || CENTROIDS[countryName];
+  if (!srcCent) return;
+  const srcTI  = (TRANSFORMATION_INDEX[key] || 5);
+  const srcPos = { x: project(srcCent[1], srcCent[0]).x,
+                   y: project(srcCent[1], srcCent[0]).y,
+                   z: srcTI * 1.2 + 2 };
+
+  // ── EXPORTS ──────────────────────────────────────────────
+  const qtyRow = TRADE_QUANTITY[key];
+  const FALLBACK_EXPORTS = { "USA":10,"Germany":10,"Italy":10,"Japan":10,"Belgium":10 };
+  const exportRow = qtyRow || FALLBACK_EXPORTS;
+  const exportSorted = Object.entries(exportRow).sort((a, b) => b[1] - a[1]);
+  const exportTotal  = exportSorted.reduce((s, [, v]) => s + v, 0);
+
+  exportSorted.slice(0, 5).forEach(([dest, qty]) => {
+    const c = CENTROIDS[dest]; if (!c) return;
+    const pct    = Math.round(qty / exportTotal * 100);
+    const dstTI  = (TRANSFORMATION_INDEX[dest] || 5);
+    const dstPos = { x: project(c[1], c[0]).x,
+                     y: project(c[1], c[0]).y,
+                     z: dstTI * 1.2 + 2 };
+    buildArc(srcPos, dstPos, qty, pct, 0x4A2C17,
+      `→ ${dest}  ${fmtQty(qty)}t  (${pct}%)`, 0.88);
+  });
+
+  // ── IMPORTS ──────────────────────────────────────────────
+  let importSrcs = [];
+  Object.entries(TRADE_QUANTITY).forEach(([reporter, row]) => {
+    if (reporter === key) return;
+    const qty = row[key] || row[countryName];
+    if (qty) importSrcs.push([reporter, qty]);
+  });
+  importSrcs.sort((a, b) => b[1] - a[1]);
+  const top3 = importSrcs.slice(0, 3);
+
+  if (top3.length === 0) {
+    // fallback imports
+    const fallbackImports = [["Brazil",50],["Vietnam",30],["Colombia",20]];
+    fallbackImports.forEach(([src, pct]) => {
+      const c = CENTROIDS[src]; if (!c) return;
+      const srcTI2  = (TRANSFORMATION_INDEX[src] || 5);
+      const srcPos2 = { x: project(c[1], c[0]).x,
+                        y: project(c[1], c[0]).y,
+                        z: srcTI2 * 1.2 + 2 };
+      buildArc(srcPos2, srcPos, 0, pct, 0xC8A96E,
+        `← ${src}  (${pct}%)`, 0.75);
+    });
+  } else {
+    const top3Total = top3.reduce((s, [, v]) => s + v, 0);
+    top3.forEach(([src, qty]) => {
+      const c = CENTROIDS[src]; if (!c) return;
+      const pct     = top3Total > 0 ? Math.round(qty / top3Total * 100) : 0;
+      const srcTI2  = (TRANSFORMATION_INDEX[src] || 5);
+      const srcPos2 = { x: project(c[1], c[0]).x,
+                        y: project(c[1], c[0]).y,
+                        z: srcTI2 * 1.2 + 2 };
+      buildArc(srcPos2, srcPos, qty, pct, 0xC8A96E,
+        `← ${src}  ${fmtQty(qty)}t  (${pct}%)`, 0.75);
+    });
+  }
+}
+
+/* ── BUILD COUNTRY MESHES ─────────────────────────────────── */
+function buildCountry(feature) {
+  const name   = feature.properties.name;
+  const ti     = getTI(name);
+  const depth  = getDepth(ti);
+  const topCol  = getTopColor(ti);
+  const sideCol = getSideColor(ti);
+
+  const geomType = feature.geometry.type;
+  const polys = geomType === 'Polygon'
+    ? [feature.geometry.coordinates]
+    : feature.geometry.coordinates;
+
+  polys.forEach(rings => {
+    try {
+      const outer = rings[0];
+      if (!outer || outer.length < 4) return;
+
+      const step = outer.length > 400 ? 4 : outer.length > 150 ? 3 : outer.length > 60 ? 2 : 1;
+      const shape = makeShape(outer, step);
+      if (!shape) return;
+
+      // Holes
+      for (let h = 1; h < rings.length; h++) {
+        const hole = rings[h];
+        if (!hole || hole.length < 4) continue;
+        const hstep = Math.max(1, Math.floor(step * 1.5));
+        const hpts = ringToPoints(hole, hstep);
+        if (hpts.length < 3) continue;
+        const path = new THREE.Path();
+        path.moveTo(hpts[0].x, hpts[0].y);
+        for (let i = 1; i < hpts.length; i++) path.lineTo(hpts[i].x, hpts[i].y);
+        path.closePath();
+        shape.holes.push(path);
+      }
+
+      const extOpts = { depth, bevelEnabled: false, steps: 1 };
+      const geo = new THREE.ExtrudeGeometry(shape, extOpts);
+
+      // Two materials: index 0 = sides, index 1 = caps
+      const mats = [
+        new THREE.MeshLambertMaterial({ color: sideCol }),
+        new THREE.MeshLambertMaterial({ color: topCol })
+      ];
+
+      const mesh = new THREE.Mesh(geo, mats);
+      mesh.userData = { name, ti };
+      countryMeshes.push(mesh);
+      scene.add(mesh);
+
+      // Country border line at base
+      const lineGeo = new THREE.BufferGeometry();
+      const pts3 = ringToPoints(outer, step).map(p => new THREE.Vector3(p.x, p.y, 0.1));
+      lineGeo.setFromPoints(pts3);
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x1A0F07, opacity: 0.6, transparent: true });
+      scene.add(new THREE.LineLoop(lineGeo, lineMat));
+
+    } catch (_) { /* skip malformed geometries */ }
+  });
+}
+
+/* ── LOAD GEOJSON ─────────────────────────────────────────── */
+function loadMap() {
+  const GEOJSON_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
+
+  fetch(GEOJSON_URL)
+    .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json(); })
+    .then(data => {
+      data.features.forEach(f => {
+        if (f.geometry) buildCountry(f);
+      });
+      document.getElementById('map-loading').classList.add('hidden');
+    })
+    .catch(err => {
+      const el = document.getElementById('map-loading');
+      el.innerHTML = '<span style="color:#C8A96E;font-size:11px;">⚠ Could not load map.<br>Requires internet access.</span>';
+      el.style.flexDirection = 'column';
+      console.error('GeoJSON load error:', err);
+    });
+}
+
+/* ── SLIDER ───────────────────────────────────────────────── */
+let playing = false;
+let playInterval = null;
+
+function setupSlider() {
+  const slider  = document.getElementById('year-slider');
+  const display = document.getElementById('year-display');
+  const yearBadge = document.getElementById('topbar-year');
+  const playBtn   = document.getElementById('slider-play');
+  const topPlay   = document.getElementById('topbar-play');
+
+  const xMin = 32, xMax = 265, yearMin = 1986, yearMax = 2024;
+
+  function setYear(val) {
+    display.textContent   = val;
+    yearBadge.textContent = val;
+    // Update slider fill via gradient
+    const pct = ((val - yearMin) / (yearMax - yearMin)) * 100;
+    slider.style.background = `linear-gradient(to right, #8B5E3C ${pct}%, #E8D5B0 ${pct}%)`;
+    // Update timeline cursor position
+    const cursorX = (xMin + ((val - yearMin) / (yearMax - yearMin)) * (xMax - xMin)).toFixed(1);
+    const cursor  = document.getElementById('timeline-cursor');
+    if (cursor) { cursor.setAttribute('x1', cursorX); cursor.setAttribute('x2', cursorX); }
+  }
+
+  slider.addEventListener('input', () => setYear(slider.value));
+
+  function togglePlay() {
+    playing = !playing;
+    const icon = playing ? '⏸' : '▶';
+    playBtn.textContent = icon;
+    topPlay.textContent = icon;
+
+    if (playing) {
+      playInterval = setInterval(() => {
+        let v = parseInt(slider.value) + 1;
+        if (v > 2024) v = 1986;
+        slider.value = v;
+        setYear(v);
+      }, 600);
+    } else {
+      clearInterval(playInterval);
+    }
+  }
+
+  playBtn.addEventListener('click', togglePlay);
+  topPlay.addEventListener('click', togglePlay);
+
+  setYear(2023);
+}
+
+/* ── TIMELINE ─────────────────────────────────────────────── */
+function setupTimeline() {
+  // x: 1986→32, 2024→265  (span 233px over 38 years)
+  // y: price → 88 - (price/5000)*73  (max plotted ~5000 USD)
+  const xMin = 32, xMax = 265, yearMin = 1986, yearMax = 2024;
+  const yBase = 88, yScale = 73, priceMax = 5000;
+
+  function toX(year)  { return +(xMin + ((year - yearMin) / (yearMax - yearMin)) * (xMax - xMin)).toFixed(1); }
+  function toY(price) { return +(yBase - Math.min(price / priceMax, 1) * yScale).toFixed(1); }
+
+  const years = Object.keys(PRICE_TIMELINE).map(Number).sort((a, b) => a - b);
+  const rawPairs  = years.map(yr => [toX(yr), toY(PRICE_TIMELINE[yr].raw)]);
+  const procPairs = years.map(yr => [toX(yr), toY(PRICE_TIMELINE[yr].processed)]);
+
+  const rawPts  = rawPairs.map(([x,y]) => `${x},${y}`).join(' ');
+  const procPts = procPairs.map(([x,y]) => `${x},${y}`).join(' ');
+
+  document.getElementById('timeline-raw').setAttribute('points', rawPts);
+  document.getElementById('timeline-proc').setAttribute('points', procPts);
+
+  // Area fills: polyline pts + bottom-right + bottom-left corners
+  document.getElementById('timeline-raw-area').setAttribute('points',
+    rawPts + ` ${xMax},${yBase} ${xMin},${yBase}`);
+  document.getElementById('timeline-proc-area').setAttribute('points',
+    procPts + ` ${xMax},${yBase} ${xMin},${yBase}`);
+
+  // Data-point dots
+  const ns = 'http://www.w3.org/2000/svg';
+  const dotsG = document.getElementById('timeline-dots');
+  dotsG.innerHTML = '';
+  rawPairs.forEach(([cx, cy]) => {
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', '2.5');
+    c.setAttribute('fill', '#4A2C17'); c.setAttribute('stroke', '#F5ECD7'); c.setAttribute('stroke-width', '0.8');
+    dotsG.appendChild(c);
+  });
+  procPairs.forEach(([cx, cy]) => {
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', '2.5');
+    c.setAttribute('fill', '#C8A96E'); c.setAttribute('stroke', '#F5ECD7'); c.setAttribute('stroke-width', '0.8');
+    dotsG.appendChild(c);
+  });
+
+  // End-of-line labels positioned at the last data point
+  const lastRaw  = rawPairs[rawPairs.length - 1];
+  const lastProc = procPairs[procPairs.length - 1];
+  const rawLbl  = document.getElementById('timeline-raw-label');
+  const procLbl = document.getElementById('timeline-proc-label');
+  if (rawLbl)  rawLbl.setAttribute('y',  lastRaw[1]  + 3);
+  if (procLbl) procLbl.setAttribute('y', lastProc[1] + 3);
+}
+
+/* ── INIT ─────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  setupSlider();
+  setupTimeline();
+  initThree();
+  loadMap();
+});
+</script>
+</body>
+</html>

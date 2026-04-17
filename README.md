@@ -91,6 +91,7 @@ This dataset has not been used by our team before.
 
 **10% of the final grade**
 
+The second milestone report is available here: [Milestone 2 Report](./Milestone2_BeanMap.pdf), with the MVP available here: [Milestone 2 MVP](https://beanmap.vercel.app). 
 
 ## Milestone 3 (29th May, 5pm)
 

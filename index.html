@@ -600,8 +600,12 @@ body {
 <!-- ══ SCRIPTS ══════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
-<script src="data_layer.js"></script>
+<!-- <script src="data_layer.js"></script> -->
 <script>
+
+let TRANSFORMATION_INDEX_BY_YEAR, TRADE_QUANTITY_BY_YEAR, TRADE_VALUE_BY_YEAR;
+let TRADE_QTY_RAW_BY_YEAR, TRADE_QTY_PROC_BY_YEAR, PROCESSED_SHARE_BY_YEAR;
+let PRICE_TIMELINE, TRADE_QUANTITY, TRADE_VALUE, TRANSFORMATION_INDEX;
 
 // Country centroids [lat, lng] used for arc routing on the 3D map.
 // Keep all existing centroid values — do not modify.
@@ -2144,12 +2148,46 @@ function setupTimeline() {
 
 /* ── INIT ─────────────────────────────────────────────────── */
 window.addEventListener('DOMContentLoaded', () => {
-  rebuildExportVolumes(2023);
-  setupTimeline();   // must run before setupSlider so timelineUpdate is ready
-  setupSlider();
-  initThree();
-  loadMap();
-  updateSankey(2023);
+  // 1. Show the loading screen while we fetch the data
+  const loadingEl = document.getElementById('map-loading');
+  loadingEl.textContent = 'Fetching global trade data...';
+  loadingEl.classList.remove('hidden');
+
+  // 2. Your new GitHub Pages link
+  const DATA_URL = 'https://mass-14.github.io/BeanMap-data/data_layer.json';
+
+  // 3. Fetch the data asynchronously
+  fetch(DATA_URL)
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
+    .then(data => {
+      // 4. Assign the fetched data to your global variables
+      TRANSFORMATION_INDEX_BY_YEAR = data.TRANSFORMATION_INDEX_BY_YEAR;
+      TRADE_QUANTITY_BY_YEAR = data.TRADE_QUANTITY_BY_YEAR;
+      TRADE_VALUE_BY_YEAR = data.TRADE_VALUE_BY_YEAR;
+      TRADE_QTY_RAW_BY_YEAR = data.TRADE_QTY_RAW_BY_YEAR;
+      TRADE_QTY_PROC_BY_YEAR = data.TRADE_QTY_PROC_BY_YEAR;
+      PROCESSED_SHARE_BY_YEAR = data.PROCESSED_SHARE_BY_YEAR;
+      PRICE_TIMELINE = data.PRICE_TIMELINE;
+      TRADE_QUANTITY = data.TRADE_QUANTITY;
+      TRADE_VALUE = data.TRADE_VALUE;
+      TRANSFORMATION_INDEX = data.TRANSFORMATION_INDEX;
+
+      // 5. Initialize the application now that we have data
+      rebuildExportVolumes(2023);
+      setupTimeline();   
+      setupSlider();
+      initThree();
+      loadMap();         // (loadMap handles hiding the loading screen when done)
+      updateSankey(2023);
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+      loadingEl.innerHTML = '<span style="color:#C8A96E;font-size:11px;">⚠ Could not load trade data. Check your GitHub Pages link.</span>';
+      loadingEl.style.flexDirection = 'column';
+    });
 });
 </script>
 </body>

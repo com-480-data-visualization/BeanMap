@@ -1,0 +1,9 @@
+# Ignore the raw CSV data folder
+data/
+
+# Ignore the heavy generated files
+data_layer.js
+data_layer.json
+
+# Ignore the build script itself (optional, but good practice)
+build_data.js

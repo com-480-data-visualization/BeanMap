@@ -669,15 +669,9 @@ const GEO_NAME_MAP = {
 
 // All countries ever appearing as a trade partner across any year (for globe coloring)
 const ALL_PARTNERS = new Set();
-Object.values(TRADE_QUANTITY_BY_YEAR).forEach(snap => {
-  Object.values(snap).forEach(row => { Object.keys(row).forEach(k => ALL_PARTNERS.add(k)); });
-});
 
 // Ranking by Transformation Index (1 = highest TI)
 const TI_RANKS = {};
-Object.entries(PROCESSED_SHARE_BY_YEAR[2023] || {})
-  .sort((a, b) => b[1] - a[1])
-  .forEach(([k], i) => { TI_RANKS[k] = i + 1; });
 
 // Helper: resolve any name (GeoJSON or canonical) → processed share (0-100)
 function getTI(name) {
@@ -2174,6 +2168,14 @@ window.addEventListener('DOMContentLoaded', () => {
       TRADE_QUANTITY = data.TRADE_QUANTITY;
       TRADE_VALUE = data.TRADE_VALUE;
       TRANSFORMATION_INDEX = data.TRANSFORMATION_INDEX;
+
+      Object.values(TRADE_QUANTITY_BY_YEAR).forEach(snap => {
+        Object.values(snap).forEach(row => { Object.keys(row).forEach(k => ALL_PARTNERS.add(k)); });
+      });
+
+      Object.entries(PROCESSED_SHARE_BY_YEAR[2023] || {})
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([k], i) => { TI_RANKS[k] = i + 1; });
 
       // 5. Initialize the application now that we have data
       rebuildExportVolumes(2023);

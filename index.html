@@ -1,2196 +1,2504 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coffee Value Chain — Global Dashboard</title>
-<style>
-/* ── VARIABLES ─────────────────────────────────────────── */
-:root {
-  --cream:    #F5ECD7;
-  --sand:     #E8D5B0;
-  --tan:      #C8A96E;
-  --coffee:   #6B4226;
-  --espresso: #4A2C17;
-  --roast:    #2C1A0E;
-  --ink:      #2A1A0E;
-  --fog:      #E2D8C3;
-  --white:    #EDE5D0;
-  --border:   rgba(92,56,28,0.13);
-  --bg-app:   #D2C8B0;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coffee Value Chain — Global Dashboard</title>
+  <style>
+    /* ── VARIABLES ─────────────────────────────────────────── */
+    :root {
+      --cream: #F5ECD7;
+      --sand: #E8D5B0;
+      --tan: #C8A96E;
+      --coffee: #6B4226;
+      --espresso: #4A2C17;
+      --roast: #2C1A0E;
+      --ink: #2A1A0E;
+      --fog: #E2D8C3;
+      --white: #EDE5D0;
+      --border: rgba(92, 56, 28, 0.13);
+      --bg-app: #D2C8B0;
+    }
 
-body {
-  display: grid;
-  grid-template-rows: 48px 55vh 12px 36px 1fr;
-  height: 100vh;
-  background: var(--bg-app);
-  font-family: system-ui, -apple-system, sans-serif;
-  color: var(--ink);
-  gap: 0;
-}
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* ── ROW 1: TOP BAR ────────────────────────────────────── */
-#topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 18px;
-  background: #7A5234;
-  border-bottom: 1px solid rgba(92,56,28,0.3);
-  flex-shrink: 0;
-}
-#topbar h1 {
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  color: var(--cream);
-  text-transform: uppercase;
-  flex: 1;
-}
-.coffee-bean { font-size: 16px; opacity: 0.8; }
-.year-badge {
-  background: var(--tan);
-  color: var(--ink);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 10px;
-  letter-spacing: 0.04em;
-}
-#topbar-play {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.18);
-  color: #FFFFFF;
-  border: 2px solid rgba(255,255,255,0.75);
-  cursor: pointer;
-  font-size: 10px;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s;
-}
-#topbar-play:hover { background: rgba(255,255,255,0.30); }
-/* ── ROW 2: MAIN AREA ──────────────────────────────────── */
-#main-row {
-  display: flex;
-  overflow: hidden;
-  border-bottom: 1px solid var(--border);
-  min-height: 0;
-}
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
 
-/* Map container */
-#map-container {
-  flex: 3;
-  position: relative;
-  overflow: hidden;
-  background: #E2D8C3;
-  border-right: 1px solid var(--border);
-  min-width: 0;
-}
-#map-container canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-}
-#map-loading {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--roast);
-  font-size: 12px;
-  color: var(--tan);
-  letter-spacing: 0.08em;
-  z-index: 2;
-}
-#map-loading.hidden { display: none; }
+    body {
+      display: grid;
+      grid-template-rows: 48px 55vh 12px 36px 1fr;
+      height: 100vh;
+      background: var(--bg-app);
+      font-family: system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      gap: 0;
+    }
 
-/* Side panel */
-#side-panel {
-  flex: 1;
-  min-width: 260px;
-  max-width: 310px;
-  background: var(--fog);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
-.sp-section {
-  border-bottom: 1px solid var(--border);
-  padding: 10px 12px;
-  position: relative;
-}
-.sp-section:last-child { border-bottom: none; flex: 1; overflow-y: auto; }
-.sp-title {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--coffee);
-  font-weight: 600;
-  margin-bottom: 7px;
-  font-variant: small-caps;
-}
+    /* ── ROW 1: TOP BAR ────────────────────────────────────── */
+    #topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      background: #7A5234;
+      border-bottom: 1px solid rgba(92, 56, 28, 0.3);
+      flex-shrink: 0;
+    }
 
-/* Section A: country header */
-#sp-country-name {
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--ink);
-  line-height: 1.1;
-  margin-bottom: 4px;
-}
-.sp-rank { background: var(--tan); color: var(--ink); font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 8px; margin-left: 6px; vertical-align: middle; }
-.stat-pills { display: flex; gap: 5px; margin-top: 6px; }
-.stat-pill {
-  flex: 1; background: rgba(92,56,28,0.06); border: 1px solid rgba(92,56,28,0.15);
-  border-radius: 4px; padding: 5px 3px; text-align: center; min-width: 0;
-}
-.stat-pill .sv { font-size: 10px; font-weight: 600; color: var(--espresso); display: block; }
-.stat-pill .sl { font-size: 7px; color: var(--coffee); display: block; margin-top: 1px; line-height: 1.3; }
-.stat-pill .sc { color: var(--coffee); font-weight: 500; }
+    #topbar h1 {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--cream);
+      text-transform: uppercase;
+      flex: 1;
+    }
 
-/* Section B: bar chart */
-.bar-legend { display: flex; gap: 10px; margin-bottom: 6px; }
-.bar-leg-item { display: flex; align-items: center; gap: 4px; font-size: 8px; color: var(--coffee); }
-.bar-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
-.bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.bar-year { font-size: 8.5px; color: var(--espresso); width: 26px; flex-shrink: 0; font-weight: 500; }
-.bar-track { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.bar-fill {
-  height: 5px; border-radius: 2px;
-  transition: width 0.3s ease;
-}
-.bar-val { font-size: 7.5px; color: var(--espresso); width: 36px; flex-shrink: 0; text-align: right; font-weight: 500; }
+    .coffee-bean {
+      font-size: 16px;
+      opacity: 0.8;
+    }
 
-/* Section C: trade flows */
-.flow-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid rgba(92,56,28,0.1); }
-.flow-row:last-child { border-bottom: none; }
-.flow-arrow { font-size: 11px; flex-shrink: 0; }
-.flow-country { font-size: 9px; color: var(--ink); flex: 1; min-width: 0; }
-.flow-bars { display: flex; flex-direction: column; gap: 2px; width: 55px; flex-shrink: 0; }
-.flow-bar-wrap { width: 55px; height: 3px; background: rgba(92,56,28,0.10); border-radius: 2px; overflow: hidden; }
-.flow-bar-fill { height: 100%; border-radius: 2px; }
-.flow-bar-label { font-size: 6px; color: rgba(74,44,23,0.55); line-height: 1; }
-.flow-pct { font-size: 8.5px; font-weight: 600; color: var(--espresso); width: 30px; text-align: right; flex-shrink: 0; }
+    .year-badge {
+      background: var(--tan);
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 10px;
+      letter-spacing: 0.04em;
+    }
 
-/* ── ROW 3: TICK LABELS ────────────────────────────────── */
-#tick-row {
-  background: #7A5234;
-  border-bottom: 1px solid rgba(92,56,28,0.3);
-  display: flex;
-  align-items: center;
-  padding: 0 70px 0 58px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.tick-labels-inner {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  font-size: 9px;
-  font-weight: 500;
-  color: #FFFFFF;
-  letter-spacing: 0.04em;
-  pointer-events: none;
-}
+    #topbar-play {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      color: #FFFFFF;
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      cursor: pointer;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
 
-/* ── ROW 4: SLIDER ─────────────────────────────────────── */
-#slider-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 16px;
-  background: #7A5234;
-  border-bottom: 1px solid rgba(92,56,28,0.3);
-  flex-shrink: 0;
-}
-#slider-play {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.18);
-  color: #FFFFFF;
-  border: 2px solid rgba(255,255,255,0.75);
-  cursor: pointer;
-  font-size: 10px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.15s;
-}
-#slider-play:hover { background: rgba(255,255,255,0.30); }
-#year-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 5px;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.45);
-  outline: none;
-  cursor: pointer;
-}
-#year-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 15px; height: 15px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  border: 2px solid rgba(245,236,215,0.9);
-  cursor: grab;
-  transition: transform 0.1s;
-}
-#year-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.2); }
-#year-slider::-moz-range-thumb {
-  width: 15px; height: 15px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  border: 2px solid rgba(245,236,215,0.9);
-  cursor: grab;
-}
-#year-display {
-  font-size: 13px;
-  font-weight: 700;
-  color: #FFFFFF;
-  width: 36px;
-  text-align: right;
-  flex-shrink: 0;
-}
+    #topbar-play:hover {
+      background: rgba(255, 255, 255, 0.30);
+    }
 
-/* ── ROW 5: BOTTOM PANELS ──────────────────────────────── */
-#bottom-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 0;
-  overflow: hidden;
-}
-.bot-panel {
-  position: relative;
-  overflow: hidden;
-  padding: 9px 11px;
-  background: #E2D8C3;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-.bot-panel:last-child { border-right: none; }
-.bot-title {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--coffee);
-  font-weight: 600;
-  margin-bottom: 5px;
-  flex-shrink: 0;
-  font-variant: small-caps;
-}
+    /* ── ROW 2: MAIN AREA ──────────────────────────────────── */
+    #main-row {
+      display: flex;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      min-height: 0;
+    }
 
-/* ── WIDGET ANNOTATION ─────────────────────────────────── */
-.w-annot {
-  position: absolute;
-  bottom: 7px; right: 7px;
-  background: rgba(42,28,14,0.80);
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 8.5px;
-  font-style: italic;
-  color: rgba(245,236,215,0.55);
-  line-height: 1.5;
-  max-width: 200px;
-  pointer-events: none;
-  z-index: 3;
-}
+    /* Map container */
+    #map-container {
+      flex: 3;
+      position: relative;
+      overflow: hidden;
+      background: #E2D8C3;
+      border-right: 1px solid var(--border);
+      min-width: 0;
+    }
 
-/* ── TOOLTIP ───────────────────────────────────────────── */
-#map-tooltip {
-  position: fixed;
-  background: var(--roast);
-  border: 1px solid var(--tan);
-  border-radius: 4px;
-  padding: 5px 9px;
-  font-size: 9.5px;
-  color: var(--cream);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.1s;
-  z-index: 100;
-  white-space: nowrap;
-}
-#map-tooltip.show { opacity: 1; }
+    #map-container canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
 
-/* ── ARC LABELS ────────────────────────────────────────── */
-.arc-label {
-  position: absolute;
-  pointer-events: none;
-  font-size: 9px;
-  font-family: system-ui, -apple-system, sans-serif;
-  background: rgba(42,28,14,0.82);
-  color: #F5ECD7;
-  padding: 2px 7px;
-  border-radius: 3px;
-  z-index: 10;
-  white-space: nowrap;
-  transform: translate(-50%, -50%);
-  letter-spacing: 0.03em;
-}
+    #map-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--roast);
+      font-size: 12px;
+      color: var(--tan);
+      letter-spacing: 0.08em;
+      z-index: 2;
+    }
 
-/* ── ARC LEGEND ────────────────────────────────────────── */
-#arc-legend {
-  position: absolute;
-  bottom: 28px;
-  left: 8px;
-  background: rgba(42,28,14,0.82);
-  border-radius: 4px;
-  padding: 6px 10px;
-  pointer-events: none;
-  z-index: 3;
-}
-.arc-legend-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 8.5px;
-  font-style: italic;
-  color: rgba(245,236,215,0.68);
-  margin-bottom: 4px;
-  letter-spacing: 0.03em;
-}
-.arc-legend-row:last-child { margin-bottom: 0; }
-.alg-sw {
-  display: inline-block;
-  width: 22px;
-  height: 4px;
-  border-radius: 2px;
-  flex-shrink: 0;
-  position: relative;
-}
-/* arrowhead hint on swatch */
-.alg-sw::after {
-  content: '';
-  position: absolute;
-  right: -4px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-left: 5px solid currentColor;
-  border-top: 3px solid transparent;
-  border-bottom: 3px solid transparent;
-}
+    #map-loading.hidden {
+      display: none;
+    }
 
-/* scrollbar */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-thumb { background: var(--sand); border-radius: 2px; }
-</style>
+    /* Side panel */
+    #side-panel {
+      flex: 1;
+      min-width: 260px;
+      max-width: 310px;
+      background: var(--fog);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sp-section {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+      position: relative;
+    }
+
+    .sp-section:last-child {
+      border-bottom: none;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sp-title {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--coffee);
+      font-weight: 600;
+      margin-bottom: 7px;
+      font-variant: small-caps;
+    }
+
+    /* Section A: country header */
+    #sp-country-name {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .sp-rank {
+      background: var(--tan);
+      color: var(--ink);
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 8px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .stat-pills {
+      display: flex;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    .stat-pill {
+      flex: 1;
+      background: rgba(92, 56, 28, 0.06);
+      border: 1px solid rgba(92, 56, 28, 0.15);
+      border-radius: 4px;
+      padding: 5px 3px;
+      text-align: center;
+      min-width: 0;
+    }
+
+    .stat-pill .sv {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--espresso);
+      display: block;
+    }
+
+    .stat-pill .sl {
+      font-size: 7px;
+      color: var(--coffee);
+      display: block;
+      margin-top: 1px;
+      line-height: 1.3;
+    }
+
+    .stat-pill .sc {
+      color: var(--coffee);
+      font-weight: 500;
+    }
+
+    /* Section B: bar chart */
+    .bar-legend {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .bar-leg-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 8px;
+      color: var(--coffee);
+    }
+
+    .bar-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .bar-year {
+      font-size: 8.5px;
+      color: var(--espresso);
+      width: 26px;
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+
+    .bar-track {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .bar-fill {
+      height: 5px;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .bar-val {
+      font-size: 7.5px;
+      color: var(--espresso);
+      width: 36px;
+      flex-shrink: 0;
+      text-align: right;
+      font-weight: 500;
+    }
+
+    /* Section C: trade flows */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(92, 56, 28, 0.1);
+    }
+
+    .flow-row:last-child {
+      border-bottom: none;
+    }
+
+    .flow-arrow {
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .flow-country {
+      font-size: 9px;
+      color: var(--ink);
+      flex: 1;
+      min-width: 0;
+    }
+
+    .flow-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 55px;
+      flex-shrink: 0;
+    }
+
+    .flow-bar-wrap {
+      width: 55px;
+      height: 3px;
+      background: rgba(92, 56, 28, 0.10);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .flow-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+    }
+
+    .flow-bar-label {
+      font-size: 6px;
+      color: rgba(74, 44, 23, 0.55);
+      line-height: 1;
+    }
+
+    .flow-pct {
+      font-size: 8.5px;
+      font-weight: 600;
+      color: var(--espresso);
+      width: 30px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── ROW 3: TICK LABELS ────────────────────────────────── */
+    #tick-row {
+      background: #7A5234;
+      border-bottom: 1px solid rgba(92, 56, 28, 0.3);
+      display: flex;
+      align-items: center;
+      padding: 0 70px 0 58px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .tick-labels-inner {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      font-weight: 500;
+      color: #FFFFFF;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+    }
+
+    /* ── ROW 4: SLIDER ─────────────────────────────────────── */
+    #slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: #7A5234;
+      border-bottom: 1px solid rgba(92, 56, 28, 0.3);
+      flex-shrink: 0;
+    }
+
+    #slider-play {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      color: #FFFFFF;
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      cursor: pointer;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    #slider-play:hover {
+      background: rgba(255, 255, 255, 0.30);
+    }
+
+    #year-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.45);
+      outline: none;
+      cursor: pointer;
+    }
+
+    #year-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2px solid rgba(245, 236, 215, 0.9);
+      cursor: grab;
+      transition: transform 0.1s;
+    }
+
+    #year-slider::-webkit-slider-thumb:active {
+      cursor: grabbing;
+      transform: scale(1.2);
+    }
+
+    #year-slider::-moz-range-thumb {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2px solid rgba(245, 236, 215, 0.9);
+      cursor: grab;
+    }
+
+    #year-display {
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFFFFF;
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── ROW 5: BOTTOM PANELS ──────────────────────────────── */
+    #bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .bot-panel {
+      position: relative;
+      overflow: hidden;
+      padding: 9px 11px;
+      background: #E2D8C3;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .bot-panel:last-child {
+      border-right: none;
+    }
+
+    .bot-title {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--coffee);
+      font-weight: 600;
+      margin-bottom: 5px;
+      flex-shrink: 0;
+      font-variant: small-caps;
+    }
+
+    /* ── WIDGET ANNOTATION ─────────────────────────────────── */
+    .w-annot {
+      position: absolute;
+      bottom: 7px;
+      right: 7px;
+      background: rgba(42, 28, 14, 0.80);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 8.5px;
+      font-style: italic;
+      color: rgba(245, 236, 215, 0.55);
+      line-height: 1.5;
+      max-width: 200px;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* ── TOOLTIP ───────────────────────────────────────────── */
+    #map-tooltip {
+      position: fixed;
+      background: var(--roast);
+      border: 1px solid var(--tan);
+      border-radius: 4px;
+      padding: 5px 9px;
+      font-size: 9.5px;
+      color: var(--cream);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    #map-tooltip.show {
+      opacity: 1;
+    }
+
+    /* ── ARC LABELS ────────────────────────────────────────── */
+    .arc-label {
+      position: absolute;
+      pointer-events: none;
+      font-size: 9px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: rgba(42, 28, 14, 0.82);
+      color: #F5ECD7;
+      padding: 2px 7px;
+      border-radius: 3px;
+      z-index: 10;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── ARC LEGEND ────────────────────────────────────────── */
+    #arc-legend {
+      position: absolute;
+      bottom: 28px;
+      left: 8px;
+      background: rgba(42, 28, 14, 0.82);
+      border-radius: 4px;
+      padding: 6px 10px;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .arc-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 8.5px;
+      font-style: italic;
+      color: rgba(245, 236, 215, 0.68);
+      margin-bottom: 4px;
+      letter-spacing: 0.03em;
+    }
+
+    .arc-legend-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .alg-sw {
+      display: inline-block;
+      width: 22px;
+      height: 4px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    /* arrowhead hint on swatch */
+    .alg-sw::after {
+      content: '';
+      position: absolute;
+      right: -4px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-left: 5px solid currentColor;
+      border-top: 3px solid transparent;
+      border-bottom: 3px solid transparent;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--sand);
+      border-radius: 2px;
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ══ ROW 1: TOP BAR ═══════════════════════════════════════ -->
-<div id="topbar">
-  <h1><span style="color:#FFFFFF">B</span><span style="color:#F0E4CC">e</span><span style="color:#D9C090">a</span><span style="color:#C4A870">n</span><span style="color:#D9C090">M</span><span style="color:#F0E4CC">a</span><span style="color:#FFFFFF">p</span></h1>
-  <span style="font-size:10px;color:rgba(245,236,215,1);letter-spacing:.06em;font-weight:600;">YEAR</span>
-  <span class="year-badge" id="topbar-year">2023</span>
-  <button id="topbar-play" title="Play timeline">▶</button>
-</div>
-
-<!-- ══ ROW 2: MAIN AREA ════════════════════════════════════ -->
-<div id="main-row">
-
-  <!-- Widget 1: 3D Map -->
-  <div id="map-container">
-    <div id="map-loading">Loading map data…</div>
-
-    <!-- Arc type legend -->
-    <div id="arc-legend">
-      <div class="arc-legend-row">
-        <span class="alg-sw" style="background:#5C3317;color:#5C3317"></span>
-        Export raw →
-      </div>
-      <div class="arc-legend-row">
-        <span class="alg-sw" style="background:#A0522D;color:#A0522D"></span>
-        Export proc. →
-      </div>
-      <div class="arc-legend-row">
-        <span class="alg-sw" style="background:#B8935A;color:#B8935A"></span>
-        ← Import raw
-      </div>
-      <div class="arc-legend-row">
-        <span class="alg-sw" style="background:#E8C878;color:#E8C878"></span>
-        ← Import proc.
-      </div>
-    </div>
-
-    <!-- TI color scale legend -->
-    <div id="ti-legend" style="position:absolute;bottom:8px;right:8px;background:rgba(42,28,14,0.82);border-radius:4px;padding:6px 9px;pointer-events:none;z-index:3;">
-      <div style="font-size:8px;font-weight:600;color:#C8A96E;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">Transformation Index</div>
-      <div style="font-size:7px;color:rgba(245,236,215,0.55);margin-bottom:5px;font-style:italic;">Colour = export/import type · Height = volume</div>
-      <div style="display:flex;height:7px;border-radius:2px;overflow:hidden;width:110px;margin-bottom:3px;">
-        <div style="flex:1;background:#5C3317;"></div>
-        <div style="flex:1;background:#A0522D;"></div>
-        <div style="flex:1;background:#B8935A;"></div>
-        <div style="flex:1;background:#E8C878;"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;width:110px;margin-bottom:5px;">
-        <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">Exp.Raw</span>
-        <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">Exp.Proc</span>
-        <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">Imp.Raw</span>
-        <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">Imp.Proc</span>
-      </div>
-      <div style="font-size:7px;color:rgba(245,236,215,0.38);font-style:italic;line-height:1.5;">
-        Hover for TI % · Click to select<br>Drag to rotate · scroll to zoom
-      </div>
-    </div>
+  <!-- ══ ROW 1: TOP BAR ═══════════════════════════════════════ -->
+  <div id="topbar">
+    <h1><span style="color:#FFFFFF">B</span><span style="color:#F0E4CC">e</span><span
+        style="color:#D9C090">a</span><span style="color:#C4A870">n</span><span style="color:#D9C090">M</span><span
+        style="color:#F0E4CC">a</span><span style="color:#FFFFFF">p</span></h1>
+    <span style="font-size:10px;color:rgba(245,236,215,1);letter-spacing:.06em;font-weight:600;">YEAR</span>
+    <span class="year-badge" id="topbar-year">2023</span>
+    <button id="topbar-play" title="Play timeline">▶</button>
   </div>
 
-  <!-- Widget 2: Country Detail Side Panel -->
-  <div id="side-panel">
+  <!-- ══ ROW 2: MAIN AREA ════════════════════════════════════ -->
+  <div id="main-row">
 
-    <!-- Section A: Header -->
-    <div class="sp-section" style="flex-shrink:0;">
-      <div>
-        <span id="sp-country-name">Brazil</span>
-        <span class="sp-rank" id="sp-rank">#1 Producer</span>
+    <!-- Widget 1: 3D Map -->
+    <div id="map-container">
+      <div id="map-loading">Loading map data…</div>
+
+      <!-- Arc type legend -->
+      <div id="arc-legend">
+        <div class="arc-legend-row">
+          <span class="alg-sw" style="background:#5C3317;color:#5C3317"></span>
+          Export raw →
+        </div>
+        <div class="arc-legend-row">
+          <span class="alg-sw" style="background:#A0522D;color:#A0522D"></span>
+          Export proc. →
+        </div>
+        <div class="arc-legend-row">
+          <span class="alg-sw" style="background:#B8935A;color:#B8935A"></span>
+          ← Import raw
+        </div>
+        <div class="arc-legend-row">
+          <span class="alg-sw" style="background:#E8C878;color:#E8C878"></span>
+          ← Import proc.
+        </div>
       </div>
-      <div class="stat-pills">
-        <div class="stat-pill">
-          <span class="sv" id="sp-ti">—</span>
-          <span class="sl">Transform.<br>Index</span>
+
+      <!-- TI color scale legend -->
+      <div id="ti-legend"
+        style="position:absolute;bottom:8px;right:8px;background:rgba(42,28,14,0.82);border-radius:4px;padding:6px 9px;pointer-events:none;z-index:3;">
+        <div
+          style="font-size:8px;font-weight:600;color:#C8A96E;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">
+          Transformation Index</div>
+        <div style="font-size:7px;color:rgba(245,236,215,0.55);margin-bottom:5px;font-style:italic;">Colour =
+          export/import type · Height = visual score</div>
+        <div style="display:flex;height:7px;border-radius:2px;overflow:hidden;width:110px;margin-bottom:3px;">
+          <div style="flex:1;background:#5C3317;"></div>
+          <div style="flex:1;background:#A0522D;"></div>
+          <div style="flex:1;background:#B8935A;"></div>
+          <div style="flex:1;background:#E8C878;"></div>
         </div>
-        <div class="stat-pill">
-          <span class="sv" id="sp-top-export">—</span>
-          <span class="sl" id="sp-top-export-lbl">Top export<br>partner</span>
+        <div style="display:flex;justify-content:space-between;width:110px;margin-bottom:5px;">
+          <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">Exp.Raw</span>
+          <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">Exp.Proc</span>
+          <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">Imp.Raw</span>
+          <span style="font-size:6.5px;color:rgba(200,169,110,0.7);">Imp.Proc</span>
         </div>
-        <div class="stat-pill">
-          <span class="sv" id="sp-vol">—</span>
-          <span class="sl" id="sp-vol-lbl">Total export<br>volume</span>
+        <div style="font-size:7px;color:rgba(245,236,215,0.38);font-style:italic;line-height:1.5;">
+          Hover for TI net quantity · Click to select<br>Drag to rotate · scroll to zoom
         </div>
-        <div class="stat-pill">
-          <span class="sv" id="sp-imp-vol">—</span>
-          <span class="sl" id="sp-imp-vol-lbl">Total import<br>volume</span>
-        </div>
-      </div>
-      <div class="w-annot" style="position:static;background:none;border:none;padding:2px 0 0;font-size:8px;color:rgba(74,44,23,0.5);max-width:none;">
-        Stat pills update on country select
       </div>
     </div>
 
-    <!-- Section B: Processing Margin Bars -->
-    <div class="sp-section" style="flex-shrink:0;">
-      <div class="sp-title">Raw vs. processed export value · USD/tonne</div>
-      <div id="sp-bar-chart-rows"></div>
-    </div>
+    <!-- Widget 2: Country Detail Side Panel -->
+    <div id="side-panel">
 
-    <!-- Show Value / Show Weight toggle — absolute top-right of panel -->
-    <button id="flow-mode-btn"
-      style="position:absolute;top:10px;right:10px;z-index:10;
+      <!-- Section A: Header -->
+      <div class="sp-section" style="flex-shrink:0;">
+        <div>
+          <span id="sp-country-name">Brazil</span>
+          <span class="sp-rank" id="sp-rank">#1 Producer</span>
+        </div>
+        <div class="stat-pills">
+          <div class="stat-pill">
+            <span class="sv" id="sp-ti">—</span>
+            <span class="sl">Transform.<br>Index</span>
+          </div>
+          <div class="stat-pill">
+            <span class="sv" id="sp-top-export">—</span>
+            <span class="sl" id="sp-top-export-lbl">Top export<br>partner</span>
+          </div>
+          <div class="stat-pill">
+            <span class="sv" id="sp-vol">—</span>
+            <span class="sl" id="sp-vol-lbl">Total export<br>volume</span>
+          </div>
+          <div class="stat-pill">
+            <span class="sv" id="sp-imp-vol">—</span>
+            <span class="sl" id="sp-imp-vol-lbl">Total import<br>volume</span>
+          </div>
+        </div>
+        <div class="w-annot"
+          style="position:static;background:none;border:none;padding:2px 0 0;font-size:8px;color:rgba(74,44,23,0.5);max-width:none;">
+          Stat pills update on country select
+        </div>
+      </div>
+
+      <!-- Section B: Processing Margin Bars -->
+      <div class="sp-section" style="flex-shrink:0;">
+        <div class="sp-title">Raw vs. processed export value · USD/tonne</div>
+        <div id="sp-bar-chart-rows"></div>
+      </div>
+
+      <!-- Show Value / Show Weight toggle — absolute top-right of panel -->
+      <button id="flow-mode-btn" style="position:absolute;top:10px;right:10px;z-index:10;
              font-size:8px;padding:2px 8px;border-radius:8px;border:1px solid var(--tan);
              background:var(--espresso);color:var(--cream);cursor:pointer;letter-spacing:.04em;">
-      Show Value
-    </button>
+        Show Value
+      </button>
 
-    <!-- Section C: Export Flows -->
-    <div class="sp-section" style="flex:1;overflow-y:auto;min-height:0;">
-      <div style="margin-bottom:4px;">
-        <div class="sp-title" style="margin-bottom:0" id="sp-export-title">Top export flows</div>
+      <!-- Section C: Export Flows -->
+      <div class="sp-section" style="flex:1;overflow-y:auto;min-height:0;">
+        <div style="margin-bottom:4px;">
+          <div class="sp-title" style="margin-bottom:0" id="sp-export-title">Top export flows</div>
+        </div>
+        <div id="sp-flows-export">
+          <div style="font-size:9px;color:var(--coffee);padding:4px 0;">Click a country to see flows.</div>
+        </div>
       </div>
-      <div id="sp-flows-export">
-        <div style="font-size:9px;color:var(--coffee);padding:4px 0;">Click a country to see flows.</div>
-      </div>
-    </div>
 
-    <!-- Section D: Import Flows -->
-    <div class="sp-section" style="flex:1;overflow-y:auto;min-height:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <div class="sp-title" style="margin-bottom:0" id="sp-import-title">Top import flows</div>
-        <div id="sp-import-summary" style="font-size:8px;font-weight:600;color:var(--espresso);
+      <!-- Section D: Import Flows -->
+      <div class="sp-section" style="flex:1;overflow-y:auto;min-height:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="sp-title" style="margin-bottom:0" id="sp-import-title">Top import flows</div>
+          <div id="sp-import-summary" style="font-size:8px;font-weight:600;color:var(--espresso);
              background:var(--sand);border-radius:6px;padding:2px 7px;flex-shrink:0;"></div>
+        </div>
+        <div id="sp-flows-import"></div>
       </div>
-      <div id="sp-flows-import"></div>
+
+      <!-- Section E: Concentration bars (populated dynamically by updateSidePanel) -->
+      <div id="sp-concentration" style="flex-shrink:0;padding:5px 12px 6px;border-top:1px solid var(--border);"></div>
+
+    </div><!-- /side-panel -->
+  </div><!-- /main-row -->
+
+  <!-- ══ ROW 3: TICK LABELS ═══════════════════════════════════ -->
+  <div id="tick-row">
+    <div style="width:44px;flex-shrink:0;"></div><!-- play btn spacer -->
+    <div class="tick-labels-inner">
+      <span>1986</span><span>1990</span><span>1995</span><span>2000</span>
+      <span>2005</span><span>2010</span><span>2015</span><span>2020</span><span>2024</span>
+    </div>
+    <div style="width:42px;flex-shrink:0;"></div><!-- year display spacer -->
+  </div>
+
+  <!-- ══ ROW 4: YEAR SLIDER ═══════════════════════════════════ -->
+  <div id="slider-row">
+    <button id="slider-play" title="Play / pause">▶</button>
+    <input type="range" id="year-slider" min="1986" max="2024" value="2023">
+    <span id="year-display">2023</span>
+  </div>
+
+  <!-- ══ ROW 5: BOTTOM PANELS ════════════════════════════════ -->
+  <div id="bottom-row">
+
+    <!-- Widget 4: Global Value Timeline -->
+    <div class="bot-panel" id="timeline-panel">
+      <div class="bot-title" style="letter-spacing:0.07em;">PRICE PER TONNE OVER TIME · USD</div>
+      <div style="font-size:8px;color:rgba(74,44,23,0.45);font-style:italic;margin:-3px 0 4px;flex-shrink:0;">Export raw
+        · Export proc. · Import raw · Import proc.</div>
+      <svg id="timeline-svg" viewBox="0 0 340 105" preserveAspectRatio="none"
+        style="flex:1;min-height:0;display:block;width:100%;">
+        <!-- Area fills -->
+        <polygon id="timeline-raw-area" points="" fill="rgba(92,51,23,0.13)" />
+        <polygon id="timeline-proc-area" points="" fill="rgba(160,82,45,0.10)" />
+        <polygon id="timeline-impraw-area" points="" fill="rgba(184,147,90,0.07)" />
+        <polygon id="timeline-impproc-area" points="" fill="rgba(232,200,120,0.05)" />
+        <!-- Grid lines (now ending at x=230) -->
+        <line x1="32" y1="80.7" x2="230" y2="80.7" stroke="rgba(92,56,28,0.12)" stroke-width=".5"
+          stroke-dasharray="3 4" />
+        <line x1="32" y1="66.1" x2="230" y2="66.1" stroke="rgba(92,56,28,0.12)" stroke-width=".5"
+          stroke-dasharray="3 4" />
+        <line x1="32" y1="51.5" x2="230" y2="51.5" stroke="rgba(92,56,28,0.12)" stroke-width=".5"
+          stroke-dasharray="3 4" />
+        <line x1="32" y1="36.9" x2="230" y2="36.9" stroke="rgba(92,56,28,0.12)" stroke-width=".5"
+          stroke-dasharray="3 4" />
+        <!-- Axes -->
+        <line x1="32" y1="8" x2="32" y2="88" stroke="rgba(92,56,28,0.35)" stroke-width=".8" />
+        <line x1="32" y1="88" x2="230" y2="88" stroke="rgba(92,56,28,0.35)" stroke-width=".8" />
+        <!-- Y labels -->
+        <text x="29" y="83" fill="#7A5030" font-size="7" text-anchor="end">$500</text>
+        <text x="29" y="68.5" fill="#7A5030" font-size="7" text-anchor="end">$1,500</text>
+        <text x="29" y="54" fill="#7A5030" font-size="7" text-anchor="end">$2,500</text>
+        <text x="29" y="39.4" fill="#7A5030" font-size="7" text-anchor="end">$3,500</text>
+        <!-- X labels (rescaled to new xMax=230) -->
+        <text x="32" y="97" fill="#7A5030" font-size="7" text-anchor="middle">1986</text>
+        <text x="79" y="97" fill="#7A5030" font-size="7" text-anchor="middle">1995</text>
+        <text x="131" y="97" fill="#7A5030" font-size="7" text-anchor="middle">2005</text>
+        <text x="183" y="97" fill="#7A5030" font-size="7" text-anchor="middle">2015</text>
+        <text x="230" y="97" fill="#7A5030" font-size="7" text-anchor="middle">2024</text>
+        <!-- 4 polylines (solid=exports, dashed=imports) -->
+        <polyline id="timeline-raw" points="" fill="none" stroke="#5C3317" stroke-width="1.6" stroke-linecap="round"
+          stroke-linejoin="round" />
+        <polyline id="timeline-proc" points="" fill="none" stroke="#A0522D" stroke-width="1.6" stroke-linecap="round"
+          stroke-linejoin="round" />
+        <polyline id="timeline-impraw" points="" fill="none" stroke="#B8935A" stroke-width="1.3" stroke-linecap="round"
+          stroke-linejoin="round" stroke-dasharray="3 2" />
+        <polyline id="timeline-impproc" points="" fill="none" stroke="#E8C878" stroke-width="1.3" stroke-linecap="round"
+          stroke-linejoin="round" stroke-dasharray="3 2" />
+        <!-- Dot groups -->
+        <g id="timeline-dots"></g>
+        <g id="timeline-dots-expproc"></g>
+        <g id="timeline-dots-impraw"></g>
+        <g id="timeline-dots-impproc"></g>
+        <!-- Labels at x=234 — plenty of room in 340-wide viewBox -->
+        <text id="timeline-raw-label" x="234" y="44" fill="#5C3317" font-size="6.5" font-weight="600">Export raw</text>
+        <text id="timeline-proc-label" x="234" y="35" fill="#A0522D" font-size="6.5" font-weight="600">Export
+          proc.</text>
+        <text id="timeline-impraw-label" x="234" y="53" fill="#8B6030" font-size="6.5" font-weight="600">Import
+          raw</text>
+        <text id="timeline-impproc-label" x="234" y="62" fill="#9A7020" font-size="6.5" font-weight="600">Import
+          proc.</text>
+        <!-- Year cursor -->
+        <line id="timeline-cursor" x1="210" y1="8" x2="210" y2="88" stroke="rgba(74,44,23,0.45)" stroke-width="1"
+          stroke-dasharray="2 3" />
+      </svg>
+      <div id="timeline-bar-hint" style="font-size:7px;color:rgba(245,236,215,0.60);font-style:italic;
+         padding:2px 8px 1px;flex-shrink:0;text-align:right;"></div>
+      <div class="w-annot"><b>Raw price</b> = global avg unit value (USD/t) = world coffee export revenue ÷ volume (FAO
+        5922 &amp; 5910, items 656+657). <b>Processed</b> = raw × 1.35 (fixed 35% roasting premium — no separate FAO
+        price series for roasted). <b>Import prices</b> (dashed) = export prices + 8% freight &amp; insurance estimate.
+        <b>Shaded area</b> = value-added gap. Cursor = year slider.
+      </div>
     </div>
 
-    <!-- Section E: Concentration bars (populated dynamically by updateSidePanel) -->
-    <div id="sp-concentration" style="flex-shrink:0;padding:5px 12px 6px;border-top:1px solid var(--border);"></div>
-
-  </div><!-- /side-panel -->
-</div><!-- /main-row -->
-
-<!-- ══ ROW 3: TICK LABELS ═══════════════════════════════════ -->
-<div id="tick-row">
-  <div style="width:44px;flex-shrink:0;"></div><!-- play btn spacer -->
-  <div class="tick-labels-inner">
-    <span>1986</span><span>1990</span><span>1995</span><span>2000</span>
-    <span>2005</span><span>2010</span><span>2015</span><span>2020</span><span>2024</span>
-  </div>
-  <div style="width:42px;flex-shrink:0;"></div><!-- year display spacer -->
-</div>
-
-<!-- ══ ROW 4: YEAR SLIDER ═══════════════════════════════════ -->
-<div id="slider-row">
-  <button id="slider-play" title="Play / pause">▶</button>
-  <input type="range" id="year-slider" min="1986" max="2024" value="2023">
-  <span id="year-display">2023</span>
-</div>
-
-<!-- ══ ROW 5: BOTTOM PANELS ════════════════════════════════ -->
-<div id="bottom-row">
-
-  <!-- Widget 4: Global Value Timeline -->
-  <div class="bot-panel" id="timeline-panel">
-    <div class="bot-title" style="letter-spacing:0.07em;">PRICE PER TONNE OVER TIME · USD</div>
-    <div style="font-size:8px;color:rgba(74,44,23,0.45);font-style:italic;margin:-3px 0 4px;flex-shrink:0;">Export raw · Export proc. · Import raw · Import proc.</div>
-    <svg id="timeline-svg" viewBox="0 0 340 105" preserveAspectRatio="none"
-         style="flex:1;min-height:0;display:block;width:100%;">
-      <!-- Area fills -->
-      <polygon id="timeline-raw-area"     points="" fill="rgba(92,51,23,0.13)"/>
-      <polygon id="timeline-proc-area"    points="" fill="rgba(160,82,45,0.10)"/>
-      <polygon id="timeline-impraw-area"  points="" fill="rgba(184,147,90,0.07)"/>
-      <polygon id="timeline-impproc-area" points="" fill="rgba(232,200,120,0.05)"/>
-      <!-- Grid lines (now ending at x=230) -->
-      <line x1="32" y1="80.7" x2="230" y2="80.7" stroke="rgba(92,56,28,0.12)" stroke-width=".5" stroke-dasharray="3 4"/>
-      <line x1="32" y1="66.1" x2="230" y2="66.1" stroke="rgba(92,56,28,0.12)" stroke-width=".5" stroke-dasharray="3 4"/>
-      <line x1="32" y1="51.5" x2="230" y2="51.5" stroke="rgba(92,56,28,0.12)" stroke-width=".5" stroke-dasharray="3 4"/>
-      <line x1="32" y1="36.9" x2="230" y2="36.9" stroke="rgba(92,56,28,0.12)" stroke-width=".5" stroke-dasharray="3 4"/>
-      <!-- Axes -->
-      <line x1="32" y1="8"  x2="32"  y2="88" stroke="rgba(92,56,28,0.35)" stroke-width=".8"/>
-      <line x1="32" y1="88" x2="230" y2="88" stroke="rgba(92,56,28,0.35)" stroke-width=".8"/>
-      <!-- Y labels -->
-      <text x="29" y="83"   fill="#7A5030" font-size="7" text-anchor="end">$500</text>
-      <text x="29" y="68.5" fill="#7A5030" font-size="7" text-anchor="end">$1,500</text>
-      <text x="29" y="54"   fill="#7A5030" font-size="7" text-anchor="end">$2,500</text>
-      <text x="29" y="39.4" fill="#7A5030" font-size="7" text-anchor="end">$3,500</text>
-      <!-- X labels (rescaled to new xMax=230) -->
-      <text x="32"  y="97" fill="#7A5030" font-size="7" text-anchor="middle">1986</text>
-      <text x="79"  y="97" fill="#7A5030" font-size="7" text-anchor="middle">1995</text>
-      <text x="131" y="97" fill="#7A5030" font-size="7" text-anchor="middle">2005</text>
-      <text x="183" y="97" fill="#7A5030" font-size="7" text-anchor="middle">2015</text>
-      <text x="230" y="97" fill="#7A5030" font-size="7" text-anchor="middle">2024</text>
-      <!-- 4 polylines (solid=exports, dashed=imports) -->
-      <polyline id="timeline-raw"     points="" fill="none" stroke="#5C3317" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      <polyline id="timeline-proc"    points="" fill="none" stroke="#A0522D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      <polyline id="timeline-impraw"  points="" fill="none" stroke="#B8935A" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 2"/>
-      <polyline id="timeline-impproc" points="" fill="none" stroke="#E8C878" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 2"/>
-      <!-- Dot groups -->
-      <g id="timeline-dots"></g>
-      <g id="timeline-dots-expproc"></g>
-      <g id="timeline-dots-impraw"></g>
-      <g id="timeline-dots-impproc"></g>
-      <!-- Labels at x=234 — plenty of room in 340-wide viewBox -->
-      <text id="timeline-raw-label"     x="234" y="44" fill="#5C3317" font-size="6.5" font-weight="600">Export raw</text>
-      <text id="timeline-proc-label"    x="234" y="35" fill="#A0522D" font-size="6.5" font-weight="600">Export proc.</text>
-      <text id="timeline-impraw-label"  x="234" y="53" fill="#8B6030" font-size="6.5" font-weight="600">Import raw</text>
-      <text id="timeline-impproc-label" x="234" y="62" fill="#9A7020" font-size="6.5" font-weight="600">Import proc.</text>
-      <!-- Year cursor -->
-      <line id="timeline-cursor" x1="210" y1="8" x2="210" y2="88" stroke="rgba(74,44,23,0.45)" stroke-width="1" stroke-dasharray="2 3"/>
-    </svg>
-    <div id="timeline-bar-hint" style="font-size:7px;color:rgba(245,236,215,0.60);font-style:italic;
-         padding:2px 8px 1px;flex-shrink:0;text-align:right;"></div>
-    <div class="w-annot"><b>Raw price</b> = global avg unit value (USD/t) = world coffee export revenue ÷ volume (FAO 5922 &amp; 5910, items 656+657). <b>Processed</b> = raw × 1.35 (fixed 35% roasting premium — no separate FAO price series for roasted). <b>Import prices</b> (dashed) = export prices + 8% freight &amp; insurance estimate. <b>Shaded area</b> = value-added gap. Cursor = year slider.</div>
-  </div>
-
-  <!-- Widget 5: Sankey (JS-driven via updateSankey) -->
-  <div class="bot-panel" id="sankey-panel" style="border-right:none;">
-    <div class="bot-title">Coffee value chain — Producers · Processors · Consumers</div>
-    <svg id="sankey-svg" viewBox="0 0 420 108" preserveAspectRatio="xMidYMid meet"
-         style="flex:1;min-height:0;display:block;width:100%;"></svg>
-    <div class="w-annot" style="position:static;max-width:none;width:100%;box-sizing:border-box;margin-top:4px;font-size:7.5px;line-height:1.4;border-radius:3px;padding:3px 8px;"><b>Producers → Processors</b>: raw green bean exports (FAO item 656). <b>Processors → Consumers</b>: roasted/processed coffee exports only (FAO item 657). <b>Processors</b> = countries where ≥30% of coffee exports are roasted — a threshold chosen at the natural break in the data (UK 37% vs Belgium 19%). Flow width = share of each column's world total.</div>
-  </div>
+    <!-- Widget 5: Sankey (JS-driven via updateSankey) -->
+    <div class="bot-panel" id="sankey-panel" style="border-right:none;">
+      <div class="bot-title">Coffee value chain — Producers · Processors · Consumers</div>
+      <svg id="sankey-svg" viewBox="0 0 420 108" preserveAspectRatio="xMidYMid meet"
+        style="flex:1;min-height:0;display:block;width:100%;"></svg>
+      <div class="w-annot"
+        style="position:static;max-width:none;width:100%;box-sizing:border-box;margin-top:4px;font-size:7.5px;line-height:1.4;border-radius:3px;padding:3px 8px;">
+        <b>Producers → Processors</b>: raw green bean exports (FAO item 656). <b>Processors → Consumers</b>:
+        roasted/processed coffee exports only (FAO item 657). <b>Processors</b> = countries where ≥30% of coffee exports
+        are roasted — a threshold chosen at the natural break in the data (UK 37% vs Belgium 19%). Flow width = share of
+        each column's world total.
+      </div>
+    </div>
 
 
-</div><!-- /bottom-row -->
+  </div><!-- /bottom-row -->
 
-<!-- Tooltip for Three.js map -->
-<div id="map-tooltip"></div>
+  <!-- Tooltip for Three.js map -->
+  <div id="map-tooltip"></div>
 
-<!-- ══ SCRIPTS ══════════════════════════════════════════════ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
-<!-- <script src="data_layer.js"></script> -->
-<script>
+  <!-- ══ SCRIPTS ══════════════════════════════════════════════ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"
+    crossorigin="anonymous"></script>
+  <!-- <script src="data_layer.js"></script> -->
+  <script>
 
-let TRANSFORMATION_INDEX_BY_YEAR, TRADE_QUANTITY_BY_YEAR, TRADE_VALUE_BY_YEAR;
-let TRADE_QTY_RAW_BY_YEAR, TRADE_QTY_PROC_BY_YEAR, PROCESSED_SHARE_BY_YEAR;
-let PRICE_TIMELINE, TRADE_QUANTITY, TRADE_VALUE, TRANSFORMATION_INDEX;
+    let TRANSFORMATION_INDEX_BY_YEAR, TRADE_QUANTITY_BY_YEAR, TRADE_VALUE_BY_YEAR;
+    let TRADE_QTY_RAW_BY_YEAR, TRADE_QTY_PROC_BY_YEAR, PROCESSED_SHARE_BY_YEAR;
+    let PRICE_TIMELINE, TRADE_QUANTITY, TRADE_VALUE, TRANSFORMATION_INDEX;
+    let maxTINet = 1;
 
-// Country centroids [lat, lng] used for arc routing on the 3D map.
-// Keep all existing centroid values — do not modify.
-let CENTROIDS = {
-  // Producers
-  "Brazil":      [-14.2,-51.9], "Vietnam":     [14.1,108.3],
-  "Colombia":    [4.6,-74.1],   "Indonesia":   [-0.8,113.9],
-  "Ethiopia":    [9.1,40.5],    "Honduras":    [15.2,-86.2],
-  "India":       [20.6,78.9],   "Uganda":      [1.4,32.3],
-  "Mexico":      [23.6,-102.6], "Guatemala":   [15.8,-90.2],
-  "Peru":        [-9.2,-75.0],  "Nicaragua":   [12.9,-85.2],
-  "CotedIvoire": [7.5,-5.5],    "CostaRica":   [9.7,-83.8],
-  "Kenya":       [-0.0,37.9],   "Tanzania":    [-6.4,34.9],
-  "PNG":         [-6.3,143.9],  "Laos":        [17.9,102.6],
-  "Cameroon":    [3.8,11.5],    "ElSalvador":  [13.8,-88.9],
-  // Import partners (original)
-  "USA":         [37.1,-95.7],  "Germany":     [51.2,10.4],
-  "Italy":       [41.9,12.6],   "Belgium":     [50.5,4.5],
-  "Japan":       [36.2,138.3],  "Canada":      [56.1,-106.3],
-  "Philippines": [12.9,121.8],  "Russia":      [61.5,105.3],
-  "Sweden":      [60.1,18.6],   "Finland":     [61.9,25.7],
-  "Sudan":       [12.8,30.2],   "Australia":   [-25.3,133.8],
-  "France":      [46.2,2.2],
-  // Import partners (added for real trade data)
-  "UK":           [51.5,-0.1],  "Switzerland": [46.8,8.2],
-  "Netherlands":  [52.1,5.3],   "Spain":       [40.4,-3.7],
-  "Saudi Arabia": [23.9,45.1],  "Algeria":     [28.0,1.7],
-  "Malaysia":     [4.2,108.0],  "Thailand":    [15.9,100.9],
-  "Cambodia":     [12.6,104.9], "Portugal":    [39.4,-8.2]
-};
+    // Country centroids [lat, lng] used for arc routing on the 3D map.
+    // Keep all existing centroid values — do not modify.
+    let CENTROIDS = {
+      // Producers
+      "Brazil": [-14.2, -51.9], "Vietnam": [14.1, 108.3],
+      "Colombia": [4.6, -74.1], "Indonesia": [-0.8, 113.9],
+      "Ethiopia": [9.1, 40.5], "Honduras": [15.2, -86.2],
+      "India": [20.6, 78.9], "Uganda": [1.4, 32.3],
+      "Mexico": [23.6, -102.6], "Guatemala": [15.8, -90.2],
+      "Peru": [-9.2, -75.0], "Nicaragua": [12.9, -85.2],
+      "CotedIvoire": [7.5, -5.5], "CostaRica": [9.7, -83.8],
+      "Kenya": [-0.0, 37.9], "Tanzania": [-6.4, 34.9],
+      "PNG": [-6.3, 143.9], "Laos": [17.9, 102.6],
+      "Cameroon": [3.8, 11.5], "ElSalvador": [13.8, -88.9],
+      // Import partners (original)
+      "USA": [37.1, -95.7], "Germany": [51.2, 10.4],
+      "Italy": [41.9, 12.6], "Belgium": [50.5, 4.5],
+      "Japan": [36.2, 138.3], "Canada": [56.1, -106.3],
+      "Philippines": [12.9, 121.8], "Russia": [61.5, 105.3],
+      "Sweden": [60.1, 18.6], "Finland": [61.9, 25.7],
+      "Sudan": [12.8, 30.2], "Australia": [-25.3, 133.8],
+      "France": [46.2, 2.2],
+      // Import partners (added for real trade data)
+      "UK": [51.5, -0.1], "Switzerland": [46.8, 8.2],
+      "Netherlands": [52.1, 5.3], "Spain": [40.4, -3.7],
+      "Saudi Arabia": [23.9, 45.1], "Algeria": [28.0, 1.7],
+      "Malaysia": [4.2, 108.0], "Thailand": [15.9, 100.9],
+      "Cambodia": [12.6, 104.9], "Portugal": [39.4, -8.2]
+    };
 
-// GeoJSON feature name → canonical key in PROCESSED_SHARE_BY_YEAR / TRADE_QUANTITY
-const GEO_NAME_MAP = {
-  // Coffee producers
-  "Viet Nam":                      "Vietnam",
-  "Côte d'Ivoire":                 "CotedIvoire",
-  "Ivory Coast":                   "CotedIvoire",
-  "Cote d'Ivoire":                 "CotedIvoire",
-  "Costa Rica":                    "CostaRica",
-  "Papua New Guinea":              "PNG",
-  "El Salvador":                   "ElSalvador",
-  "United Republic of Tanzania":   "Tanzania",
-  "Lao PDR":                       "Laos",
-  // Processing / re-export hubs
-  "United States of America":      "USA",
-  "United Kingdom":                "UK",
-  "England":                       "UK",   // GeoJSON uses England instead of United Kingdom
-  "South Korea":                   "SouthKorea",
-  "Republic of Korea":             "SouthKorea",
-  // GeoJSON name → data canonical mismatches
-  "Republic of Serbia":            "Serbia",
-  "Czech Republic":                "Czechia",
-  "North Korea":                   "NorthKorea",
-  "Democratic Republic of the Congo": "DRCongo",
-  "Republic of the Congo":         "Congo",
-  "Bosnia and Herz.":              "Bosnia",
-  "Bosnia and Herzegovina":        "Bosnia",
-  "W. Sahara":                     "Western Sahara",
-  "Dem. Rep. Korea":               "NorthKorea",
-};
+    // GeoJSON feature name → canonical key in PROCESSED_SHARE_BY_YEAR / TRADE_QUANTITY
+    const GEO_NAME_MAP = {
+      // Coffee producers
+      "Viet Nam": "Vietnam",
+      "Côte d'Ivoire": "CotedIvoire",
+      "Ivory Coast": "CotedIvoire",
+      "Cote d'Ivoire": "CotedIvoire",
+      "Costa Rica": "CostaRica",
+      "Papua New Guinea": "PNG",
+      "El Salvador": "ElSalvador",
+      "United Republic of Tanzania": "Tanzania",
+      "Lao PDR": "Laos",
+      // Processing / re-export hubs
+      "United States of America": "USA",
+      "United Kingdom": "UK",
+      "England": "UK",   // GeoJSON uses England instead of United Kingdom
+      "South Korea": "SouthKorea",
+      "Republic of Korea": "SouthKorea",
+      // GeoJSON name → data canonical mismatches
+      "Republic of Serbia": "Serbia",
+      "Czech Republic": "Czechia",
+      "North Korea": "NorthKorea",
+      "Democratic Republic of the Congo": "DRCongo",
+      "Republic of the Congo": "Congo",
+      "Bosnia and Herz.": "Bosnia",
+      "Bosnia and Herzegovina": "Bosnia",
+      "W. Sahara": "Western Sahara",
+      "Dem. Rep. Korea": "NorthKorea",
+    };
 
-// All countries ever appearing as a trade partner across any year (for globe coloring)
-const ALL_PARTNERS = new Set();
+    // All countries ever appearing as a trade partner across any year (for globe coloring)
+    const ALL_PARTNERS = new Set();
 
-// Ranking by Transformation Index (1 = highest TI)
-const TI_RANKS = {};
+    // Ranking by Transformation Index (1 = highest TI)
+    const TI_RANKS = {};
 
-// Helper: resolve any name (GeoJSON or canonical) → processed share (0-100)
-function getTI(name) {
-  const key = GEO_NAME_MAP[name] || name;
-  return (PROCESSED_SHARE_BY_YEAR[currentYear] || PROCESSED_SHARE_BY_YEAR[2023] || {})[key] ?? 0;
-}
+    function buildTransformationIndexByYear() {
+      const byYear = {};
+      const rawByYear = typeof TRADE_QTY_RAW_BY_YEAR !== 'undefined' ? TRADE_QTY_RAW_BY_YEAR : {};
 
-// Helper: CSS hex color string → integer for Three.js
-function hexToInt(h) { return parseInt(h.replace('#', ''), 16); }
-
-// Helper: format large quantity values compactly (input in tonnes)
-function fmtQty(q) {
-  if (q >= 1000000) return (q / 1000000).toFixed(1) + 'M';
-  if (q >= 1000)    return Math.round(q / 1000) + 'k';
-  return q.toString();
-}
-// Helper: format trade values (input in 1000 USD → display in M$ or k$)
-function fmtVal(v) {
-  if (v >= 1000000) return (v / 1000000).toFixed(1) + 'B$';
-  if (v >= 1000)    return Math.round(v / 1000) + 'M$';
-  return v + 'k$';
-}
-// ─────────────────────────────────────────────────────────────
-
-/* ── COLOR HELPERS ────────────────────────────────────────── */
-// Returns 0–100: share of a country's exports that are processed (item 657).
-function getProcessedShare(key, year) {
-  const snap = (typeof PROCESSED_SHARE_BY_YEAR !== 'undefined')
-    ? (PROCESSED_SHARE_BY_YEAR[year] || PROCESSED_SHARE_BY_YEAR[2023] || {}) : {};
-  return snap[key] ?? 0;
-}
-
-function getTopColor(ti, key, year) {
-  const yr = year || currentYear;
-  if ((TRADE_QUANTITY_BY_YEAR[yr] || TRADE_QUANTITY)[key]) {
-    const ps = getProcessedShare(key, yr);
-    return ps >= 50 ? hexToInt(FLOW_COLORS.exportProcessed) : hexToInt(FLOW_COLORS.exportRaw);
-  }
-  const isImporter = key && ALL_PARTNERS.has(key);
-  if (isImporter) return hexToInt(FLOW_COLORS.importRaw);
-  return 0xD4C5A9;
-}
-function getSideColor(ti, key, year) {
-  const yr = year || currentYear;
-  if ((TRADE_QUANTITY_BY_YEAR[yr] || TRADE_QUANTITY)[key]) {
-    const ps = getProcessedShare(key, yr);
-    return ps >= 50 ? hexToInt('#A0522D') : hexToInt('#3D2010');
-  }
-  const isImporter = key && ALL_PARTNERS.has(key);
-  if (isImporter) return hexToInt(FLOW_COLORS.importProcessed);
-  return 0xB8A890;
-}
-function getDepth(ti, key) {
-  if ((TRADE_QUANTITY_BY_YEAR[currentYear] || TRADE_QUANTITY)[key]) {
-    const volShare = (typeof exportVolumeByKey !== 'undefined')
-      ? (exportVolumeByKey[key] || 0) / Math.max(1, maxExportVolume)
-      : 0;
-    return 0.5 + volShare * 55 + (ti / 100) * 35;
-  }
-  const inboundTotal = Object.values(TRADE_QUANTITY_BY_YEAR[currentYear] || TRADE_QUANTITY)
-    .reduce((s, row) => s + (row[key] || 0), 0);
-  const globalExportMax = (typeof maxExportVolume !== 'undefined' && maxExportVolume > 1)
-    ? maxExportVolume : 1000000;
-  return 0.5 + (inboundTotal / globalExportMax) * 40;
-}
-
-/* ── PROJECTION ───────────────────────────────────────────── */
-function project(lng, lat) {
-  return new THREE.Vector2((lng / 360) * 500, (lat / 180) * 280);
-}
-
-/* ── SHAPE FROM RING ──────────────────────────────────────── */
-function ringToPoints(ring, step) {
-  const pts = [];
-  for (let i = 0; i < ring.length; i += step) {
-    const p = project(ring[i][0], ring[i][1]);
-    pts.push(p);
-  }
-  return pts;
-}
-
-function makeShape(ring, step) {
-  const pts = ringToPoints(ring, step);
-  if (pts.length < 3) return null;
-  const shape = new THREE.Shape();
-  shape.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i].x, pts[i].y);
-  shape.closePath();
-  return shape;
-}
-
-/* ── THREE.JS SETUP ───────────────────────────────────────── */
-let renderer, camera, scene, controls;
-let countryMeshes = [];
-let arcMeshes = [];
-let selectedMesh = null;
-let selectedMeshes = null;
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2(-9999, -9999);
-let mouseDidMove = false;
-let hoveredMesh = null;
-let hoveredGroup = null;
-let timelineUpdate = null;
-
-function getMeshGroup(meshName) {
-  const key = GEO_NAME_MAP[meshName] || meshName;
-  return countryMeshes.filter(m => (GEO_NAME_MAP[m.userData.name] || m.userData.name) === key);
-}
-let currentYear = 2023;
-let flowMode = 'qty'; // 'qty' | 'val'
-let maxExportVolume = 1;
-let exportVolumeByKey = {};
-
-function rebuildExportVolumes(year) {
-  const qtySnap = TRADE_QUANTITY_BY_YEAR[year] || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
-  exportVolumeByKey = {};
-  Object.entries(qtySnap).forEach(([k, row]) => {
-    exportVolumeByKey[k] = Object.values(row).reduce((s, v) => s + v, 0);
-  });
-  maxExportVolume = Math.max(1, ...Object.values(exportVolumeByKey));
-}
-
-const FLOW_COLORS = {
-  exportRaw:       '#5C3317',
-  exportProcessed: '#A0522D',
-  importRaw:       '#B8935A',
-  importProcessed: '#E8C878',
-};
-
-function initThree() {
-  const container = document.getElementById('map-container');
-  const W = container.clientWidth;
-  const H = container.clientHeight;
-
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xE2D8C3);
-  scene.fog = new THREE.Fog(0xE2D8C3, 600, 1200);
-
-  // ── WHY THIS WORKS ───────────────────────────────────────────
-  // The map geometry lives in the XY plane, extruded along +Z.
-  // OrbitControls r128 measures polar angle FROM the +Y world axis:
-  //   polar = 0  →  camera on +Y  →  looks straight down  =  top-down view
-  // Rotating the entire scene by -90° around X remaps:
-  //   map XY plane  →  XZ (flat ground in world space)
-  //   extrusions +Z →  +Y (upward in world space)
-  // The camera then sits on +Y and looks straight down onto the flat map,
-  // exactly like a standard world map. No geometry changes needed.
-  scene.rotation.x = -Math.PI / 2;
-
-  camera = new THREE.PerspectiveCamera(38, W / H, 1, 1500);
-  camera.position.set(0, 420, 0);  // directly above on +Y axis
-  camera.up.set(0, 1, 0);          // standard Y-up (default)
-  camera.lookAt(0, 0, 0);
-
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(W, H);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  container.appendChild(renderer.domElement);
-
-  // Lights — dirLight on +Y so it illuminates country top faces
-  const ambient = new THREE.AmbientLight(0xF5ECD7, 0.55);
-  scene.add(ambient);
-
-  const dirLight = new THREE.DirectionalLight(0xFFFAF0, 0.95);
-  dirLight.position.set(50, 400, 80);
-  scene.add(dirLight);
-
-  const fillLight = new THREE.DirectionalLight(0xC8A96E, 0.25);
-  fillLight.position.set(-80, 200, -60);
-  scene.add(fillLight);
-
-  // Controls — Y-up, camera starts at polar=0 (top-down).
-  // Allow tilt up to 60° forward (giving ±30° feel around a natural viewing angle)
-  // and ±30° azimuth left/right rotation.
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping  = true;
-  controls.dampingFactor  = 0.06;
-  controls.minDistance    = 80;
-  controls.maxDistance    = 900;
-  controls.enablePan      = true;
-  controls.target.set(0, 0, 0);
-
-  const TILT_MAX = Math.PI / 3;    // 60° forward tilt max (±30° around natural angle)
-  const ROT_MAX  = Math.PI / 6;    // ±30° left/right azimuth
-  controls.minPolarAngle   = 0;
-  controls.maxPolarAngle   = TILT_MAX;
-  controls.minAzimuthAngle = -ROT_MAX;
-  controls.maxAzimuthAngle =  ROT_MAX;
-  controls.update();
-
-  // Resize
-  window.addEventListener('resize', () => {
-    const W2 = container.clientWidth;
-    const H2 = container.clientHeight;
-    camera.aspect = W2 / H2;
-    camera.updateProjectionMatrix();
-    renderer.setSize(W2, H2);
-  });
-
-  // Mouse events
-  renderer.domElement.addEventListener('mousemove', onMouseMove);
-  renderer.domElement.addEventListener('click', onMapClick);
-
-  animate();
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-
-  const tooltip = document.getElementById('map-tooltip');
-
-  // Only raycast when mouse has moved — saves CPU on idle frames
-  if (mouseDidMove) {
-    mouseDidMove = false;
-    raycaster.setFromCamera(mouse, camera);
-    const hits = raycaster.intersectObjects(countryMeshes, false);
-
-    if (hits.length > 0) {
-      const m = hits[0].object;
-      if (m !== hoveredMesh) {
-        if (hoveredGroup) {
-          hoveredGroup.forEach(hm => {
-            if (!selectedMeshes || !selectedMeshes.includes(hm))
-              hm.material[1].emissive.setHex(0x000000);
+      let globalMax = 0;
+      Object.entries(rawByYear).forEach(([year, snap]) => {
+        const netByKey = {};
+        Object.entries(snap || {}).forEach(([reporter, row]) => {
+          Object.entries(row || {}).forEach(([partner, qty]) => {
+            const amount = qty || 0;
+            if (!amount) return;
+            netByKey[reporter] = (netByKey[reporter] || 0) - amount;
+            netByKey[partner] = (netByKey[partner] || 0) + amount;
           });
-        }
-        hoveredMesh = m;
-        hoveredGroup = getMeshGroup(m.userData.name);
-        hoveredGroup.forEach(hm => {
-          if (!selectedMeshes || !selectedMeshes.includes(hm))
-            hm.material[1].emissive.setHex(0x2a1a0a);
         });
-      }
-      const name = m.userData.name;
-      const ti   = m.userData.ti;
-      const _ttKey = GEO_NAME_MAP[name] || name;
-      tooltip.textContent = ((TRADE_QUANTITY_BY_YEAR[currentYear] || TRADE_QUANTITY)[_ttKey])
-        ? `${name} · TI: ${ti}%`
-        : `${name}`;
-      tooltip.classList.add('show');
-    } else {
-      if (hoveredGroup) {
-        hoveredGroup.forEach(hm => {
-          if (!selectedMeshes || !selectedMeshes.includes(hm))
-            hm.material[1].emissive.setHex(0x000000);
-        });
-      }
-      hoveredMesh = null;
-      hoveredGroup = null;
-      tooltip.classList.remove('show');
-    }
-  }
-
-  // Fade-in arc meshes (0 → targetOpacity over 500 ms); cleanup once complete
-  const now = Date.now();
-  arcMeshes.forEach(m => {
-    if (m.userData.fadeStart !== undefined) {
-      const t = Math.min((now - m.userData.fadeStart) / 500, 1);
-      m.material.opacity = t * m.userData.targetOpacity;
-      if (t >= 1) delete m.userData.fadeStart;
-    }
-  });
-
-  renderer.render(scene, camera);
-}
-
-function onMouseMove(e) {
-  const rect = renderer.domElement.getBoundingClientRect();
-  mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-  mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
-  mouseDidMove = true;
-
-  const tooltip = document.getElementById('map-tooltip');
-  tooltip.style.left = (e.clientX + 14) + 'px';
-  tooltip.style.top  = (e.clientY - 34) + 'px';
-}
-
-function onMapClick(e) {
-  raycaster.setFromCamera(mouse, camera);
-  const hits = raycaster.intersectObjects(countryMeshes, false);
-
-  // Click on empty space: clear arrows and deselect
-  if (!hits.length) {
-    clearArrows();
-    if (selectedMeshes) {
-      selectedMeshes.forEach(sm => {
-        sm.material[1].emissive.setHex(0x000000);
-        sm.material[0].emissive.setHex(0x000000);
+        byYear[year] = netByKey;
+        const yearMax = Math.max(0, ...Object.values(netByKey));
+        if (yearMax > globalMax) globalMax = yearMax;
       });
-      selectedMesh = null;
-      selectedMeshes = null;
-    }
-    return;
-  }
+      maxTINet = Math.max(1, globalMax);
 
-  const m = hits[0].object;
-
-  // Deselect previous
-  if (selectedMeshes) {
-    selectedMeshes.forEach(sm => {
-      sm.material[1].emissive.setHex(0x000000);
-      sm.material[0].emissive.setHex(0x000000);
-    });
-  }
-
-  selectedMesh = m;
-  selectedMeshes = getMeshGroup(m.userData.name);
-  selectedMeshes.forEach(sm => {
-    sm.material[1].emissive.setHex(0x1a0e06);
-    sm.material[0].emissive.setHex(0x0f0804);
-  });
-
-  // Update side panel and draw trade flow arcs
-  updateSidePanel(m.userData.name, currentYear);
-  drawArcs(m.userData.name, currentYear);
-}
-
-function updateSidePanel(name, year = currentYear) {
-  const key     = GEO_NAME_MAP[name] || name;
-  const qtySnap = (typeof TRADE_QUANTITY_BY_YEAR !== 'undefined' && TRADE_QUANTITY_BY_YEAR[year])
-                  || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
-  const valSnap = (typeof TRADE_VALUE_BY_YEAR !== 'undefined' && TRADE_VALUE_BY_YEAR[year])
-                  || TRADE_VALUE_BY_YEAR[2023] || TRADE_VALUE;
-  const tiSnap  = PROCESSED_SHARE_BY_YEAR[year] || PROCESSED_SHARE_BY_YEAR[2023] || {};
-
-  const ti   = tiSnap[key] ?? null;
-  const rank = TI_RANKS[key];
-
-  document.getElementById('sp-country-name').textContent = name;
-
-  const rankEl = document.getElementById('sp-rank');
-  rankEl.textContent = rank ? `#${rank} by TI` : 'No TI data';
-  rankEl.style.background = rank ? 'var(--tan)' : 'var(--sand)';
-
-  document.getElementById('sp-ti').textContent = ti !== null ? 'TI: ' + ti + '%' : 'TI: n/a';
-
-  const valRow = valSnap[key];
-  const qtyRow = qtySnap[key];
-
-  // Top partner pill (export destination or import source)
-  if (valRow) {
-    const top = Object.entries(valRow).sort((a, b) => b[1] - a[1])[0];
-    document.getElementById('sp-top-export').textContent = top[0];
-    const sl = document.getElementById('sp-top-export').closest('.stat-pill').querySelector('.sl');
-    if (sl) sl.innerHTML = 'Top export<br>partner';
-  } else {
-    let best = null, bestVal = 0;
-    Object.entries(valSnap).forEach(([rep, row]) => {
-      const v = row[key] || 0;
-      if (v > bestVal) { bestVal = v; best = rep; }
-    });
-    document.getElementById('sp-top-export').textContent = best || '—';
-    const sl = document.getElementById('sp-top-export').closest('.stat-pill').querySelector('.sl');
-    if (sl) sl.innerHTML = 'Top import<br>source';
-  }
-
-  // Pill 3: export total (always export, show — if none)
-  const valRow2    = valSnap[key];
-  const expQtyTot  = qtyRow  ? Object.values(qtyRow).reduce((s, v) => s + v, 0) : 0;
-  const expValTot  = valRow2 ? Object.values(valRow2).reduce((s, v) => s + v, 0) : 0;
-  const volEl      = document.getElementById('sp-vol');
-  const volSlEl    = document.getElementById('sp-vol-lbl');
-  if (volEl) {
-    if (expQtyTot === 0 && expValTot === 0) {
-      volEl.textContent = '—';
-      if (volSlEl) volSlEl.innerHTML = 'No export<br>data';
-    } else if (flowMode === 'val') {
-      volEl.textContent = fmtVal(expValTot);
-      if (volSlEl) volSlEl.innerHTML = 'Total export<br>value';
-    } else {
-      volEl.textContent = fmtQty(expQtyTot) + 't total';
-      if (volSlEl) volSlEl.innerHTML = 'Total export<br>volume';
-    }
-  }
-
-  // Pill 4: import total (always import, show — if none)
-  let totalImpQty = 0, totalImpVal = 0;
-  Object.values(qtySnap).forEach(row => { totalImpQty += (row[key] || 0); });
-  Object.values(valSnap).forEach(row => { totalImpVal += (row[key] || 0); });
-  const impVolEl  = document.getElementById('sp-imp-vol');
-  const impVolLbl = document.getElementById('sp-imp-vol-lbl');
-  if (impVolEl) {
-    if (totalImpQty === 0 && totalImpVal === 0) {
-      impVolEl.textContent = '—';
-      if (impVolLbl) impVolLbl.innerHTML = 'No import<br>data';
-    } else if (flowMode === 'val') {
-      impVolEl.textContent = fmtVal(totalImpVal);
-      if (impVolLbl) impVolLbl.innerHTML = 'Total import<br>value';
-    } else {
-      impVolEl.textContent = fmtQty(totalImpQty) + 't total';
-      if (impVolLbl) impVolLbl.innerHTML = 'Total import<br>volume';
-    }
-  }
-
-  // Bar chart: commodity-weighted value-added margin
-  const barContainer = document.getElementById('sp-bar-chart-rows');
-  if (barContainer) {
-    barContainer.innerHTML = '';
-    barContainer.style.maxHeight = '';
-    barContainer.style.overflowY = '';
-
-    // Global prices for this year — declared first (used in annotation below)
-    const pt    = PRICE_TIMELINE[year] || PRICE_TIMELINE[2023];
-    const pRaw  = pt.raw;
-    const pProc = pt.processed;
-
-    const staticLegend = barContainer.closest('.sp-section')?.querySelector('.bar-legend');
-    if (staticLegend) staticLegend.style.display = 'none';
-
-    const barTitleEl = barContainer.closest('.sp-section')?.querySelector('.sp-title');
-    if (barTitleEl) barTitleEl.textContent = 'Value-Added Margin · USD/tonne';
-
-// Item-split quantity snapshots
-    const rawQtySnap  = (typeof TRADE_QTY_RAW_BY_YEAR  !== 'undefined') ? (TRADE_QTY_RAW_BY_YEAR[year]  || TRADE_QTY_RAW_BY_YEAR[2023]  || {}) : {};
-    const procQtySnap = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined') ? (TRADE_QTY_PROC_BY_YEAR[year] || TRADE_QTY_PROC_BY_YEAR[2023] || {}) : {};
-
-    // Export quantities (country as reporter)
-    let expRawQty = 0, expProcQty = 0;
-    Object.values(rawQtySnap[key]  || {}).forEach(v => expRawQty  += v);
-    Object.values(procQtySnap[key] || {}).forEach(v => expProcQty += v);
-
-    // Import quantities (country appears as partner in other reporters' rows)
-    let impRawQty = 0, impProcQty = 0;
-    Object.entries(rawQtySnap).forEach(([rep, row])  => { if (rep !== key) impRawQty  += (row[key] || 0); });
-    Object.entries(procQtySnap).forEach(([rep, row]) => { if (rep !== key) impProcQty += (row[key] || 0); });
-
-    const expTotalQty = expRawQty + expProcQty;
-    const impTotalQty = impRawQty + impProcQty;
-
-    // Blended price-weighted unit values
-    const expUV = expTotalQty > 0
-      ? Math.round((expRawQty * pRaw + expProcQty * pProc) / expTotalQty) : null;
-    const impUV = impTotalQty > 0
-      ? Math.round((impRawQty * pRaw + impProcQty * pProc) / impTotalQty) : null;
-
-    const margin = (expUV !== null && impUV !== null) ? expUV - impUV : null;
-    const maxUV  = Math.max(expUV || 0, impUV || 0, 1);
-
-    // Split bar: width reflects blended UV; color split reflects raw/proc composition
-    function makeSplitBar(lbl, totalQty, rawQty, procQty, uv, rawColor, procColor) {
-      if (uv === null) return null;
-      const totalW  = Math.round((uv / maxUV) * 100);
-      const rawFrac = totalQty > 0 ? rawQty / totalQty : 1;
-      const el = document.createElement('div');
-      el.className = 'bar-row';
-      el.style.marginBottom = '5px';
-      const rawPct  = Math.round(rawFrac * 100);
-      const procPct = 100 - rawPct;
-      const gradient = `linear-gradient(to right, ${rawColor} ${rawPct}%, ${procColor} ${rawPct}%)`;
-      el.innerHTML =
-        `<span class="bar-year" style="width:38px;">${lbl}</span>` +
-        `<div class="bar-track" style="flex:1;">` +
-          `<div class="bar-fill" style="width:${totalW}%;background:${gradient}"></div>` +
-        `</div>` +
-        `<span class="bar-val">${uv.toLocaleString()}</span>`;
-      return el;
+      return byYear;
     }
 
-    const expBar = makeSplitBar('Export', expTotalQty, expRawQty, expProcQty, expUV,
-                                FLOW_COLORS.exportRaw, FLOW_COLORS.exportProcessed);
-    const impBar = makeSplitBar('Import', impTotalQty, impRawQty, impProcQty, impUV,
-                                FLOW_COLORS.importRaw, FLOW_COLORS.importProcessed);
-    if (expBar) barContainer.appendChild(expBar);
-    if (impBar) barContainer.appendChild(impBar);
-
-    if (!expBar && !impBar) {
-      const na = document.createElement('div');
-      na.style.cssText = 'font-size:9px;color:rgba(74,44,23,0.4);text-align:center;padding:6px 0;';
-      na.textContent = 'No trade data for this year';
-      barContainer.appendChild(na);
+    function getTransformationNet(name, year = currentYear) {
+      const key = GEO_NAME_MAP[name] || name;
+      const snap = (typeof TRANSFORMATION_INDEX_BY_YEAR !== 'undefined')
+        ? (TRANSFORMATION_INDEX_BY_YEAR[year] || TRANSFORMATION_INDEX_BY_YEAR[2023] || {})
+        : {};
+      return snap[key] ?? 0;
     }
 
-    // Margin row
-    if (margin !== null) {
-      const sign   = margin >= 0 ? '+' : '';
-      const mColor = margin > 800 ? '#B89028' : margin > 200 ? '#9A7A20' : margin > 0 ? '#7A6040' : '#8B4030';
-      const sep = document.createElement('div');
-      sep.style.cssText = 'border-top:1px solid rgba(74,44,23,0.12);margin:3px 0 5px;';
-      barContainer.appendChild(sep);
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
-      row.innerHTML =
-        `<span style="font-size:8px;color:var(--coffee);letter-spacing:.06em;text-transform:uppercase;">Margin</span>` +
-        `<span style="font-size:13px;font-weight:700;color:${mColor};">${sign}${margin.toLocaleString()} USD/t</span>`;
-      barContainer.appendChild(row);
+    function getTransformationVisualScore(name, year = currentYear) {
+      const key = GEO_NAME_MAP[name] || name;
+      const snap = (typeof TRANSFORMATION_INDEX_BY_YEAR !== 'undefined')
+        ? (TRANSFORMATION_INDEX_BY_YEAR[year] || TRANSFORMATION_INDEX_BY_YEAR[2023] || {})
+        : {};
+      const values = Object.values(snap);
+      if (!values.length) return 0;
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const value = snap[key] ?? 0;
+      if (max === min) return 0;
+      return Math.round(((value - min) / (max - min)) * 100);
     }
 
-    // Year badge
-    const badge = document.createElement('div');
-    badge.style.cssText = 'font-size:8px;color:rgba(74,44,23,0.45);margin-top:3px;text-align:right;';
-    badge.textContent = `${year} · price-weighted estimate`;
-    barContainer.appendChild(badge);
-  }
-
-  populateTradeFlows(key, year);
-
-  // ── Concentration bars ────────────────────────────────────
-  const concDiv = document.getElementById('sp-concentration');
-  concDiv.innerHTML = '';
-
-  // Shared data for concentration bars
-  const qtySnapC   = TRADE_QUANTITY_BY_YEAR[year] || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
-  const qtyRowC    = qtySnapC[key];
-  const rawSnapC   = (typeof TRADE_QTY_RAW_BY_YEAR  !== 'undefined') ? (TRADE_QTY_RAW_BY_YEAR[year]  || TRADE_QTY_RAW_BY_YEAR[2023]  || {}) : {};
-  const procSnapC  = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined') ? (TRADE_QTY_PROC_BY_YEAR[year] || TRADE_QTY_PROC_BY_YEAR[2023] || {}) : {};
-
-  // Per-flow color based on actual item-code ratio
-  const expColorC = (reporter, partner) => {
-    const r = (rawSnapC[reporter]  || {})[partner] || 0;
-    const p = (procSnapC[reporter] || {})[partner] || 0;
-    if (r === 0 && p === 0) return getProcessedShare(reporter, year) >= 50 ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw;
-    return p > r ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw;
-  };
-  const impColorC = (reporter, partner) => {
-    const r = (rawSnapC[reporter]  || {})[partner] || 0;
-    const p = (procSnapC[reporter] || {})[partner] || 0;
-    if (r === 0 && p === 0) return getProcessedShare(reporter, year) >= 50 ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw;
-    return p > r ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw;
-  };
-
-  // Export concentration
-  let expSegments = [], expTopName = '—', expTopShare = 0, expHHI = 0, expTotal = 0;
-  if (qtyRowC) {
-    const sorted = Object.entries(qtyRowC).sort((a, b) => b[1] - a[1]);
-    expTotal = sorted.reduce((s, [, v]) => s + v, 0);
-    if (expTotal > 0) {
-      let rawSum = 0, procSum = 0;
-      sorted.forEach(([partner]) => {
-        rawSum  += (rawSnapC[key]  || {})[partner] || 0;
-        procSum += (procSnapC[key] || {})[partner] || 0;
-      });
-      if (rawSum  > 0) expSegments.push({ share: rawSum  / expTotal, color: FLOW_COLORS.exportRaw });
-      if (procSum > 0) expSegments.push({ share: procSum / expTotal, color: FLOW_COLORS.exportProcessed });
-      expTopName  = sorted[0]?.[0] || '—';
-      expTopShare = Math.round(((sorted[0]?.[1] || 0) / expTotal) * 100);
-      expHHI      = Math.round(sorted.reduce((s, [, v]) => s + (v / expTotal) ** 2, 0) * 10000);
-    }
-  }
-
-  // Import concentration (always scan inbound)
-  let impSegments = [], impTopName = '—', impTopShare = 0, impHHI = 0;
-  const impSrcs = [];
-  Object.entries(qtySnapC).forEach(([rep, row]) => {
-    const q = row[key]; if (q) impSrcs.push([rep, q]);
-  });
-  impSrcs.sort((a, b) => b[1] - a[1]);
-  const impTotal = impSrcs.reduce((s, [, v]) => s + v, 0);
-  if (impTotal > 0 && impSrcs.length > 0) {
-    let rawSum = 0, procSum = 0;
-    impSrcs.forEach(([src]) => {
-      rawSum  += (rawSnapC[src]  || {})[key] || 0;
-      procSum += (procSnapC[src] || {})[key] || 0;
-    });
-    if (rawSum  > 0) impSegments.push({ share: rawSum  / impTotal, color: FLOW_COLORS.importRaw });
-    if (procSum > 0) impSegments.push({ share: procSum / impTotal, color: FLOW_COLORS.importProcessed });
-    impTopName  = impSrcs[0]?.[0] || '—';
-    impTopShare = Math.round(((impSrcs[0]?.[1] || 0) / impTotal) * 100);
-    impHHI      = Math.round(impSrcs.reduce((s, [, v]) => s + (v / impTotal) ** 2, 0) * 10000);
-  }
-
-  function makeConBar(label, segments, topName, topShare, hhi, hasData) {
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'margin-bottom:6px;';
-    const lbl = document.createElement('div');
-    lbl.style.cssText = 'font-size:7px;letter-spacing:.06em;text-transform:uppercase;' +
-                        'color:rgba(74,44,23,0.55);margin-bottom:3px;';
-    lbl.textContent = label;
-    wrap.appendChild(lbl);
-    if (!hasData || segments.length === 0) {
-      const na = document.createElement('div');
-      na.style.cssText = 'font-size:8px;color:rgba(74,44,23,0.35);font-style:italic;';
-      na.textContent = 'No data for this year';
-      wrap.appendChild(na);
-      return wrap;
-    }
-    const bar = document.createElement('div');
-    bar.style.cssText = 'display:flex;height:8px;border-radius:3px;overflow:hidden;width:100%;';
-    segments.forEach(({ share, color }) => {
-      const seg = document.createElement('div');
-      seg.style.cssText = `flex:0 0 ${(share * 100).toFixed(1)}%;background:${color};` +
-                          `min-width:${share > 0 ? '2px' : '0'};`;
-      bar.appendChild(seg);
-    });
-    wrap.appendChild(bar);
-    const sub = document.createElement('div');
-    sub.style.cssText = 'margin-top:2px;font-size:7.5px;color:rgba(74,44,23,0.6);' +
-                        'display:flex;justify-content:space-between;';
-    sub.innerHTML = `<span>Top: ${topName} ${topShare}%</span>` +
-                    `<span title="Herfindahl index">HHI ${hhi}</span>`;
-    wrap.appendChild(sub);
-    return wrap;
-  }
-
-  concDiv.appendChild(makeConBar('EXPORT CONCENTRATION', expSegments, expTopName, expTopShare, expHHI, expTotal > 0));
-  concDiv.appendChild(makeConBar('IMPORT CONCENTRATION', impSegments, impTopName, impTopShare, impHHI, impTotal > 0));
-}
-
-function populateTradeFlows(key, year = currentYear) {
-  const exportContainer = document.getElementById('sp-flows-export');
-  const importContainer = document.getElementById('sp-flows-import');
-  const exportTitleEl  = document.getElementById('sp-export-title');
-  const importTitleEl  = document.getElementById('sp-import-title');
-  if (!exportContainer || !importContainer) return;
-  exportContainer.innerHTML = '';
-  importContainer.innerHTML = '';
-
-  const qtySnap = (typeof TRADE_QUANTITY_BY_YEAR !== 'undefined' && TRADE_QUANTITY_BY_YEAR[year])
-                  || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
-  const valSnap = (typeof TRADE_VALUE_BY_YEAR !== 'undefined' && TRADE_VALUE_BY_YEAR[year])
-                  || TRADE_VALUE_BY_YEAR[2023] || TRADE_VALUE;
-
-  const activeSnap = flowMode === 'val' ? valSnap : qtySnap;
-
-  const rawFlowSnap  = (typeof TRADE_QTY_RAW_BY_YEAR  !== 'undefined') ? (TRADE_QTY_RAW_BY_YEAR[year]  || TRADE_QTY_RAW_BY_YEAR[2023]  || {}) : {};
-  const procFlowSnap = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined') ? (TRADE_QTY_PROC_BY_YEAR[year] || TRADE_QTY_PROC_BY_YEAR[2023] || {}) : {};
-
-  function exportColor(reporter, partner) {
-    const r = (rawFlowSnap[reporter]  || {})[partner || ''] || 0;
-    const p = (procFlowSnap[reporter] || {})[partner || ''] || 0;
-    if (r === 0 && p === 0) return getProcessedShare(reporter, year) >= 50 ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw;
-    return p > r ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw;
-  }
-  function importColor(reporter, partner) {
-    const r = (rawFlowSnap[reporter]  || {})[partner || ''] || 0;
-    const p = (procFlowSnap[reporter] || {})[partner || ''] || 0;
-    if (r === 0 && p === 0) return getProcessedShare(reporter, year) >= 50 ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw;
-    return p > r ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw;
-  }
-
-  // ── Dual-bar row: top bar = raw qty, bottom bar = processed qty ──
-  // maxQtyRef always in tonnes for bar scaling; val shown as secondary label
-  function makeRow(arrow, country, rawQ, procQ, val, maxQtyRef, isExport) {
-    const rawColor  = isExport ? FLOW_COLORS.exportRaw       : FLOW_COLORS.importRaw;
-    const procColor = isExport ? FLOW_COLORS.exportProcessed : FLOW_COLORS.importProcessed;
-    const arrowColor = procQ > rawQ ? procColor : rawColor;
-    const total = rawQ + procQ;
-    const rawW  = maxQtyRef > 0 ? Math.round(rawQ  / maxQtyRef * 100) : 0;
-    const procW = maxQtyRef > 0 ? Math.round(procQ / maxQtyRef * 100) : 0;
-    // Labels: one per bar, same unit in both rows
-    let topLabel, botLabel;
-    if (flowMode === 'val') {
-      // Estimate raw/proc value split proportionally (no per-item value data available)
-      const rawVal  = total > 0 ? Math.round(val * rawQ  / total) : 0;
-      const procVal = total > 0 ? Math.round(val * procQ / total) : 0;
-      topLabel = fmtVal(rawVal);
-      botLabel = fmtVal(procVal);
-    } else {
-      topLabel = rawQ  > 0 ? `${fmtQty(rawQ)}t`  : '—';
-      botLabel = procQ > 0 ? `${fmtQty(procQ)}t` : '—';
-    }
-    const row = document.createElement('div');
-    row.className = 'flow-row';
-    row.innerHTML =
-      `<span class="flow-arrow" style="color:${arrowColor}">${arrow}</span>` +
-      `<span class="flow-country">${country}</span>` +
-      `<div class="flow-bars">` +
-        `<div class="flow-bar-wrap"><div class="flow-bar-fill" style="width:${rawW}%;background:${rawColor}"></div></div>` +
-        `<div class="flow-bar-wrap"><div class="flow-bar-fill" style="width:${procW}%;background:${procColor}"></div></div>` +
-      `</div>` +
-      `<div style="text-align:right;flex-shrink:0;width:36px;">` +
-        `<div style="font-size:8px;font-weight:600;color:${rawColor};line-height:1.3;">${topLabel}</div>` +
-        `<div style="font-size:8px;font-weight:600;color:${procColor};line-height:1.3;">${botLabel}</div>` +
-      `</div>`;
-    return row;
-  }
-
-  // ── Export section ────────────────────────────────────────
-  if (exportTitleEl) exportTitleEl.textContent = 'Top export flows';
-  const qtyRow = qtySnap[key];
-  if (qtyRow) {
-    const rows = Object.keys(qtyRow).map(partner => ({
-      partner,
-      rawQ:  (rawFlowSnap[key]  || {})[partner] || 0,
-      procQ: (procFlowSnap[key] || {})[partner] || 0,
-      qty:   qtyRow[partner] || 0,
-      val:   (valSnap[key] || {})[partner] || 0,
-    }));
-    rows.sort((a, b) => flowMode === 'val' ? b.val - a.val : b.qty - a.qty);
-    const top5ex = rows.slice(0, 5);
-    if (top5ex.length === 0) {
-      exportContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No export data</div>';
-    } else {
-      const maxExQty = Math.max(...top5ex.map(r => r.qty), 1);
-      top5ex.forEach(({ partner, rawQ, procQ, qty, val }) => {
-        exportContainer.appendChild(makeRow('→', partner, rawQ, procQ, val, maxExQty, true));
-      });
-    }
-  } else {
-    exportContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No export data for this country</div>';
-  }
-
-  // ── Collect & render import section ──────────────────────
-  if (importTitleEl) importTitleEl.textContent = 'Top import flows';
-  const importRows = Object.keys(qtySnap)
-    .filter(reporter => reporter !== key && (qtySnap[reporter][key] || 0) > 0)
-    .map(reporter => ({
-      reporter,
-      rawQ:  (rawFlowSnap[reporter]  || {})[key] || 0,
-      procQ: (procFlowSnap[reporter] || {})[key] || 0,
-      qty:   (qtySnap[reporter][key] || 0),
-      val:   (valSnap[reporter] || {})[key] || 0,
-    }));
-  importRows.sort((a, b) => flowMode === 'val' ? b.val - a.val : b.qty - a.qty);
-  const top5imp = importRows.slice(0, 5);
-
-  // Import summary box (total across ALL importers, not just top 5)
-  const impSummaryEl = document.getElementById('sp-import-summary');
-  if (impSummaryEl) {
-    const totalImpQty = importRows.reduce((s, r) => s + r.qty, 0);
-    const totalImpVal = importRows.reduce((s, r) => s + r.val, 0);
-    const summaryText = flowMode === 'val'
-      ? fmtVal(totalImpVal)
-      : `${fmtQty(totalImpQty)}t total`;
-    impSummaryEl.textContent = summaryText;
-    impSummaryEl.style.display = summaryText ? 'block' : 'none';
-  }
-
-  if (top5imp.length === 0) {
-    importContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No import data</div>';
-  } else {
-    const maxImpQty = Math.max(...top5imp.map(r => r.qty), 1);
-    top5imp.forEach(({ reporter, rawQ, procQ, qty, val }) => {
-      importContainer.appendChild(makeRow('←', reporter, rawQ, procQ, val, maxImpQty, false));
-    });
-  }
-}
-
-/* ── TRADE FLOW ARC SYSTEM ────────────────────────────────── */
-
-// Step 1: project lat/lng to scene XY + Z at extrusion top
-function latLngToXY(lat, lng, countryName) {
-  const p  = project(lng, lat);
-  const ti = countryName ? getTI(countryName) : 0;
-  const z  = ti * 1.2 + 2;
-  return { x: p.x, y: p.y, z };
-}
-
-// Single arrow system: segmented cylinders following a bezier curve.
-// Replaces both buildArc() and buildVolumeArrow().
-
-function clearArrows() {
-  arcMeshes.forEach(m => scene.remove(m));
-  arcMeshes = [];
-}
-
-// Build one flow arrow: N cylinder segments along a quadratic bezier
-// + a cone head. pct drives thickness. opacity fades in via animate().
-function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
-  const midX = (srcPos.x + dstPos.x) / 2;
-  const midY = (srcPos.y + dstPos.y) / 2;
-  const dist  = Math.sqrt(
-    (dstPos.x - srcPos.x) ** 2 +
-    (dstPos.y - srcPos.y) ** 2 +
-    (dstPos.z - srcPos.z) ** 2
-  );
-  if (dist < 1) return;
-
-  // Control point lifts the arc above the map surface
-  const peakZ = Math.max(srcPos.z, dstPos.z) + 18 + dist * 0.12;
-
-  const p0    = new THREE.Vector3(srcPos.x, srcPos.y, srcPos.z);
-  const p1    = new THREE.Vector3(midX, midY, peakZ);
-  const p2    = new THREE.Vector3(dstPos.x, dstPos.y, dstPos.z);
-  const curve = new THREE.QuadraticBezierCurve3(p0, p1, p2);
-
-  // Radius scales with volume share (pct 0-100)
-  const shaftR = Math.max(0.25, 0.25 + (pct / 100) * 1.0);
-  const headR  = shaftR * 2.8;
-  const headH  = shaftR * 9;
-
-  const mat = new THREE.MeshPhongMaterial({
-    color: hexColor, emissive: hexColor,
-    emissiveIntensity: 0.18, shininess: 75,
-    transparent: true, opacity: 0
-  });
-
-  function addMesh(geo) {
-    const m = new THREE.Mesh(geo, mat.clone());
-    m.userData.fadeStart     = Date.now();
-    m.userData.targetOpacity = opacity;
-    scene.add(m);
-    arcMeshes.push(m);
-    return m;
-  }
-
-  // Sample N+2 points so we have N+1 segments total.
-  // The last segment is RESERVED for the arrowhead footprint:
-  // shaft draws segments 0..N-1 (stopping one step before the tip),
-  // then the cone base is placed exactly at pts[N] with no gap.
-  const N   = 12;
-  const pts = curve.getPoints(N + 1); // returns N+2 points, indices 0..N+1
-
-  // Direction of the final approach (used for both last shaft seg and cone)
-  const tipA   = pts[pts.length - 2];   // pts[N]
-  const tipB   = pts[pts.length - 1];   // pts[N+1]
-  const tipDir = new THREE.Vector3().subVectors(tipB, tipA).normalize();
-
-  // Shaft: all segments up to (but not including) the last point,
-  // so the shaft ends exactly at pts[N] = tipA (cone base).
-  for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i], b = pts[i + 1];
-    const segDir = new THREE.Vector3().subVectors(b, a);
-    const segLen = segDir.length();
-    if (segLen < 0.01) continue;
-    segDir.normalize();
-
-    const seg = addMesh(new THREE.CylinderGeometry(shaftR, shaftR, segLen, 7, 1));
-    seg.position.set((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
-    seg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), segDir);
-  }
-
-  // Cone: apex sits exactly at tipB (the destination surface).
-  // ConeGeometry tip is at +Y/2 from centre, so offset centre by -tipDir * headH/2
-  // so apex = centre + tipDir*headH/2 = tipB, base opens back along the shaft.
-  const head = addMesh(new THREE.ConeGeometry(headR, headH, 8));
-  head.position.set(
-    tipB.x - tipDir.x * headH / 2,
-    tipB.y - tipDir.y * headH / 2,
-    tipB.z - tipDir.z * headH / 2
-  );
-  head.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tipDir);
-}
-
-// Draw export + import arcs for a selected country
-function topZ(key) {
-  const mesh = countryMeshes.find(m => {
-    const k = GEO_NAME_MAP[m.userData.name] || m.userData.name;
-    return k === key || m.userData.name === key;
-  });
-  if (!mesh) return 1;
-  return (mesh.userData.baseDepth || 0.5) * mesh.scale.z;
-}
-
-function drawArcs(countryName, year) {
-  if (year === undefined) year = currentYear;
-  clearArrows();
-  const key     = GEO_NAME_MAP[countryName] || countryName;
-  const srcCent = CENTROIDS[key] || CENTROIDS[countryName];
-  if (!srcCent) return;
-
-  const qtySnap  = (typeof TRADE_QUANTITY_BY_YEAR !== 'undefined' && TRADE_QUANTITY_BY_YEAR[year])
-                   || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
-  const rawSnap  = (typeof TRADE_QTY_RAW_BY_YEAR  !== 'undefined' && TRADE_QTY_RAW_BY_YEAR[year])
-                   || (TRADE_QTY_RAW_BY_YEAR  || {})[2023] || {};
-  const procSnap = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined' && TRADE_QTY_PROC_BY_YEAR[year])
-                   || (TRADE_QTY_PROC_BY_YEAR || {})[2023] || {};
-
-  const srcProj = project(srcCent[1], srcCent[0]);
-  const srcPos  = { x: srcProj.x, y: srcProj.y, z: topZ(key) };
-
-  // Color a flow based on actual item-code ratio for that reporter→partner pair.
-  function flowExportColor(reporter, partner) {
-    const r = (rawSnap[reporter]  || {})[partner] || 0;
-    const p = (procSnap[reporter] || {})[partner] || 0;
-    return hexToInt(p > r ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw);
-  }
-  function flowImportColor(reporter, partner) {
-    const r = (rawSnap[reporter]  || {})[partner] || 0;
-    const p = (procSnap[reporter] || {})[partner] || 0;
-    return hexToInt(p > r ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw);
-  }
-
-  // Collect all arrows first so thickness can be normalised against one shared max
-  const arrows = [];
-
-  // ── EXPORTS ──────────────────────────────────────────────
-  const qtyRow = qtySnap[key];
-  if (qtyRow) {
-    Object.entries(qtyRow).sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([dest, qty]) => {
-      const c = CENTROIDS[dest]; if (!c) return;
-      const dstProj = project(c[1], c[0]);
-      arrows.push({
-        src: srcPos,
-        dst: { x: dstProj.x, y: dstProj.y, z: topZ(dest) },
-        qty,
-        color: flowExportColor(key, dest),
-        opacity: 0.88
-      });
-    });
-  }
-
-  // ── IMPORTS ──────────────────────────────────────────────
-  const importSrcs = [];
-  Object.entries(qtySnap).forEach(([reporter, row]) => {
-    if (reporter === key) return;
-    const qty = row[key] || row[countryName];
-    if (qty) importSrcs.push([reporter, qty]);
-  });
-  importSrcs.sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([src, qty]) => {
-    const c = CENTROIDS[src]; if (!c) return;
-    const srcProj2 = project(c[1], c[0]);
-    arrows.push({
-      src: { x: srcProj2.x, y: srcProj2.y, z: topZ(src) },
-      dst: srcPos,
-      qty,
-      color: flowImportColor(src, key),
-      opacity: 0.75
-    });
-  });
-
-  // Normalise all thicknesses against the single largest flow (kilotonnes-proportional)
-  const maxQty = Math.max(1, ...arrows.map(a => a.qty));
-  arrows.forEach(({ src, dst, qty, color, opacity }) => {
-    buildFlowArrow(src, dst, qty / maxQty * 100, color, opacity);
-  });
-}
-
-/* ── BUILD COUNTRY MESHES ─────────────────────────────────── */
-function buildCountry(feature) {
-  const name    = feature.properties.name;
-  const key     = GEO_NAME_MAP[name] || name;
-  const ti      = getTI(name);
-  const depth   = getDepth(ti, key);
-  const topCol  = getTopColor(ti, key);
-  const sideCol = getSideColor(ti, key);
-
-  const geomType = feature.geometry.type;
-  const polys = geomType === 'Polygon'
-    ? [feature.geometry.coordinates]
-    : feature.geometry.coordinates;
-
-  polys.forEach(rings => {
-    try {
-      const outer = rings[0];
-      if (!outer || outer.length < 4) return;
-
-      const step = outer.length > 400 ? 4 : outer.length > 150 ? 3 : outer.length > 60 ? 2 : 1;
-      const shape = makeShape(outer, step);
-      if (!shape) return;
-
-      // Holes
-      for (let h = 1; h < rings.length; h++) {
-        const hole = rings[h];
-        if (!hole || hole.length < 4) continue;
-        const hstep = Math.max(1, Math.floor(step * 1.5));
-        const hpts = ringToPoints(hole, hstep);
-        if (hpts.length < 3) continue;
-        const path = new THREE.Path();
-        path.moveTo(hpts[0].x, hpts[0].y);
-        for (let i = 1; i < hpts.length; i++) path.lineTo(hpts[i].x, hpts[i].y);
-        path.closePath();
-        shape.holes.push(path);
-      }
-
-      const extOpts = { depth, bevelEnabled: false, steps: 1 };
-      const geo = new THREE.ExtrudeGeometry(shape, extOpts);
-
-      // Two materials: index 0 = sides, index 1 = caps
-      const mats = [
-        new THREE.MeshLambertMaterial({ color: sideCol }),
-        new THREE.MeshLambertMaterial({ color: topCol })
-      ];
-
-      const mesh = new THREE.Mesh(geo, mats);
-      mesh.userData = { name, ti, baseDepth: depth };
-      countryMeshes.push(mesh);
-      scene.add(mesh);
-
-      // Country border line at base
-      const lineGeo = new THREE.BufferGeometry();
-      const pts3 = ringToPoints(outer, step).map(p => new THREE.Vector3(p.x, p.y, 0.1));
-      lineGeo.setFromPoints(pts3);
-      const lineMat = new THREE.LineBasicMaterial({ color: 0x8B6040, opacity: 0.35, transparent: true });
-      scene.add(new THREE.LineLoop(lineGeo, lineMat));
-
-    } catch (_) { /* skip malformed geometries */ }
-  });
-}
-
-
-/* ── LOAD GEOJSON ─────────────────────────────────────────── */
-function loadMap() {
-  const GEOJSON_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
-
-  fetch(GEOJSON_URL)
-    .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json(); })
-    .then(data => {
-      // Auto-populate CENTROIDS from GeoJSON bounding-box centres for any country not yet hardcoded
-      data.features.forEach(f => {
-        if (!f.geometry) return;
-        const geoName  = f.properties?.name;
-        const canonKey = GEO_NAME_MAP[geoName] || geoName;
-        if (!canonKey || canonKey in CENTROIDS) return; // keep hand-placed values
-        // Collect all coordinate pairs regardless of Polygon/MultiPolygon nesting
-        const allCoords = [];
-        (function collect(c) {
-          if (typeof c[0] === 'number') allCoords.push(c);
-          else c.forEach(collect);
-        })(f.geometry.coordinates);
-        if (allCoords.length === 0) return;
-        let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-        for (const c of allCoords) {
-          if (c[1] < minLat) minLat = c[1]; if (c[1] > maxLat) maxLat = c[1];
-          if (c[0] < minLng) minLng = c[0]; if (c[0] > maxLng) maxLng = c[0];
-        }
-        const lat = (minLat + maxLat) / 2;
-        const lng = (minLng + maxLng) / 2;
-        CENTROIDS[canonKey] = [lat, lng];
-        // Also index by raw GeoJSON name so lookups by mesh userData.name work
-        if (geoName !== canonKey) CENTROIDS[geoName] = [lat, lng];
-      });
-      data.features.forEach(f => {
-        if (f.geometry) buildCountry(f);
-      });
-      document.getElementById('map-loading').classList.add('hidden');
-    })
-    .catch(err => {
-      const el = document.getElementById('map-loading');
-      el.innerHTML = '<span style="color:#C8A96E;font-size:11px;">⚠ Could not load map.<br>Requires internet access.</span>';
-      el.style.flexDirection = 'column';
-      console.error('GeoJSON load error:', err);
-    });
-}
-
-/* ── SANKEY ───────────────────────────────────────────────── */
-function updateSankey(year) {
-  const svg = document.getElementById('sankey-svg');
-  if (!svg) return;
-  svg.innerHTML = '';
-  const NS = 'http://www.w3.org/2000/svg';
-
-  const rawSnap  = (typeof TRADE_QTY_RAW_BY_YEAR  !== 'undefined') ? (TRADE_QTY_RAW_BY_YEAR[year]  || TRADE_QTY_RAW_BY_YEAR[2023]  || {}) : {};
-  const procSnap = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined') ? (TRADE_QTY_PROC_BY_YEAR[year] || TRADE_QTY_PROC_BY_YEAR[2023] || {}) : {};
-  const psSnap   = (typeof PROCESSED_SHARE_BY_YEAR !== 'undefined') ? (PROCESSED_SHARE_BY_YEAR[year] || PROCESSED_SHARE_BY_YEAR[2023] || {}) : {};
-
-  // Processors = countries with processed-export share >= 30%
-  const processorSet = new Set(Object.entries(psSnap).filter(([, s]) => s >= 30).map(([k]) => k));
-
-  // Producer totals: raw exports (reporters not in processorSet)
-  const rawProdTotals = {};
-  Object.entries(rawSnap).forEach(([rep, row]) => {
-    if (processorSet.has(rep)) return;
-    const tot = Object.values(row).reduce((s, v) => s + v, 0);
-    if (tot > 0) rawProdTotals[rep] = tot;
-  });
-
-  // Processor totals: processed exports (reporters in processorSet)
-  const procHubTotals = {};
-  Object.entries(procSnap).forEach(([rep, row]) => {
-    if (!processorSet.has(rep)) return;
-    const tot = Object.values(row).reduce((s, v) => s + v, 0);
-    if (tot > 0) procHubTotals[rep] = tot;
-  });
-
-  // Consumer totals: processed imports from processors, excluding other processors
-  const destTotals = {};
-  Object.entries(procSnap).forEach(([rep, row]) => {
-    if (!processorSet.has(rep)) return;
-    Object.entries(row).forEach(([dest, qty]) => {
-      if (!processorSet.has(dest)) destTotals[dest] = (destTotals[dest] || 0) + qty;
-    });
-  });
-
-  const TOP_P = 5, TOP_H = 5, TOP_D = 5;
-  const topProd = Object.entries(rawProdTotals).sort((a, b) => b[1] - a[1]).slice(0, TOP_P);
-  const topHub  = Object.entries(procHubTotals).sort((a, b) => b[1] - a[1]).slice(0, TOP_H);
-  const topDest = Object.entries(destTotals).sort((a, b) => b[1] - a[1]).slice(0, TOP_D);
-  const topPKeys = new Set(topProd.map(([k]) => k));
-  const topHKeys = new Set(topHub.map(([k]) => k));
-  const topDKeys = new Set(topDest.map(([k]) => k));
-
-  // Flow matrix: Producer → Hub (raw coffee)
-  const flowPH = {};
-  topProd.forEach(([p]) => { flowPH[p] = {}; topHub.forEach(([h]) => { flowPH[p][h] = 0; }); });
-  Object.entries(rawSnap).forEach(([rep, row]) => {
-    if (!topPKeys.has(rep)) return;
-    Object.entries(row).forEach(([dest, qty]) => {
-      if (topHKeys.has(dest)) flowPH[rep][dest] = (flowPH[rep][dest] || 0) + qty;
-    });
-  });
-
-  // Flow matrix: Hub → Consumer (processed coffee)
-  const flowHD = {};
-  topHub.forEach(([h]) => { flowHD[h] = {}; topDest.forEach(([d]) => { flowHD[h][d] = 0; }); });
-  Object.entries(procSnap).forEach(([rep, row]) => {
-    if (!topHKeys.has(rep)) return;
-    Object.entries(row).forEach(([dest, qty]) => {
-      if (topDKeys.has(dest)) flowHD[rep][dest] = (flowHD[rep][dest] || 0) + qty;
-    });
-  });
-
-  // Node volumes
-  const pVols = {}, hVolsIn = {}, hVolsOut = {}, dVols = {};
-  topProd.forEach(([p]) => { pVols[p]    = topHub.reduce((s, [h]) => s + (flowPH[p][h] || 0), 0); });
-  topHub.forEach(([h])  => {
-    hVolsIn[h]  = topProd.reduce((s, [p]) => s + (flowPH[p][h] || 0), 0);
-    hVolsOut[h] = topDest.reduce((s, [d]) => s + (flowHD[h][d] || 0), 0);
-  });
-  topDest.forEach(([d]) => { dVols[d] = topHub.reduce((s, [h]) => s + (flowHD[h][d] || 0), 0); });
-
-  const totalP = topProd.reduce((s, [k]) => s + (pVols[k] || 0), 0);
-  const totalH = topHub.reduce((s, [k]) => s + (hVolsOut[k] || 0), 0);
-  const totalD = topDest.reduce((s, [k]) => s + (dVols[k] || 0), 0);
-  if (totalP === 0 && totalH === 0) return;
-
-  // Grand totals across ALL countries (not just displayed top-N) for accurate label %
-  const grandProdTotal = Object.values(rawProdTotals).reduce((s, v) => s + v, 0) || 1;
-  const grandHubTotal  = Object.values(procHubTotals).reduce((s, v) => s + v, 0) || 1;
-  const grandDestTotal = Object.values(destTotals).reduce((s, v) => s + v, 0) || 1;
-
-  // Others volumes = grand total minus the top-N share
-  const pOthVol = Math.max(0, grandProdTotal - topProd.reduce((s, [k]) => s + (rawProdTotals[k] || 0), 0));
-  const hOthVol = Math.max(0, grandHubTotal  - topHub.reduce((s,  [k]) => s + (procHubTotals[k] || 0), 0));
-  const dOthVol = Math.max(0, grandDestTotal - topDest.reduce((s, [k]) => s + (destTotals[k]    || 0), 0));
-
-  const activeProd = topProd.filter(([k]) => pVols[k] > 0);
-  const activeHub  = topHub.filter(([k]) => (procHubTotals[k] || 0) > 0);
-  const activeDest = topDest.filter(([k]) => dVols[k] > 0);
-
-  // Layout: each column fills Y0..Y0+TOTAL_H independently
-  const Y0 = 10, TOTAL_H = 90;
-  function layoutCol(items, vols, total) {
-    const usable = TOTAL_H - Math.max(0, items.length - 1) * 2;
-    let cur = Y0;
-    return items.map(([k], i) => {
-      const vol = vols[k] || 0;
-      const h   = total > 0 ? Math.max(0, (vol / total) * usable) : 0;
-      const y1  = cur, y2 = cur + h;
-      cur = y2 + (i < items.length - 1 ? 2 : 0);
-      return { label: k, vol, h, y1, y2 };
-    });
-  }
-
-  // Build extended vol maps using real totals for correct node sizing
-  const pVolsExt = { ...rawProdTotals, Others: pOthVol };
-  const hVolsExt = { ...procHubTotals, Others: hOthVol };
-  const dVolsExt = { ...destTotals,    Others: dOthVol };
-  const pWithOth = [...activeProd, ...(pOthVol > 0 ? [['Others', pOthVol]] : [])];
-  const hWithOth = [...activeHub,  ...(hOthVol > 0 ? [['Others', hOthVol]] : [])];
-  const dWithOth = [...activeDest, ...(dOthVol > 0 ? [['Others', dOthVol]] : [])];
-  const pL = layoutCol(pWithOth, pVolsExt, grandProdTotal);
-  const hL = layoutCol(hWithOth, hVolsExt, grandHubTotal);
-  const dL = layoutCol(dWithOth, dVolsExt, grandDestTotal);
-
-  function svgEl(tag, attrs) {
-    const e = document.createElementNS(NS, tag);
-    Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
-    return e;
-  }
-
-  // Column geometry
-  const PX1=6, PW=12, PX2=18;      // Producers  6-18
-  const HX1=163, HW=28, HX2=191;   // Processors 163-191
-  const DX1=352, DW=12, DX2=364;   // Consumers  352-364
-  const MID_PH = Math.round((PX2+HX1)/2);  // ~93
-  const MID_HD = Math.round((HX2+DX1)/2);  // ~269
-
-  const PROD_COLORS = ['#3D2010','#5C3820','#7A4C2A','#8B5E3C','#9B6E4C'];
-  const HUB_COLORS  = ['#5C4400','#7A5C00','#987800','#B09010','#C4A820'];
-  const DEST_COLORS = ['#5C3020','#7A4030','#984A38','#A85A44','#B86A54'];
-  const FLOW_PH = ['rgba(61,32,16,0.42)','rgba(92,56,32,0.38)','rgba(122,76,42,0.34)',
-                   'rgba(139,94,60,0.30)','rgba(155,110,76,0.26)'];
-  const FLOW_HD = ['rgba(92,68,0,0.44)','rgba(122,92,0,0.40)','rgba(152,120,0,0.36)',
-                   'rgba(176,144,16,0.32)','rgba(196,168,32,0.28)'];
-
-  // ── P→H flows (raw coffee) ───────────────────────────────
-  const pConsumed  = {}; pL.forEach(n => { pConsumed[n.label]  = 0; });
-  const hConsumedL = {}; hL.forEach(n => { hConsumedL[n.label] = 0; });
-
-  pL.filter(n => n.label !== 'Others').forEach((prod, pi) => {
-    hL.filter(n => n.label !== 'Others').forEach(hub => {
-      const qty = flowPH[prod.label]?.[hub.label] || 0;
-      if (qty < 1) return;
-      const fhP = prod.vol > 0 ? (qty / prod.vol)        * prod.h : 0;
-      const fhH = hVolsIn[hub.label] > 0 ? (qty / hVolsIn[hub.label]) * hub.h : 0;
-      const ya = prod.y1 + pConsumed[prod.label];
-      const yb = ya + fhP;
-      const yc = hub.y1 + hConsumedL[hub.label];
-      const yd = yc + fhH;
-      const d = `M${PX2},${ya.toFixed(1)} C${MID_PH},${ya.toFixed(1)} ${MID_PH},${yc.toFixed(1)} ${HX1},${yc.toFixed(1)} ` +
-                `L${HX1},${yd.toFixed(1)} C${MID_PH},${yd.toFixed(1)} ${MID_PH},${yb.toFixed(1)} ${PX2},${yb.toFixed(1)} Z`;
-      svg.appendChild(svgEl('path', { d, fill: FLOW_PH[Math.min(pi, FLOW_PH.length-1)] }));
-      pConsumed[prod.label]  += fhP;
-      hConsumedL[hub.label] += fhH;
-    });
-  });
-
-  // ── H→D flows (processed coffee) ────────────────────────
-  const hConsumedR = {}; hL.forEach(n => { hConsumedR[n.label] = 0; });
-  const dConsumed  = {}; dL.forEach(n => { dConsumed[n.label]  = 0; });
-
-  hL.filter(n => n.label !== 'Others').forEach((hub, hi) => {
-    dL.filter(n => n.label !== 'Others').forEach(dest => {
-      const qty = flowHD[hub.label]?.[dest.label] || 0;
-      if (qty < 1) return;
-      const fhH = hub.vol > 0  ? (qty / hub.vol)  * hub.h  : 0;
-      const fhD = dest.vol > 0 ? (qty / dest.vol) * dest.h : 0;
-      const ya = hub.y1  + hConsumedR[hub.label];
-      const yb = ya + fhH;
-      const yc = dest.y1 + dConsumed[dest.label];
-      const yd = yc + fhD;
-      const d = `M${HX2},${ya.toFixed(1)} C${MID_HD},${ya.toFixed(1)} ${MID_HD},${yc.toFixed(1)} ${DX1},${yc.toFixed(1)} ` +
-                `L${DX1},${yd.toFixed(1)} C${MID_HD},${yd.toFixed(1)} ${MID_HD},${yb.toFixed(1)} ${HX2},${yb.toFixed(1)} Z`;
-      svg.appendChild(svgEl('path', { d, fill: FLOW_HD[Math.min(hi, FLOW_HD.length-1)] }));
-      hConsumedR[hub.label] += fhH;
-      dConsumed[dest.label] += fhD;
-    });
-  });
-
-  const OTH_COLOR = '#999';
-
-  // ── Producer nodes ───────────────────────────────────────
-  pL.forEach((node, i) => {
-    if (node.h < 1) return;
-    const fill = node.label === 'Others' ? OTH_COLOR : PROD_COLORS[Math.min(i, PROD_COLORS.length-1)];
-    svg.appendChild(svgEl('rect', { x: PX1, y: node.y1.toFixed(1), width: PW,
-      height: node.h.toFixed(1), rx: 1.5, fill }));
-  });
-
-  // ── Processor nodes ──────────────────────────────────────
-  hL.forEach((node, i) => {
-    if (node.h < 1) return;
-    const fill = node.label === 'Others' ? OTH_COLOR : HUB_COLORS[Math.min(i, HUB_COLORS.length-1)];
-    svg.appendChild(svgEl('rect', { x: HX1, y: node.y1.toFixed(1), width: HW,
-      height: node.h.toFixed(1), rx: 1.5, fill }));
-  });
-
-  // ── Consumer nodes ───────────────────────────────────────
-  dL.forEach((node, i) => {
-    if (node.h < 1) return;
-    const fill = node.label === 'Others' ? OTH_COLOR : DEST_COLORS[Math.min(i, DEST_COLORS.length-1)];
-    svg.appendChild(svgEl('rect', { x: DX1, y: node.y1.toFixed(1), width: DW,
-      height: node.h.toFixed(1), rx: 1.5, fill }));
-  });
-
-  // ── Column headers ───────────────────────────────────────
-  [{ x: PX1,       anchor:'start',  txt:'Producers'  },
-   { x: HX1+HW/2,  anchor:'middle', txt:'Processors' },
-   { x: DX2,       anchor:'end',    txt:'Consumers'  }].forEach(({ x, anchor, txt }) => {
-    const t = svgEl('text', { x, y: 7, 'font-size': 5, fill: '#5C3820',
-      'text-anchor': anchor, 'font-weight': '600' });
-    t.textContent = txt; svg.appendChild(t);
-  });
-
-  // Helper: label Y — midpoint of node, but nudged down enough to be readable
-  function labelY(node, offset) {
-    const mid = (node.y1 + node.y2) / 2 + offset;
-    // For very small nodes, place label just below the node top so it stays visible
-    return node.h < 3 ? (node.y1 + offset + 1.5) : mid;
-  }
-
-  // ── Producer labels (right of node) ──────────────────────
-  pL.forEach((node, i) => {
-    if (node.h < 0.5) return;
-    const pct = Math.round(node.vol / grandProdTotal * 100);
-    const col = node.label === 'Others' ? OTH_COLOR : PROD_COLORS[Math.min(i, PROD_COLORS.length - 1)];
-    const t = svgEl('text', { x: PX2+2, y: labelY(node, 1.8).toFixed(1),
-      'font-size': 4.5, fill: col, 'text-anchor': 'start', 'font-weight': '600' });
-    t.textContent = `${node.label} ${pct}%`;
-    svg.appendChild(t);
-  });
-
-  // ── Processor labels (right of node, coloured) ───────────
-  hL.forEach((node, i) => {
-    if (node.h < 0.5) return;
-    const pct = Math.round(node.vol / grandHubTotal * 100);
-    const col = node.label === 'Others' ? OTH_COLOR : HUB_COLORS[Math.min(i, HUB_COLORS.length - 1)];
-    const t = svgEl('text', { x: HX2+2, y: labelY(node, 1.2).toFixed(1),
-      'font-size': 4.5, fill: col, 'text-anchor': 'start', 'font-weight': '600' });
-    t.textContent = `${node.label} ${pct}%`;
-    svg.appendChild(t);
-  });
-
-  // ── Consumer labels (right of node) ──────────────────────
-  dL.forEach((node, i) => {
-    if (node.h < 0.5) return;
-    const pct = Math.round(node.vol / grandDestTotal * 100);
-    const col = node.label === 'Others' ? OTH_COLOR : DEST_COLORS[Math.min(i, DEST_COLORS.length - 1)];
-    const t = svgEl('text', { x: DX2+2, y: labelY(node, 1.8).toFixed(1),
-      'font-size': 4.5, fill: col, 'text-anchor': 'start', 'font-weight': '600' });
-    t.textContent = `${node.label} ${pct}%`;
-    svg.appendChild(t);
-  });
-}
-
-/* ── SLIDER ───────────────────────────────────────────────── */
-let playing = false;
-let playInterval = null;
-
-function setupSlider() {
-  const slider  = document.getElementById('year-slider');
-  const display = document.getElementById('year-display');
-  const yearBadge = document.getElementById('topbar-year');
-  const playBtn   = document.getElementById('slider-play');
-  const topPlay   = document.getElementById('topbar-play');
-
-  const yearMin = 1986, yearMax = 2024;
-
-  function setYear(val) {
-    display.textContent   = val;
-    yearBadge.textContent = val;
-    // Update slider fill via gradient
-    const pct = ((val - yearMin) / (yearMax - yearMin)) * 100;
-    slider.style.background = `linear-gradient(to right, #8B5E3C ${pct}%, #E8D5B0 ${pct}%)`;
-    // Progressive timeline redraw + cursor (delegated to setupTimeline)
-    if (timelineUpdate) timelineUpdate(parseInt(val));
-    // Drive year-indexed data
-    currentYear = parseInt(val);
-    onYearChange(currentYear);
-  }
-
-  slider.addEventListener('input', () => setYear(slider.value));
-
-  function togglePlay() {
-    playing = !playing;
-    const icon = playing ? '⏸' : '▶';
-    playBtn.textContent = icon;
-    topPlay.textContent = icon;
-
-    if (playing) {
-      playInterval = setInterval(() => {
-        let v = parseInt(slider.value) + 1;
-        if (v > 2024) v = 1986;
-        slider.value = v;
-        setYear(v);
-      }, 2000);
-    } else {
-      clearInterval(playInterval);
-    }
-  }
-
-  playBtn.addEventListener('click', togglePlay);
-  topPlay.addEventListener('click', togglePlay);
-
-  document.getElementById('flow-mode-btn').addEventListener('click', () => {
-    flowMode = flowMode === 'qty' ? 'val' : 'qty';
-    document.getElementById('flow-mode-btn').textContent =
-      flowMode === 'qty' ? 'Show Value' : 'Show Weight';
-    if (selectedMesh) updateSidePanel(selectedMesh.userData.name, currentYear);
-  });
-
-  setYear(2023);
-}
-
-/* ── YEAR CHANGE ──────────────────────────────────────────── */
-function onYearChange(year) {
-  rebuildExportVolumes(year);
-
-  const tiSnap = PROCESSED_SHARE_BY_YEAR[year] || {};
-
-  // Rebuild TI_RANKS in place (only countries with data this year)
-  Object.keys(TI_RANKS).forEach(k => delete TI_RANKS[k]);
-  Object.entries(tiSnap)
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([k], i) => { TI_RANKS[k] = i + 1; });
-
-  // Pre-compute inbound volumes for this year (for import hub heights)
-  const qtySnapYear = TRADE_QUANTITY_BY_YEAR[year] || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
-  const inboundByKey = {};
-  Object.values(qtySnapYear).forEach(row => {
-    Object.entries(row).forEach(([dest, q]) => {
-      inboundByKey[dest] = (inboundByKey[dest] || 0) + q;
-    });
-  });
-
-  // Recolor and rescale country meshes
-  countryMeshes.forEach(mesh => {
-    const name      = mesh.userData.name;
-    const key       = GEO_NAME_MAP[name] || name;
-    const hasData   = key in tiSnap;
-    const ti        = hasData ? tiSnap[key] : 0;
-    mesh.userData.ti = ti;
-    if (Array.isArray(mesh.material)) {
-      mesh.material[1].color.setHex(getTopColor(ti, key, year));
-      mesh.material[0].color.setHex(getSideColor(ti, key, year));
-    }
-    let targetDepth;
-    if (hasData) {
-      targetDepth = getDepth(ti, key);
-    } else {
-      const inbound = inboundByKey[key] || 0;
-      targetDepth = inbound > 0
-        ? 0.5 + (inbound / Math.max(1, maxExportVolume)) * 40
-        : 0.5;
-    }
-    const baseDepth  = mesh.userData.baseDepth || 0.5;
-    mesh.scale.z     = targetDepth / baseDepth;
-  });
-
-  // Refresh panel and arcs if a country is selected
-  if (selectedMesh) {
-    updateSidePanel(selectedMesh.userData.name, year);
-    drawArcs(selectedMesh.userData.name, year);
-  }
-
-  updateSankey(year);
-}
-
-/* ── TIMELINE ─────────────────────────────────────────────── */
-function setupTimeline() {
-  // x: 1986→32, 2024→230  (xMax=230 leaves room for right-side labels)
-  const xMin = 32, xMax = 230, yearMin = 1986, yearMax = 2024;
-  const yBase = 88, yScale = 73, priceMax = 5500;
-
-  function toX(yr)    { return +(xMin + ((yr - yearMin) / (yearMax - yearMin)) * (xMax - xMin)).toFixed(1); }
-  function toY(price) { return +(yBase - Math.min(price / priceMax, 1) * yScale).toFixed(1); }
-
-  const years = Object.keys(PRICE_TIMELINE).map(Number).sort((a, b) => a - b);
-
-  const allData = years.map(yr => ({
-    yr,
-    raw:     [toX(yr), toY(PRICE_TIMELINE[yr].raw)],
-    proc:    [toX(yr), toY(PRICE_TIMELINE[yr].processed)],
-    impRaw:  [toX(yr), toY(PRICE_TIMELINE[yr].raw       * 1.08)],
-    impProc: [toX(yr), toY(PRICE_TIMELINE[yr].processed * 1.08)],
-  }));
-
-  const toPts = pairs => pairs.map(([x, y]) => `${x},${y}`).join(' ');
-  const ns = 'http://www.w3.org/2000/svg';
-
-  function fillDots(groupId, pairs, color) {
-    const g = document.getElementById(groupId); if (!g) return;
-    g.innerHTML = '';
-    pairs.forEach(([cx, cy]) => {
-      const c = document.createElementNS(ns, 'circle');
-      c.setAttribute('cx', cx); c.setAttribute('cy', cy);
-      c.setAttribute('r', '1.2'); c.setAttribute('fill', color);
-      g.appendChild(c);
-    });
-  }
-
-  function updateToYear(year) {
-    const visible = allData.filter(d => d.yr <= year);
-    if (visible.length === 0) return;
-
-    const rawPairs     = visible.map(d => d.raw);
-    const procPairs    = visible.map(d => d.proc);
-    const impRawPairs  = visible.map(d => d.impRaw);
-    const impProcPairs = visible.map(d => d.impProc);
-
-    document.getElementById('timeline-raw').setAttribute('points',     toPts(rawPairs));
-    document.getElementById('timeline-proc').setAttribute('points',    toPts(procPairs));
-    document.getElementById('timeline-impraw').setAttribute('points',  toPts(impRawPairs));
-    document.getElementById('timeline-impproc').setAttribute('points', toPts(impProcPairs));
-
-    const lastX = visible[visible.length - 1].raw[0];
-    const corner = ` ${lastX},${yBase} ${xMin},${yBase}`;
-    document.getElementById('timeline-raw-area').setAttribute('points',     toPts(rawPairs)     + corner);
-    document.getElementById('timeline-proc-area').setAttribute('points',    toPts(procPairs)    + corner);
-    document.getElementById('timeline-impraw-area').setAttribute('points',  toPts(impRawPairs)  + corner);
-    document.getElementById('timeline-impproc-area').setAttribute('points', toPts(impProcPairs) + corner);
-
-    fillDots('timeline-dots',          rawPairs,     '#5C3317');
-    fillDots('timeline-dots-expproc',  procPairs,    '#A0522D');
-    fillDots('timeline-dots-impraw',   impRawPairs,  '#B8935A');
-    fillDots('timeline-dots-impproc',  impProcPairs, '#E8C878');
-
-    const cursor = document.getElementById('timeline-cursor');
-    if (cursor) {
-      const cx = toX(year).toFixed(1);
-      cursor.setAttribute('x1', cx); cursor.setAttribute('x2', cx);
-    }
-
-    // Update bar-chart methodology hint with current year's prices
-    const pt = PRICE_TIMELINE[year] || PRICE_TIMELINE[2023];
-    const hint = document.getElementById('timeline-bar-hint');
-    if (hint && pt) {
-      hint.textContent = `Country panel bars: volumes × ${year} prices — `
-        + `raw ≈ ${(pt.raw/1000).toFixed(1)}k$/t · roasted ≈ ${(pt.processed/1000).toFixed(1)}k$/t. `
-        + `Bar gradient = raw (dark) → processed (light) share.`;
-    }
-  }
-
-  timelineUpdate = updateToYear;
-  updateToYear(2023);
-}
-
-/* ── INIT ─────────────────────────────────────────────────── */
-window.addEventListener('DOMContentLoaded', () => {
-  // 1. Show the loading screen while we fetch the data
-  const loadingEl = document.getElementById('map-loading');
-  loadingEl.textContent = 'Fetching global trade data...';
-  loadingEl.classList.remove('hidden');
-
-  // 2. Your new GitHub Pages link
-  const DATA_URL = 'https://mass-14.github.io/BeanMap-data/data_layer.json';
-
-  // 3. Fetch the data asynchronously
-  fetch(DATA_URL)
-    .then(response => {
-      if (!response.ok) throw new Error('Network response was not ok');
-      return response.json();
-    })
-    .then(data => {
-      // 4. Assign the fetched data to your global variables
-      TRANSFORMATION_INDEX_BY_YEAR = data.TRANSFORMATION_INDEX_BY_YEAR;
-      TRADE_QUANTITY_BY_YEAR = data.TRADE_QUANTITY_BY_YEAR;
-      TRADE_VALUE_BY_YEAR = data.TRADE_VALUE_BY_YEAR;
-      TRADE_QTY_RAW_BY_YEAR = data.TRADE_QTY_RAW_BY_YEAR;
-      TRADE_QTY_PROC_BY_YEAR = data.TRADE_QTY_PROC_BY_YEAR;
-      PROCESSED_SHARE_BY_YEAR = data.PROCESSED_SHARE_BY_YEAR;
-      PRICE_TIMELINE = data.PRICE_TIMELINE;
-      TRADE_QUANTITY = data.TRADE_QUANTITY;
-      TRADE_VALUE = data.TRADE_VALUE;
-      TRANSFORMATION_INDEX = data.TRANSFORMATION_INDEX;
-
-      Object.values(TRADE_QUANTITY_BY_YEAR).forEach(snap => {
-        Object.values(snap).forEach(row => { Object.keys(row).forEach(k => ALL_PARTNERS.add(k)); });
-      });
-
-      Object.entries(PROCESSED_SHARE_BY_YEAR[2023] || {})
+    function rebuildTransformationRanks(year) {
+      const tiSnap = TRANSFORMATION_INDEX_BY_YEAR[year] || TRANSFORMATION_INDEX_BY_YEAR[2023] || {};
+      Object.keys(TI_RANKS).forEach(k => delete TI_RANKS[k]);
+      Object.entries(tiSnap)
         .sort((a, b) => b[1] - a[1])
         .forEach(([k], i) => { TI_RANKS[k] = i + 1; });
+    }
 
-      // 5. Initialize the application now that we have data
-      rebuildExportVolumes(2023);
-      setupTimeline();   
-      setupSlider();
-      initThree();
-      loadMap();         // (loadMap handles hiding the loading screen when done)
-      updateSankey(2023);
-    })
-    .catch(error => {
-      console.error('Error fetching data:', error);
-      loadingEl.innerHTML = '<span style="color:#C8A96E;font-size:11px;">⚠ Could not load trade data. Check your GitHub Pages link.</span>';
-      loadingEl.style.flexDirection = 'column';
+    // Helper: resolve any name (GeoJSON or canonical) → visual TI score (0-100)
+    function getTI(name) {
+      return getTransformationVisualScore(name, currentYear);
+    }
+
+    // Helper: CSS hex color string → integer for Three.js
+    function hexToInt(h) { return parseInt(h.replace('#', ''), 16); }
+
+    // Helper: format large quantity values compactly (input in tonnes)
+    function fmtQty(q) {
+      if (q >= 1000000) return (q / 1000000).toFixed(1) + 'M';
+      if (q >= 1000) return Math.round(q / 1000) + 'k';
+      return q.toString();
+    }
+    // Helper: format trade values (input in 1000 USD → display in M$ or k$)
+    function fmtVal(v) {
+      if (v >= 1000000) return (v / 1000000).toFixed(1) + 'B$';
+      if (v >= 1000) return Math.round(v / 1000) + 'M$';
+      return v + 'k$';
+    }
+    // ─────────────────────────────────────────────────────────────
+
+    /* ── COLOR HELPERS ────────────────────────────────────────── */
+    // Returns 0–100: share of a country's exports that are processed (item 657).
+    function getProcessedShare(key, year) {
+      const snap = (typeof PROCESSED_SHARE_BY_YEAR !== 'undefined')
+        ? (PROCESSED_SHARE_BY_YEAR[year] || PROCESSED_SHARE_BY_YEAR[2023] || {}) : {};
+      return snap[key] ?? 0;
+    }
+
+    function getTopColor(ti, key, year) {
+      const yr = year || currentYear;
+      if ((TRADE_QUANTITY_BY_YEAR[yr] || TRADE_QUANTITY)[key]) {
+        const ps = getProcessedShare(key, yr);
+        return ps >= 50 ? hexToInt(FLOW_COLORS.exportProcessed) : hexToInt(FLOW_COLORS.exportRaw);
+      }
+      const isImporter = key && ALL_PARTNERS.has(key);
+      if (isImporter) return hexToInt(FLOW_COLORS.importRaw);
+      return 0xD4C5A9;
+    }
+    function getSideColor(ti, key, year) {
+      const yr = year || currentYear;
+      if ((TRADE_QUANTITY_BY_YEAR[yr] || TRADE_QUANTITY)[key]) {
+        const ps = getProcessedShare(key, yr);
+        return ps >= 50 ? hexToInt('#A0522D') : hexToInt('#3D2010');
+      }
+      const isImporter = key && ALL_PARTNERS.has(key);
+      if (isImporter) return hexToInt(FLOW_COLORS.importProcessed);
+      return 0xB8A890;
+    }
+    function getDepth(ti, key) {
+      if ((TRADE_QUANTITY_BY_YEAR[currentYear] || TRADE_QUANTITY)[key]) {
+        const tiRaw = getTransformationNet(key, currentYear);
+        const tiShare = Math.max(0, tiRaw) / maxTINet;
+        return 0.5 + tiShare * 45;
+      }
+      const inboundTotal = Object.values(TRADE_QUANTITY_BY_YEAR[currentYear] || TRADE_QUANTITY)
+        .reduce((s, row) => s + (row[key] || 0), 0);
+      const globalExportMax = (typeof maxExportVolume !== 'undefined' && maxExportVolume > 1)
+        ? maxExportVolume : 1000000;
+      return 0.5 + (inboundTotal / globalExportMax) * 40;
+    }
+
+    /* ── PROJECTION ───────────────────────────────────────────── */
+    function project(lng, lat) {
+      return new THREE.Vector2((lng / 360) * 500, (lat / 180) * 280);
+    }
+
+    /* ── SHAPE FROM RING ──────────────────────────────────────── */
+    function ringToPoints(ring, step) {
+      const pts = [];
+      for (let i = 0; i < ring.length; i += step) {
+        const p = project(ring[i][0], ring[i][1]);
+        pts.push(p);
+      }
+      return pts;
+    }
+
+    function makeShape(ring, step) {
+      const pts = ringToPoints(ring, step);
+      if (pts.length < 3) return null;
+      const shape = new THREE.Shape();
+      shape.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i].x, pts[i].y);
+      shape.closePath();
+      return shape;
+    }
+
+    /* ── THREE.JS SETUP ───────────────────────────────────────── */
+    let renderer, camera, scene, controls;
+    let countryMeshes = [];
+    let arcMeshes = [];
+    let selectedMesh = null;
+    let selectedMeshes = null;
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2(-9999, -9999);
+    let mouseDidMove = false;
+    let hoveredMesh = null;
+    let hoveredGroup = null;
+    let timelineUpdate = null;
+
+    function getMeshGroup(meshName) {
+      const key = GEO_NAME_MAP[meshName] || meshName;
+      return countryMeshes.filter(m => (GEO_NAME_MAP[m.userData.name] || m.userData.name) === key);
+    }
+    let currentYear = 2023;
+    let flowMode = 'qty'; // 'qty' | 'val'
+    let maxExportVolume = 1;
+    let exportVolumeByKey = {};
+
+    function rebuildExportVolumes(year) {
+      const qtySnap = TRADE_QUANTITY_BY_YEAR[year] || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
+      exportVolumeByKey = {};
+      Object.entries(qtySnap).forEach(([k, row]) => {
+        exportVolumeByKey[k] = Object.values(row).reduce((s, v) => s + v, 0);
+      });
+      maxExportVolume = Math.max(1, ...Object.values(exportVolumeByKey));
+    }
+
+    const FLOW_COLORS = {
+      exportRaw: '#5C3317',
+      exportProcessed: '#A0522D',
+      importRaw: '#B8935A',
+      importProcessed: '#E8C878',
+    };
+
+    function initThree() {
+      const container = document.getElementById('map-container');
+      const W = container.clientWidth;
+      const H = container.clientHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xE2D8C3);
+      scene.fog = new THREE.Fog(0xE2D8C3, 600, 1200);
+
+      // ── WHY THIS WORKS ───────────────────────────────────────────
+      // The map geometry lives in the XY plane, extruded along +Z.
+      // OrbitControls r128 measures polar angle FROM the +Y world axis:
+      //   polar = 0  →  camera on +Y  →  looks straight down  =  top-down view
+      // Rotating the entire scene by -90° around X remaps:
+      //   map XY plane  →  XZ (flat ground in world space)
+      //   extrusions +Z →  +Y (upward in world space)
+      // The camera then sits on +Y and looks straight down onto the flat map,
+      // exactly like a standard world map. No geometry changes needed.
+      scene.rotation.x = -Math.PI / 2;
+
+      camera = new THREE.PerspectiveCamera(38, W / H, 1, 1500);
+      camera.position.set(0, 420, 0);  // directly above on +Y axis
+      camera.up.set(0, 1, 0);          // standard Y-up (default)
+      camera.lookAt(0, 0, 0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(W, H);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      // Lights — dirLight on +Y so it illuminates country top faces
+      const ambient = new THREE.AmbientLight(0xF5ECD7, 0.55);
+      scene.add(ambient);
+
+      const dirLight = new THREE.DirectionalLight(0xFFFAF0, 0.95);
+      dirLight.position.set(50, 400, 80);
+      scene.add(dirLight);
+
+      const fillLight = new THREE.DirectionalLight(0xC8A96E, 0.25);
+      fillLight.position.set(-80, 200, -60);
+      scene.add(fillLight);
+
+      // Controls — Y-up, camera starts at polar=0 (top-down).
+      // Allow tilt up to 60° forward (giving ±30° feel around a natural viewing angle)
+      // and ±30° azimuth left/right rotation.
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.minDistance = 80;
+      controls.maxDistance = 900;
+      controls.enablePan = true;
+      controls.target.set(0, 0, 0);
+
+      const TILT_MAX = Math.PI / 3;    // 60° forward tilt max (±30° around natural angle)
+      const ROT_MAX = Math.PI / 6;    // ±30° left/right azimuth
+      controls.minPolarAngle = 0;
+      controls.maxPolarAngle = TILT_MAX;
+      controls.minAzimuthAngle = -ROT_MAX;
+      controls.maxAzimuthAngle = ROT_MAX;
+      controls.update();
+
+      // Resize
+      window.addEventListener('resize', () => {
+        const W2 = container.clientWidth;
+        const H2 = container.clientHeight;
+        camera.aspect = W2 / H2;
+        camera.updateProjectionMatrix();
+        renderer.setSize(W2, H2);
+      });
+
+      // Mouse events
+      renderer.domElement.addEventListener('mousemove', onMouseMove);
+      renderer.domElement.addEventListener('click', onMapClick);
+
+      animate();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+
+      const tooltip = document.getElementById('map-tooltip');
+
+      // Only raycast when mouse has moved — saves CPU on idle frames
+      if (mouseDidMove) {
+        mouseDidMove = false;
+        raycaster.setFromCamera(mouse, camera);
+        const hits = raycaster.intersectObjects(countryMeshes, false);
+
+        if (hits.length > 0) {
+          const m = hits[0].object;
+          if (m !== hoveredMesh) {
+            if (hoveredGroup) {
+              hoveredGroup.forEach(hm => {
+                if (!selectedMeshes || !selectedMeshes.includes(hm))
+                  hm.material[1].emissive.setHex(0x000000);
+              });
+            }
+            hoveredMesh = m;
+            hoveredGroup = getMeshGroup(m.userData.name);
+            hoveredGroup.forEach(hm => {
+              if (!selectedMeshes || !selectedMeshes.includes(hm))
+                hm.material[1].emissive.setHex(0x2a1a0a);
+            });
+          }
+          const name = m.userData.name;
+          const ti = m.userData.ti;
+          const _ttKey = GEO_NAME_MAP[name] || name;
+          tooltip.textContent = ((TRADE_QUANTITY_BY_YEAR[currentYear] || TRADE_QUANTITY)[_ttKey])
+            ? `${name} · TI: ${(ti < 0 ? '-' : '+')}${fmtQty(Math.abs(ti))}t net`
+            : `${name}`;
+          tooltip.classList.add('show');
+        } else {
+          if (hoveredGroup) {
+            hoveredGroup.forEach(hm => {
+              if (!selectedMeshes || !selectedMeshes.includes(hm))
+                hm.material[1].emissive.setHex(0x000000);
+            });
+          }
+          hoveredMesh = null;
+          hoveredGroup = null;
+          tooltip.classList.remove('show');
+        }
+      }
+
+      // Fade-in arc meshes (0 → targetOpacity over 500 ms); cleanup once complete
+      const now = Date.now();
+      arcMeshes.forEach(m => {
+        if (m.userData.fadeStart !== undefined) {
+          const t = Math.min((now - m.userData.fadeStart) / 500, 1);
+          m.material.opacity = t * m.userData.targetOpacity;
+          if (t >= 1) delete m.userData.fadeStart;
+        }
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    function onMouseMove(e) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      mouseDidMove = true;
+
+      const tooltip = document.getElementById('map-tooltip');
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top = (e.clientY - 34) + 'px';
+    }
+
+    function onMapClick(e) {
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(countryMeshes, false);
+
+      // Click on empty space: clear arrows and deselect
+      if (!hits.length) {
+        clearArrows();
+        if (selectedMeshes) {
+          selectedMeshes.forEach(sm => {
+            sm.material[1].emissive.setHex(0x000000);
+            sm.material[0].emissive.setHex(0x000000);
+          });
+          selectedMesh = null;
+          selectedMeshes = null;
+        }
+        return;
+      }
+
+      const m = hits[0].object;
+
+      // Deselect previous
+      if (selectedMeshes) {
+        selectedMeshes.forEach(sm => {
+          sm.material[1].emissive.setHex(0x000000);
+          sm.material[0].emissive.setHex(0x000000);
+        });
+      }
+
+      selectedMesh = m;
+      selectedMeshes = getMeshGroup(m.userData.name);
+      selectedMeshes.forEach(sm => {
+        sm.material[1].emissive.setHex(0x1a0e06);
+        sm.material[0].emissive.setHex(0x0f0804);
+      });
+
+      // Update side panel and draw trade flow arcs
+      updateSidePanel(m.userData.name, currentYear);
+      drawArcs(m.userData.name, currentYear);
+    }
+
+    function updateSidePanel(name, year = currentYear) {
+      const key = GEO_NAME_MAP[name] || name;
+      const qtySnap = (typeof TRADE_QUANTITY_BY_YEAR !== 'undefined' && TRADE_QUANTITY_BY_YEAR[year])
+        || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
+      const valSnap = (typeof TRADE_VALUE_BY_YEAR !== 'undefined' && TRADE_VALUE_BY_YEAR[year])
+        || TRADE_VALUE_BY_YEAR[2023] || TRADE_VALUE;
+      const tiSnap = TRANSFORMATION_INDEX_BY_YEAR[year] || TRANSFORMATION_INDEX_BY_YEAR[2023] || {};
+
+      const ti = tiSnap[key] ?? null;
+      const rank = TI_RANKS[key];
+
+      document.getElementById('sp-country-name').textContent = name;
+
+      const rankEl = document.getElementById('sp-rank');
+      rankEl.textContent = rank ? `#${rank} by TI` : 'No TI data';
+      rankEl.style.background = rank ? 'var(--tan)' : 'var(--sand)';
+
+      document.getElementById('sp-ti').textContent = ti !== null ? 'TI: ' + (ti < 0 ? '-' : '+') + fmtQty(Math.abs(ti)) + 't net' : 'TI: n/a';
+
+      const valRow = valSnap[key];
+      const qtyRow = qtySnap[key];
+
+      // Top partner pill (export destination or import source)
+      if (valRow) {
+        const top = Object.entries(valRow).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById('sp-top-export').textContent = top[0];
+        const sl = document.getElementById('sp-top-export').closest('.stat-pill').querySelector('.sl');
+        if (sl) sl.innerHTML = 'Top export<br>partner';
+      } else {
+        let best = null, bestVal = 0;
+        Object.entries(valSnap).forEach(([rep, row]) => {
+          const v = row[key] || 0;
+          if (v > bestVal) { bestVal = v; best = rep; }
+        });
+        document.getElementById('sp-top-export').textContent = best || '—';
+        const sl = document.getElementById('sp-top-export').closest('.stat-pill').querySelector('.sl');
+        if (sl) sl.innerHTML = 'Top import<br>source';
+      }
+
+      // Pill 3: export total (always export, show — if none)
+      const valRow2 = valSnap[key];
+      const expQtyTot = qtyRow ? Object.values(qtyRow).reduce((s, v) => s + v, 0) : 0;
+      const expValTot = valRow2 ? Object.values(valRow2).reduce((s, v) => s + v, 0) : 0;
+      const volEl = document.getElementById('sp-vol');
+      const volSlEl = document.getElementById('sp-vol-lbl');
+      if (volEl) {
+        if (expQtyTot === 0 && expValTot === 0) {
+          volEl.textContent = '—';
+          if (volSlEl) volSlEl.innerHTML = 'No export<br>data';
+        } else if (flowMode === 'val') {
+          volEl.textContent = fmtVal(expValTot);
+          if (volSlEl) volSlEl.innerHTML = 'Total export<br>value';
+        } else {
+          volEl.textContent = fmtQty(expQtyTot) + 't total';
+          if (volSlEl) volSlEl.innerHTML = 'Total export<br>volume';
+        }
+      }
+
+      // Pill 4: import total (always import, show — if none)
+      let totalImpQty = 0, totalImpVal = 0;
+      Object.values(qtySnap).forEach(row => { totalImpQty += (row[key] || 0); });
+      Object.values(valSnap).forEach(row => { totalImpVal += (row[key] || 0); });
+      const impVolEl = document.getElementById('sp-imp-vol');
+      const impVolLbl = document.getElementById('sp-imp-vol-lbl');
+      if (impVolEl) {
+        if (totalImpQty === 0 && totalImpVal === 0) {
+          impVolEl.textContent = '—';
+          if (impVolLbl) impVolLbl.innerHTML = 'No import<br>data';
+        } else if (flowMode === 'val') {
+          impVolEl.textContent = fmtVal(totalImpVal);
+          if (impVolLbl) impVolLbl.innerHTML = 'Total import<br>value';
+        } else {
+          impVolEl.textContent = fmtQty(totalImpQty) + 't total';
+          if (impVolLbl) impVolLbl.innerHTML = 'Total import<br>volume';
+        }
+      }
+
+      // Bar chart: commodity-weighted value-added margin
+      const barContainer = document.getElementById('sp-bar-chart-rows');
+      if (barContainer) {
+        barContainer.innerHTML = '';
+        barContainer.style.maxHeight = '';
+        barContainer.style.overflowY = '';
+
+        // Global prices for this year — declared first (used in annotation below)
+        const pt = PRICE_TIMELINE[year] || PRICE_TIMELINE[2023];
+        const pRaw = pt.raw;
+        const pProc = pt.processed;
+
+        const staticLegend = barContainer.closest('.sp-section')?.querySelector('.bar-legend');
+        if (staticLegend) staticLegend.style.display = 'none';
+
+        const barTitleEl = barContainer.closest('.sp-section')?.querySelector('.sp-title');
+        if (barTitleEl) barTitleEl.textContent = 'Value-Added Margin · USD/tonne';
+
+        // Item-split quantity snapshots
+        const rawQtySnap = (typeof TRADE_QTY_RAW_BY_YEAR !== 'undefined') ? (TRADE_QTY_RAW_BY_YEAR[year] || TRADE_QTY_RAW_BY_YEAR[2023] || {}) : {};
+        const procQtySnap = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined') ? (TRADE_QTY_PROC_BY_YEAR[year] || TRADE_QTY_PROC_BY_YEAR[2023] || {}) : {};
+
+        // Export quantities (country as reporter)
+        let expRawQty = 0, expProcQty = 0;
+        Object.values(rawQtySnap[key] || {}).forEach(v => expRawQty += v);
+        Object.values(procQtySnap[key] || {}).forEach(v => expProcQty += v);
+
+        // Import quantities (country appears as partner in other reporters' rows)
+        let impRawQty = 0, impProcQty = 0;
+        Object.entries(rawQtySnap).forEach(([rep, row]) => { if (rep !== key) impRawQty += (row[key] || 0); });
+        Object.entries(procQtySnap).forEach(([rep, row]) => { if (rep !== key) impProcQty += (row[key] || 0); });
+
+        const expTotalQty = expRawQty + expProcQty;
+        const impTotalQty = impRawQty + impProcQty;
+
+        // Blended price-weighted unit values
+        const expUV = expTotalQty > 0
+          ? Math.round((expRawQty * pRaw + expProcQty * pProc) / expTotalQty) : null;
+        const impUV = impTotalQty > 0
+          ? Math.round((impRawQty * pRaw + impProcQty * pProc) / impTotalQty) : null;
+
+        const margin = (expUV !== null && impUV !== null) ? expUV - impUV : null;
+        const maxUV = Math.max(expUV || 0, impUV || 0, 1);
+
+        // Split bar: width reflects blended UV; color split reflects raw/proc composition
+        function makeSplitBar(lbl, totalQty, rawQty, procQty, uv, rawColor, procColor) {
+          if (uv === null) return null;
+          const totalW = Math.round((uv / maxUV) * 100);
+          const rawFrac = totalQty > 0 ? rawQty / totalQty : 1;
+          const el = document.createElement('div');
+          el.className = 'bar-row';
+          el.style.marginBottom = '5px';
+          const rawPct = Math.round(rawFrac * 100);
+          const procPct = 100 - rawPct;
+          const gradient = `linear-gradient(to right, ${rawColor} ${rawPct}%, ${procColor} ${rawPct}%)`;
+          el.innerHTML =
+            `<span class="bar-year" style="width:38px;">${lbl}</span>` +
+            `<div class="bar-track" style="flex:1;">` +
+            `<div class="bar-fill" style="width:${totalW}%;background:${gradient}"></div>` +
+            `</div>` +
+            `<span class="bar-val">${uv.toLocaleString()}</span>`;
+          return el;
+        }
+
+        const expBar = makeSplitBar('Export', expTotalQty, expRawQty, expProcQty, expUV,
+          FLOW_COLORS.exportRaw, FLOW_COLORS.exportProcessed);
+        const impBar = makeSplitBar('Import', impTotalQty, impRawQty, impProcQty, impUV,
+          FLOW_COLORS.importRaw, FLOW_COLORS.importProcessed);
+        if (expBar) barContainer.appendChild(expBar);
+        if (impBar) barContainer.appendChild(impBar);
+
+        if (!expBar && !impBar) {
+          const na = document.createElement('div');
+          na.style.cssText = 'font-size:9px;color:rgba(74,44,23,0.4);text-align:center;padding:6px 0;';
+          na.textContent = 'No trade data for this year';
+          barContainer.appendChild(na);
+        }
+
+        // Margin row
+        if (margin !== null) {
+          const sign = margin >= 0 ? '+' : '';
+          const mColor = margin > 800 ? '#B89028' : margin > 200 ? '#9A7A20' : margin > 0 ? '#7A6040' : '#8B4030';
+          const sep = document.createElement('div');
+          sep.style.cssText = 'border-top:1px solid rgba(74,44,23,0.12);margin:3px 0 5px;';
+          barContainer.appendChild(sep);
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+          row.innerHTML =
+            `<span style="font-size:8px;color:var(--coffee);letter-spacing:.06em;text-transform:uppercase;">Margin</span>` +
+            `<span style="font-size:13px;font-weight:700;color:${mColor};">${sign}${margin.toLocaleString()} USD/t</span>`;
+          barContainer.appendChild(row);
+        }
+
+        // Year badge
+        const badge = document.createElement('div');
+        badge.style.cssText = 'font-size:8px;color:rgba(74,44,23,0.45);margin-top:3px;text-align:right;';
+        badge.textContent = `${year} · price-weighted estimate`;
+        barContainer.appendChild(badge);
+      }
+
+      populateTradeFlows(key, year);
+
+      // ── Concentration bars ────────────────────────────────────
+      const concDiv = document.getElementById('sp-concentration');
+      concDiv.innerHTML = '';
+
+      // Shared data for concentration bars
+      const qtySnapC = TRADE_QUANTITY_BY_YEAR[year] || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
+      const qtyRowC = qtySnapC[key];
+      const rawSnapC = (typeof TRADE_QTY_RAW_BY_YEAR !== 'undefined') ? (TRADE_QTY_RAW_BY_YEAR[year] || TRADE_QTY_RAW_BY_YEAR[2023] || {}) : {};
+      const procSnapC = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined') ? (TRADE_QTY_PROC_BY_YEAR[year] || TRADE_QTY_PROC_BY_YEAR[2023] || {}) : {};
+
+      // Per-flow color based on actual item-code ratio
+      const expColorC = (reporter, partner) => {
+        const r = (rawSnapC[reporter] || {})[partner] || 0;
+        const p = (procSnapC[reporter] || {})[partner] || 0;
+        if (r === 0 && p === 0) return getProcessedShare(reporter, year) >= 50 ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw;
+        return p > r ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw;
+      };
+      const impColorC = (reporter, partner) => {
+        const r = (rawSnapC[reporter] || {})[partner] || 0;
+        const p = (procSnapC[reporter] || {})[partner] || 0;
+        if (r === 0 && p === 0) return getProcessedShare(reporter, year) >= 50 ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw;
+        return p > r ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw;
+      };
+
+      // Export concentration
+      let expSegments = [], expTopName = '—', expTopShare = 0, expHHI = 0, expTotal = 0;
+      if (qtyRowC) {
+        const sorted = Object.entries(qtyRowC).sort((a, b) => b[1] - a[1]);
+        expTotal = sorted.reduce((s, [, v]) => s + v, 0);
+        if (expTotal > 0) {
+          let rawSum = 0, procSum = 0;
+          sorted.forEach(([partner]) => {
+            rawSum += (rawSnapC[key] || {})[partner] || 0;
+            procSum += (procSnapC[key] || {})[partner] || 0;
+          });
+          if (rawSum > 0) expSegments.push({ share: rawSum / expTotal, color: FLOW_COLORS.exportRaw });
+          if (procSum > 0) expSegments.push({ share: procSum / expTotal, color: FLOW_COLORS.exportProcessed });
+          expTopName = sorted[0]?.[0] || '—';
+          expTopShare = Math.round(((sorted[0]?.[1] || 0) / expTotal) * 100);
+          expHHI = Math.round(sorted.reduce((s, [, v]) => s + (v / expTotal) ** 2, 0) * 10000);
+        }
+      }
+
+      // Import concentration (always scan inbound)
+      let impSegments = [], impTopName = '—', impTopShare = 0, impHHI = 0;
+      const impSrcs = [];
+      Object.entries(qtySnapC).forEach(([rep, row]) => {
+        const q = row[key]; if (q) impSrcs.push([rep, q]);
+      });
+      impSrcs.sort((a, b) => b[1] - a[1]);
+      const impTotal = impSrcs.reduce((s, [, v]) => s + v, 0);
+      if (impTotal > 0 && impSrcs.length > 0) {
+        let rawSum = 0, procSum = 0;
+        impSrcs.forEach(([src]) => {
+          rawSum += (rawSnapC[src] || {})[key] || 0;
+          procSum += (procSnapC[src] || {})[key] || 0;
+        });
+        if (rawSum > 0) impSegments.push({ share: rawSum / impTotal, color: FLOW_COLORS.importRaw });
+        if (procSum > 0) impSegments.push({ share: procSum / impTotal, color: FLOW_COLORS.importProcessed });
+        impTopName = impSrcs[0]?.[0] || '—';
+        impTopShare = Math.round(((impSrcs[0]?.[1] || 0) / impTotal) * 100);
+        impHHI = Math.round(impSrcs.reduce((s, [, v]) => s + (v / impTotal) ** 2, 0) * 10000);
+      }
+
+      function makeConBar(label, segments, topName, topShare, hhi, hasData) {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'margin-bottom:6px;';
+        const lbl = document.createElement('div');
+        lbl.style.cssText = 'font-size:7px;letter-spacing:.06em;text-transform:uppercase;' +
+          'color:rgba(74,44,23,0.55);margin-bottom:3px;';
+        lbl.textContent = label;
+        wrap.appendChild(lbl);
+        if (!hasData || segments.length === 0) {
+          const na = document.createElement('div');
+          na.style.cssText = 'font-size:8px;color:rgba(74,44,23,0.35);font-style:italic;';
+          na.textContent = 'No data for this year';
+          wrap.appendChild(na);
+          return wrap;
+        }
+        const bar = document.createElement('div');
+        bar.style.cssText = 'display:flex;height:8px;border-radius:3px;overflow:hidden;width:100%;';
+        segments.forEach(({ share, color }) => {
+          const seg = document.createElement('div');
+          seg.style.cssText = `flex:0 0 ${(share * 100).toFixed(1)}%;background:${color};` +
+            `min-width:${share > 0 ? '2px' : '0'};`;
+          bar.appendChild(seg);
+        });
+        wrap.appendChild(bar);
+        const sub = document.createElement('div');
+        sub.style.cssText = 'margin-top:2px;font-size:7.5px;color:rgba(74,44,23,0.6);' +
+          'display:flex;justify-content:space-between;';
+        sub.innerHTML = `<span>Top: ${topName} ${topShare}%</span>` +
+          `<span title="Herfindahl index">HHI ${hhi}</span>`;
+        wrap.appendChild(sub);
+        return wrap;
+      }
+
+      concDiv.appendChild(makeConBar('EXPORT CONCENTRATION', expSegments, expTopName, expTopShare, expHHI, expTotal > 0));
+      concDiv.appendChild(makeConBar('IMPORT CONCENTRATION', impSegments, impTopName, impTopShare, impHHI, impTotal > 0));
+    }
+
+    function populateTradeFlows(key, year = currentYear) {
+      const exportContainer = document.getElementById('sp-flows-export');
+      const importContainer = document.getElementById('sp-flows-import');
+      const exportTitleEl = document.getElementById('sp-export-title');
+      const importTitleEl = document.getElementById('sp-import-title');
+      if (!exportContainer || !importContainer) return;
+      exportContainer.innerHTML = '';
+      importContainer.innerHTML = '';
+
+      const qtySnap = (typeof TRADE_QUANTITY_BY_YEAR !== 'undefined' && TRADE_QUANTITY_BY_YEAR[year])
+        || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
+      const valSnap = (typeof TRADE_VALUE_BY_YEAR !== 'undefined' && TRADE_VALUE_BY_YEAR[year])
+        || TRADE_VALUE_BY_YEAR[2023] || TRADE_VALUE;
+
+      const activeSnap = flowMode === 'val' ? valSnap : qtySnap;
+
+      const rawFlowSnap = (typeof TRADE_QTY_RAW_BY_YEAR !== 'undefined') ? (TRADE_QTY_RAW_BY_YEAR[year] || TRADE_QTY_RAW_BY_YEAR[2023] || {}) : {};
+      const procFlowSnap = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined') ? (TRADE_QTY_PROC_BY_YEAR[year] || TRADE_QTY_PROC_BY_YEAR[2023] || {}) : {};
+
+      function exportColor(reporter, partner) {
+        const r = (rawFlowSnap[reporter] || {})[partner || ''] || 0;
+        const p = (procFlowSnap[reporter] || {})[partner || ''] || 0;
+        if (r === 0 && p === 0) return getProcessedShare(reporter, year) >= 50 ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw;
+        return p > r ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw;
+      }
+      function importColor(reporter, partner) {
+        const r = (rawFlowSnap[reporter] || {})[partner || ''] || 0;
+        const p = (procFlowSnap[reporter] || {})[partner || ''] || 0;
+        if (r === 0 && p === 0) return getProcessedShare(reporter, year) >= 50 ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw;
+        return p > r ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw;
+      }
+
+      // ── Dual-bar row: top bar = raw qty, bottom bar = processed qty ──
+      // maxQtyRef always in tonnes for bar scaling; val shown as secondary label
+      function makeRow(arrow, country, rawQ, procQ, val, maxQtyRef, isExport) {
+        const rawColor = isExport ? FLOW_COLORS.exportRaw : FLOW_COLORS.importRaw;
+        const procColor = isExport ? FLOW_COLORS.exportProcessed : FLOW_COLORS.importProcessed;
+        const arrowColor = procQ > rawQ ? procColor : rawColor;
+        const total = rawQ + procQ;
+        const rawW = maxQtyRef > 0 ? Math.round(rawQ / maxQtyRef * 100) : 0;
+        const procW = maxQtyRef > 0 ? Math.round(procQ / maxQtyRef * 100) : 0;
+        // Labels: one per bar, same unit in both rows
+        let topLabel, botLabel;
+        if (flowMode === 'val') {
+          // Estimate raw/proc value split proportionally (no per-item value data available)
+          const rawVal = total > 0 ? Math.round(val * rawQ / total) : 0;
+          const procVal = total > 0 ? Math.round(val * procQ / total) : 0;
+          topLabel = fmtVal(rawVal);
+          botLabel = fmtVal(procVal);
+        } else {
+          topLabel = rawQ > 0 ? `${fmtQty(rawQ)}t` : '—';
+          botLabel = procQ > 0 ? `${fmtQty(procQ)}t` : '—';
+        }
+        const row = document.createElement('div');
+        row.className = 'flow-row';
+        row.innerHTML =
+          `<span class="flow-arrow" style="color:${arrowColor}">${arrow}</span>` +
+          `<span class="flow-country">${country}</span>` +
+          `<div class="flow-bars">` +
+          `<div class="flow-bar-wrap"><div class="flow-bar-fill" style="width:${rawW}%;background:${rawColor}"></div></div>` +
+          `<div class="flow-bar-wrap"><div class="flow-bar-fill" style="width:${procW}%;background:${procColor}"></div></div>` +
+          `</div>` +
+          `<div style="text-align:right;flex-shrink:0;width:36px;">` +
+          `<div style="font-size:8px;font-weight:600;color:${rawColor};line-height:1.3;">${topLabel}</div>` +
+          `<div style="font-size:8px;font-weight:600;color:${procColor};line-height:1.3;">${botLabel}</div>` +
+          `</div>`;
+        return row;
+      }
+
+      // ── Export section ────────────────────────────────────────
+      if (exportTitleEl) exportTitleEl.textContent = 'Top export flows';
+      const qtyRow = qtySnap[key];
+      if (qtyRow) {
+        const rows = Object.keys(qtyRow).map(partner => ({
+          partner,
+          rawQ: (rawFlowSnap[key] || {})[partner] || 0,
+          procQ: (procFlowSnap[key] || {})[partner] || 0,
+          qty: qtyRow[partner] || 0,
+          val: (valSnap[key] || {})[partner] || 0,
+        }));
+        rows.sort((a, b) => flowMode === 'val' ? b.val - a.val : b.qty - a.qty);
+        const top5ex = rows.slice(0, 5);
+        if (top5ex.length === 0) {
+          exportContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No export data</div>';
+        } else {
+          const maxExQty = Math.max(...top5ex.map(r => r.qty), 1);
+          top5ex.forEach(({ partner, rawQ, procQ, qty, val }) => {
+            exportContainer.appendChild(makeRow('→', partner, rawQ, procQ, val, maxExQty, true));
+          });
+        }
+      } else {
+        exportContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No export data for this country</div>';
+      }
+
+      // ── Collect & render import section ──────────────────────
+      if (importTitleEl) importTitleEl.textContent = 'Top import flows';
+      const importRows = Object.keys(qtySnap)
+        .filter(reporter => reporter !== key && (qtySnap[reporter][key] || 0) > 0)
+        .map(reporter => ({
+          reporter,
+          rawQ: (rawFlowSnap[reporter] || {})[key] || 0,
+          procQ: (procFlowSnap[reporter] || {})[key] || 0,
+          qty: (qtySnap[reporter][key] || 0),
+          val: (valSnap[reporter] || {})[key] || 0,
+        }));
+      importRows.sort((a, b) => flowMode === 'val' ? b.val - a.val : b.qty - a.qty);
+      const top5imp = importRows.slice(0, 5);
+
+      // Import summary box (total across ALL importers, not just top 5)
+      const impSummaryEl = document.getElementById('sp-import-summary');
+      if (impSummaryEl) {
+        const totalImpQty = importRows.reduce((s, r) => s + r.qty, 0);
+        const totalImpVal = importRows.reduce((s, r) => s + r.val, 0);
+        const summaryText = flowMode === 'val'
+          ? fmtVal(totalImpVal)
+          : `${fmtQty(totalImpQty)}t total`;
+        impSummaryEl.textContent = summaryText;
+        impSummaryEl.style.display = summaryText ? 'block' : 'none';
+      }
+
+      if (top5imp.length === 0) {
+        importContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No import data</div>';
+      } else {
+        const maxImpQty = Math.max(...top5imp.map(r => r.qty), 1);
+        top5imp.forEach(({ reporter, rawQ, procQ, qty, val }) => {
+          importContainer.appendChild(makeRow('←', reporter, rawQ, procQ, val, maxImpQty, false));
+        });
+      }
+    }
+
+    /* ── TRADE FLOW ARC SYSTEM ────────────────────────────────── */
+
+    // Step 1: project lat/lng to scene XY + Z at extrusion top
+    function latLngToXY(lat, lng, countryName) {
+      const p = project(lng, lat);
+      const ti = countryName ? getTI(countryName) : 0;
+      const z = ti * 1.2 + 2;
+      return { x: p.x, y: p.y, z };
+    }
+
+    // Single arrow system: segmented cylinders following a bezier curve.
+    // Replaces both buildArc() and buildVolumeArrow().
+
+    function clearArrows() {
+      arcMeshes.forEach(m => scene.remove(m));
+      arcMeshes = [];
+    }
+
+    // Build one flow arrow: N cylinder segments along a quadratic bezier
+    // + a cone head. pct drives thickness. opacity fades in via animate().
+    function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
+      const midX = (srcPos.x + dstPos.x) / 2;
+      const midY = (srcPos.y + dstPos.y) / 2;
+      const dist = Math.sqrt(
+        (dstPos.x - srcPos.x) ** 2 +
+        (dstPos.y - srcPos.y) ** 2 +
+        (dstPos.z - srcPos.z) ** 2
+      );
+      if (dist < 1) return;
+
+      // Control point lifts the arc above the map surface
+      const peakZ = Math.max(srcPos.z, dstPos.z) + 18 + dist * 0.12;
+
+      const p0 = new THREE.Vector3(srcPos.x, srcPos.y, srcPos.z);
+      const p1 = new THREE.Vector3(midX, midY, peakZ);
+      const p2 = new THREE.Vector3(dstPos.x, dstPos.y, dstPos.z);
+      const curve = new THREE.QuadraticBezierCurve3(p0, p1, p2);
+
+      // Radius scales with volume share (pct 0-100)
+      const shaftR = Math.max(0.25, 0.25 + (pct / 100) * 1.0);
+      const headR = shaftR * 2.8;
+      const headH = shaftR * 9;
+
+      const mat = new THREE.MeshPhongMaterial({
+        color: hexColor, emissive: hexColor,
+        emissiveIntensity: 0.18, shininess: 75,
+        transparent: true, opacity: 0
+      });
+
+      function addMesh(geo) {
+        const m = new THREE.Mesh(geo, mat.clone());
+        m.userData.fadeStart = Date.now();
+        m.userData.targetOpacity = opacity;
+        scene.add(m);
+        arcMeshes.push(m);
+        return m;
+      }
+
+      // Sample N+2 points so we have N+1 segments total.
+      // The last segment is RESERVED for the arrowhead footprint:
+      // shaft draws segments 0..N-1 (stopping one step before the tip),
+      // then the cone base is placed exactly at pts[N] with no gap.
+      const N = 12;
+      const pts = curve.getPoints(N + 1); // returns N+2 points, indices 0..N+1
+
+      // Direction of the final approach (used for both last shaft seg and cone)
+      const tipA = pts[pts.length - 2];   // pts[N]
+      const tipB = pts[pts.length - 1];   // pts[N+1]
+      const tipDir = new THREE.Vector3().subVectors(tipB, tipA).normalize();
+
+      // Shaft: all segments up to (but not including) the last point,
+      // so the shaft ends exactly at pts[N] = tipA (cone base).
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i + 1];
+        const segDir = new THREE.Vector3().subVectors(b, a);
+        const segLen = segDir.length();
+        if (segLen < 0.01) continue;
+        segDir.normalize();
+
+        const seg = addMesh(new THREE.CylinderGeometry(shaftR, shaftR, segLen, 7, 1));
+        seg.position.set((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+        seg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), segDir);
+      }
+
+      // Cone: apex sits exactly at tipB (the destination surface).
+      // ConeGeometry tip is at +Y/2 from centre, so offset centre by -tipDir * headH/2
+      // so apex = centre + tipDir*headH/2 = tipB, base opens back along the shaft.
+      const head = addMesh(new THREE.ConeGeometry(headR, headH, 8));
+      head.position.set(
+        tipB.x - tipDir.x * headH / 2,
+        tipB.y - tipDir.y * headH / 2,
+        tipB.z - tipDir.z * headH / 2
+      );
+      head.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tipDir);
+    }
+
+    // Draw export + import arcs for a selected country
+    function topZ(key) {
+      const mesh = countryMeshes.find(m => {
+        const k = GEO_NAME_MAP[m.userData.name] || m.userData.name;
+        return k === key || m.userData.name === key;
+      });
+      if (!mesh) return 1;
+      return (mesh.userData.baseDepth || 0.5) * mesh.scale.z;
+    }
+
+    function drawArcs(countryName, year) {
+      if (year === undefined) year = currentYear;
+      clearArrows();
+      const key = GEO_NAME_MAP[countryName] || countryName;
+      const srcCent = CENTROIDS[key] || CENTROIDS[countryName];
+      if (!srcCent) return;
+
+      const qtySnap = (typeof TRADE_QUANTITY_BY_YEAR !== 'undefined' && TRADE_QUANTITY_BY_YEAR[year])
+        || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
+      const rawSnap = (typeof TRADE_QTY_RAW_BY_YEAR !== 'undefined' && TRADE_QTY_RAW_BY_YEAR[year])
+        || (TRADE_QTY_RAW_BY_YEAR || {})[2023] || {};
+      const procSnap = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined' && TRADE_QTY_PROC_BY_YEAR[year])
+        || (TRADE_QTY_PROC_BY_YEAR || {})[2023] || {};
+
+      const srcProj = project(srcCent[1], srcCent[0]);
+      const srcPos = { x: srcProj.x, y: srcProj.y, z: topZ(key) };
+
+      // Color a flow based on actual item-code ratio for that reporter→partner pair.
+      function flowExportColor(reporter, partner) {
+        const r = (rawSnap[reporter] || {})[partner] || 0;
+        const p = (procSnap[reporter] || {})[partner] || 0;
+        return hexToInt(p > r ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw);
+      }
+      function flowImportColor(reporter, partner) {
+        const r = (rawSnap[reporter] || {})[partner] || 0;
+        const p = (procSnap[reporter] || {})[partner] || 0;
+        return hexToInt(p > r ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw);
+      }
+
+      // Collect all arrows first so thickness can be normalised against one shared max
+      const arrows = [];
+
+      // ── EXPORTS ──────────────────────────────────────────────
+      const qtyRow = qtySnap[key];
+      if (qtyRow) {
+        Object.entries(qtyRow).sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([dest, qty]) => {
+          const c = CENTROIDS[dest]; if (!c) return;
+          const dstProj = project(c[1], c[0]);
+          arrows.push({
+            src: srcPos,
+            dst: { x: dstProj.x, y: dstProj.y, z: topZ(dest) },
+            qty,
+            color: flowExportColor(key, dest),
+            opacity: 0.88
+          });
+        });
+      }
+
+      // ── IMPORTS ──────────────────────────────────────────────
+      const importSrcs = [];
+      Object.entries(qtySnap).forEach(([reporter, row]) => {
+        if (reporter === key) return;
+        const qty = row[key] || row[countryName];
+        if (qty) importSrcs.push([reporter, qty]);
+      });
+      importSrcs.sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([src, qty]) => {
+        const c = CENTROIDS[src]; if (!c) return;
+        const srcProj2 = project(c[1], c[0]);
+        arrows.push({
+          src: { x: srcProj2.x, y: srcProj2.y, z: topZ(src) },
+          dst: srcPos,
+          qty,
+          color: flowImportColor(src, key),
+          opacity: 0.75
+        });
+      });
+
+      // Normalise all thicknesses against the single largest flow (kilotonnes-proportional)
+      const maxQty = Math.max(1, ...arrows.map(a => a.qty));
+      arrows.forEach(({ src, dst, qty, color, opacity }) => {
+        buildFlowArrow(src, dst, qty / maxQty * 100, color, opacity);
+      });
+    }
+
+    /* ── BUILD COUNTRY MESHES ─────────────────────────────────── */
+    function buildCountry(feature) {
+      const name = feature.properties.name;
+      const key = GEO_NAME_MAP[name] || name;
+      const tiVisual = getTI(name);
+      const tiRaw = getTransformationNet(name);
+      const depth = getDepth(tiVisual, key);
+      const topCol = getTopColor(tiVisual, key);
+      const sideCol = getSideColor(tiVisual, key);
+
+      const geomType = feature.geometry.type;
+      const polys = geomType === 'Polygon'
+        ? [feature.geometry.coordinates]
+        : feature.geometry.coordinates;
+
+      polys.forEach(rings => {
+        try {
+          const outer = rings[0];
+          if (!outer || outer.length < 4) return;
+
+          const step = outer.length > 400 ? 4 : outer.length > 150 ? 3 : outer.length > 60 ? 2 : 1;
+          const shape = makeShape(outer, step);
+          if (!shape) return;
+
+          // Holes
+          for (let h = 1; h < rings.length; h++) {
+            const hole = rings[h];
+            if (!hole || hole.length < 4) continue;
+            const hstep = Math.max(1, Math.floor(step * 1.5));
+            const hpts = ringToPoints(hole, hstep);
+            if (hpts.length < 3) continue;
+            const path = new THREE.Path();
+            path.moveTo(hpts[0].x, hpts[0].y);
+            for (let i = 1; i < hpts.length; i++) path.lineTo(hpts[i].x, hpts[i].y);
+            path.closePath();
+            shape.holes.push(path);
+          }
+
+          const extOpts = { depth, bevelEnabled: false, steps: 1 };
+          const geo = new THREE.ExtrudeGeometry(shape, extOpts);
+
+          // Two materials: index 0 = sides, index 1 = caps
+          const mats = [
+            new THREE.MeshLambertMaterial({ color: sideCol }),
+            new THREE.MeshLambertMaterial({ color: topCol })
+          ];
+
+          const mesh = new THREE.Mesh(geo, mats);
+          mesh.userData = { name, ti: tiRaw, tiVisual, baseDepth: depth };
+          countryMeshes.push(mesh);
+          scene.add(mesh);
+
+          // Country border line at base
+          const lineGeo = new THREE.BufferGeometry();
+          const pts3 = ringToPoints(outer, step).map(p => new THREE.Vector3(p.x, p.y, 0.1));
+          lineGeo.setFromPoints(pts3);
+          const lineMat = new THREE.LineBasicMaterial({ color: 0x8B6040, opacity: 0.35, transparent: true });
+          scene.add(new THREE.LineLoop(lineGeo, lineMat));
+
+        } catch (_) { /* skip malformed geometries */ }
+      });
+    }
+
+
+    /* ── LOAD GEOJSON ─────────────────────────────────────────── */
+    function loadMap() {
+      const GEOJSON_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
+
+      fetch(GEOJSON_URL)
+        .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json(); })
+        .then(data => {
+          // Auto-populate CENTROIDS from GeoJSON bounding-box centres for any country not yet hardcoded
+          data.features.forEach(f => {
+            if (!f.geometry) return;
+            const geoName = f.properties?.name;
+            const canonKey = GEO_NAME_MAP[geoName] || geoName;
+            if (!canonKey || canonKey in CENTROIDS) return; // keep hand-placed values
+            // Collect all coordinate pairs regardless of Polygon/MultiPolygon nesting
+            const allCoords = [];
+            (function collect(c) {
+              if (typeof c[0] === 'number') allCoords.push(c);
+              else c.forEach(collect);
+            })(f.geometry.coordinates);
+            if (allCoords.length === 0) return;
+            let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+            for (const c of allCoords) {
+              if (c[1] < minLat) minLat = c[1]; if (c[1] > maxLat) maxLat = c[1];
+              if (c[0] < minLng) minLng = c[0]; if (c[0] > maxLng) maxLng = c[0];
+            }
+            const lat = (minLat + maxLat) / 2;
+            const lng = (minLng + maxLng) / 2;
+            CENTROIDS[canonKey] = [lat, lng];
+            // Also index by raw GeoJSON name so lookups by mesh userData.name work
+            if (geoName !== canonKey) CENTROIDS[geoName] = [lat, lng];
+          });
+          data.features.forEach(f => {
+            if (f.geometry) buildCountry(f);
+          });
+          document.getElementById('map-loading').classList.add('hidden');
+        })
+        .catch(err => {
+          const el = document.getElementById('map-loading');
+          el.innerHTML = '<span style="color:#C8A96E;font-size:11px;">⚠ Could not load map.<br>Requires internet access.</span>';
+          el.style.flexDirection = 'column';
+          console.error('GeoJSON load error:', err);
+        });
+    }
+
+    /* ── SANKEY ───────────────────────────────────────────────── */
+    function updateSankey(year) {
+      const svg = document.getElementById('sankey-svg');
+      if (!svg) return;
+      svg.innerHTML = '';
+      const NS = 'http://www.w3.org/2000/svg';
+
+      const rawSnap = (typeof TRADE_QTY_RAW_BY_YEAR !== 'undefined') ? (TRADE_QTY_RAW_BY_YEAR[year] || TRADE_QTY_RAW_BY_YEAR[2023] || {}) : {};
+      const procSnap = (typeof TRADE_QTY_PROC_BY_YEAR !== 'undefined') ? (TRADE_QTY_PROC_BY_YEAR[year] || TRADE_QTY_PROC_BY_YEAR[2023] || {}) : {};
+      const psSnap = (typeof PROCESSED_SHARE_BY_YEAR !== 'undefined') ? (PROCESSED_SHARE_BY_YEAR[year] || PROCESSED_SHARE_BY_YEAR[2023] || {}) : {};
+
+      // Processors = countries with processed-export share >= 30%
+      const processorSet = new Set(Object.entries(psSnap).filter(([, s]) => s >= 30).map(([k]) => k));
+
+      // Producer totals: raw exports (reporters not in processorSet)
+      const rawProdTotals = {};
+      Object.entries(rawSnap).forEach(([rep, row]) => {
+        if (processorSet.has(rep)) return;
+        const tot = Object.values(row).reduce((s, v) => s + v, 0);
+        if (tot > 0) rawProdTotals[rep] = tot;
+      });
+
+      // Processor totals: processed exports (reporters in processorSet)
+      const procHubTotals = {};
+      Object.entries(procSnap).forEach(([rep, row]) => {
+        if (!processorSet.has(rep)) return;
+        const tot = Object.values(row).reduce((s, v) => s + v, 0);
+        if (tot > 0) procHubTotals[rep] = tot;
+      });
+
+      // Consumer totals: processed imports from processors, excluding other processors
+      const destTotals = {};
+      Object.entries(procSnap).forEach(([rep, row]) => {
+        if (!processorSet.has(rep)) return;
+        Object.entries(row).forEach(([dest, qty]) => {
+          if (!processorSet.has(dest)) destTotals[dest] = (destTotals[dest] || 0) + qty;
+        });
+      });
+
+      const TOP_P = 5, TOP_H = 5, TOP_D = 5;
+      const topProd = Object.entries(rawProdTotals).sort((a, b) => b[1] - a[1]).slice(0, TOP_P);
+      const topHub = Object.entries(procHubTotals).sort((a, b) => b[1] - a[1]).slice(0, TOP_H);
+      const topDest = Object.entries(destTotals).sort((a, b) => b[1] - a[1]).slice(0, TOP_D);
+      const topPKeys = new Set(topProd.map(([k]) => k));
+      const topHKeys = new Set(topHub.map(([k]) => k));
+      const topDKeys = new Set(topDest.map(([k]) => k));
+
+      // Flow matrix: Producer → Hub (raw coffee)
+      const flowPH = {};
+      topProd.forEach(([p]) => { flowPH[p] = {}; topHub.forEach(([h]) => { flowPH[p][h] = 0; }); });
+      Object.entries(rawSnap).forEach(([rep, row]) => {
+        if (!topPKeys.has(rep)) return;
+        Object.entries(row).forEach(([dest, qty]) => {
+          if (topHKeys.has(dest)) flowPH[rep][dest] = (flowPH[rep][dest] || 0) + qty;
+        });
+      });
+
+      // Flow matrix: Hub → Consumer (processed coffee)
+      const flowHD = {};
+      topHub.forEach(([h]) => { flowHD[h] = {}; topDest.forEach(([d]) => { flowHD[h][d] = 0; }); });
+      Object.entries(procSnap).forEach(([rep, row]) => {
+        if (!topHKeys.has(rep)) return;
+        Object.entries(row).forEach(([dest, qty]) => {
+          if (topDKeys.has(dest)) flowHD[rep][dest] = (flowHD[rep][dest] || 0) + qty;
+        });
+      });
+
+      // Node volumes
+      const pVols = {}, hVolsIn = {}, hVolsOut = {}, dVols = {};
+      topProd.forEach(([p]) => { pVols[p] = topHub.reduce((s, [h]) => s + (flowPH[p][h] || 0), 0); });
+      topHub.forEach(([h]) => {
+        hVolsIn[h] = topProd.reduce((s, [p]) => s + (flowPH[p][h] || 0), 0);
+        hVolsOut[h] = topDest.reduce((s, [d]) => s + (flowHD[h][d] || 0), 0);
+      });
+      topDest.forEach(([d]) => { dVols[d] = topHub.reduce((s, [h]) => s + (flowHD[h][d] || 0), 0); });
+
+      const totalP = topProd.reduce((s, [k]) => s + (pVols[k] || 0), 0);
+      const totalH = topHub.reduce((s, [k]) => s + (hVolsOut[k] || 0), 0);
+      const totalD = topDest.reduce((s, [k]) => s + (dVols[k] || 0), 0);
+      if (totalP === 0 && totalH === 0) return;
+
+      // Grand totals across ALL countries (not just displayed top-N) for accurate label %
+      const grandProdTotal = Object.values(rawProdTotals).reduce((s, v) => s + v, 0) || 1;
+      const grandHubTotal = Object.values(procHubTotals).reduce((s, v) => s + v, 0) || 1;
+      const grandDestTotal = Object.values(destTotals).reduce((s, v) => s + v, 0) || 1;
+
+      // Others volumes = grand total minus the top-N share
+      const pOthVol = Math.max(0, grandProdTotal - topProd.reduce((s, [k]) => s + (rawProdTotals[k] || 0), 0));
+      const hOthVol = Math.max(0, grandHubTotal - topHub.reduce((s, [k]) => s + (procHubTotals[k] || 0), 0));
+      const dOthVol = Math.max(0, grandDestTotal - topDest.reduce((s, [k]) => s + (destTotals[k] || 0), 0));
+
+      const activeProd = topProd.filter(([k]) => pVols[k] > 0);
+      const activeHub = topHub.filter(([k]) => (procHubTotals[k] || 0) > 0);
+      const activeDest = topDest.filter(([k]) => dVols[k] > 0);
+
+      // Layout: each column fills Y0..Y0+TOTAL_H independently
+      const Y0 = 10, TOTAL_H = 90;
+      function layoutCol(items, vols, total) {
+        const usable = TOTAL_H - Math.max(0, items.length - 1) * 2;
+        let cur = Y0;
+        return items.map(([k], i) => {
+          const vol = vols[k] || 0;
+          const h = total > 0 ? Math.max(0, (vol / total) * usable) : 0;
+          const y1 = cur, y2 = cur + h;
+          cur = y2 + (i < items.length - 1 ? 2 : 0);
+          return { label: k, vol, h, y1, y2 };
+        });
+      }
+
+      // Build extended vol maps using real totals for correct node sizing
+      const pVolsExt = { ...rawProdTotals, Others: pOthVol };
+      const hVolsExt = { ...procHubTotals, Others: hOthVol };
+      const dVolsExt = { ...destTotals, Others: dOthVol };
+      const pWithOth = [...activeProd, ...(pOthVol > 0 ? [['Others', pOthVol]] : [])];
+      const hWithOth = [...activeHub, ...(hOthVol > 0 ? [['Others', hOthVol]] : [])];
+      const dWithOth = [...activeDest, ...(dOthVol > 0 ? [['Others', dOthVol]] : [])];
+      const pL = layoutCol(pWithOth, pVolsExt, grandProdTotal);
+      const hL = layoutCol(hWithOth, hVolsExt, grandHubTotal);
+      const dL = layoutCol(dWithOth, dVolsExt, grandDestTotal);
+
+      function svgEl(tag, attrs) {
+        const e = document.createElementNS(NS, tag);
+        Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+        return e;
+      }
+
+      // Column geometry
+      const PX1 = 6, PW = 12, PX2 = 18;      // Producers  6-18
+      const HX1 = 163, HW = 28, HX2 = 191;   // Processors 163-191
+      const DX1 = 352, DW = 12, DX2 = 364;   // Consumers  352-364
+      const MID_PH = Math.round((PX2 + HX1) / 2);  // ~93
+      const MID_HD = Math.round((HX2 + DX1) / 2);  // ~269
+
+      const PROD_COLORS = ['#3D2010', '#5C3820', '#7A4C2A', '#8B5E3C', '#9B6E4C'];
+      const HUB_COLORS = ['#5C4400', '#7A5C00', '#987800', '#B09010', '#C4A820'];
+      const DEST_COLORS = ['#5C3020', '#7A4030', '#984A38', '#A85A44', '#B86A54'];
+      const FLOW_PH = ['rgba(61,32,16,0.42)', 'rgba(92,56,32,0.38)', 'rgba(122,76,42,0.34)',
+        'rgba(139,94,60,0.30)', 'rgba(155,110,76,0.26)'];
+      const FLOW_HD = ['rgba(92,68,0,0.44)', 'rgba(122,92,0,0.40)', 'rgba(152,120,0,0.36)',
+        'rgba(176,144,16,0.32)', 'rgba(196,168,32,0.28)'];
+
+      // ── P→H flows (raw coffee) ───────────────────────────────
+      const pConsumed = {}; pL.forEach(n => { pConsumed[n.label] = 0; });
+      const hConsumedL = {}; hL.forEach(n => { hConsumedL[n.label] = 0; });
+
+      pL.filter(n => n.label !== 'Others').forEach((prod, pi) => {
+        hL.filter(n => n.label !== 'Others').forEach(hub => {
+          const qty = flowPH[prod.label]?.[hub.label] || 0;
+          if (qty < 1) return;
+          const fhP = prod.vol > 0 ? (qty / prod.vol) * prod.h : 0;
+          const fhH = hVolsIn[hub.label] > 0 ? (qty / hVolsIn[hub.label]) * hub.h : 0;
+          const ya = prod.y1 + pConsumed[prod.label];
+          const yb = ya + fhP;
+          const yc = hub.y1 + hConsumedL[hub.label];
+          const yd = yc + fhH;
+          const d = `M${PX2},${ya.toFixed(1)} C${MID_PH},${ya.toFixed(1)} ${MID_PH},${yc.toFixed(1)} ${HX1},${yc.toFixed(1)} ` +
+            `L${HX1},${yd.toFixed(1)} C${MID_PH},${yd.toFixed(1)} ${MID_PH},${yb.toFixed(1)} ${PX2},${yb.toFixed(1)} Z`;
+          svg.appendChild(svgEl('path', { d, fill: FLOW_PH[Math.min(pi, FLOW_PH.length - 1)] }));
+          pConsumed[prod.label] += fhP;
+          hConsumedL[hub.label] += fhH;
+        });
+      });
+
+      // ── H→D flows (processed coffee) ────────────────────────
+      const hConsumedR = {}; hL.forEach(n => { hConsumedR[n.label] = 0; });
+      const dConsumed = {}; dL.forEach(n => { dConsumed[n.label] = 0; });
+
+      hL.filter(n => n.label !== 'Others').forEach((hub, hi) => {
+        dL.filter(n => n.label !== 'Others').forEach(dest => {
+          const qty = flowHD[hub.label]?.[dest.label] || 0;
+          if (qty < 1) return;
+          const fhH = hub.vol > 0 ? (qty / hub.vol) * hub.h : 0;
+          const fhD = dest.vol > 0 ? (qty / dest.vol) * dest.h : 0;
+          const ya = hub.y1 + hConsumedR[hub.label];
+          const yb = ya + fhH;
+          const yc = dest.y1 + dConsumed[dest.label];
+          const yd = yc + fhD;
+          const d = `M${HX2},${ya.toFixed(1)} C${MID_HD},${ya.toFixed(1)} ${MID_HD},${yc.toFixed(1)} ${DX1},${yc.toFixed(1)} ` +
+            `L${DX1},${yd.toFixed(1)} C${MID_HD},${yd.toFixed(1)} ${MID_HD},${yb.toFixed(1)} ${HX2},${yb.toFixed(1)} Z`;
+          svg.appendChild(svgEl('path', { d, fill: FLOW_HD[Math.min(hi, FLOW_HD.length - 1)] }));
+          hConsumedR[hub.label] += fhH;
+          dConsumed[dest.label] += fhD;
+        });
+      });
+
+      const OTH_COLOR = '#999';
+
+      // ── Producer nodes ───────────────────────────────────────
+      pL.forEach((node, i) => {
+        if (node.h < 1) return;
+        const fill = node.label === 'Others' ? OTH_COLOR : PROD_COLORS[Math.min(i, PROD_COLORS.length - 1)];
+        svg.appendChild(svgEl('rect', {
+          x: PX1, y: node.y1.toFixed(1), width: PW,
+          height: node.h.toFixed(1), rx: 1.5, fill
+        }));
+      });
+
+      // ── Processor nodes ──────────────────────────────────────
+      hL.forEach((node, i) => {
+        if (node.h < 1) return;
+        const fill = node.label === 'Others' ? OTH_COLOR : HUB_COLORS[Math.min(i, HUB_COLORS.length - 1)];
+        svg.appendChild(svgEl('rect', {
+          x: HX1, y: node.y1.toFixed(1), width: HW,
+          height: node.h.toFixed(1), rx: 1.5, fill
+        }));
+      });
+
+      // ── Consumer nodes ───────────────────────────────────────
+      dL.forEach((node, i) => {
+        if (node.h < 1) return;
+        const fill = node.label === 'Others' ? OTH_COLOR : DEST_COLORS[Math.min(i, DEST_COLORS.length - 1)];
+        svg.appendChild(svgEl('rect', {
+          x: DX1, y: node.y1.toFixed(1), width: DW,
+          height: node.h.toFixed(1), rx: 1.5, fill
+        }));
+      });
+
+      // ── Column headers ───────────────────────────────────────
+      [{ x: PX1, anchor: 'start', txt: 'Producers' },
+      { x: HX1 + HW / 2, anchor: 'middle', txt: 'Processors' },
+      { x: DX2, anchor: 'end', txt: 'Consumers' }].forEach(({ x, anchor, txt }) => {
+        const t = svgEl('text', {
+          x, y: 7, 'font-size': 5, fill: '#5C3820',
+          'text-anchor': anchor, 'font-weight': '600'
+        });
+        t.textContent = txt; svg.appendChild(t);
+      });
+
+      // Helper: label Y — midpoint of node, but nudged down enough to be readable
+      function labelY(node, offset) {
+        const mid = (node.y1 + node.y2) / 2 + offset;
+        // For very small nodes, place label just below the node top so it stays visible
+        return node.h < 3 ? (node.y1 + offset + 1.5) : mid;
+      }
+
+      // ── Producer labels (right of node) ──────────────────────
+      pL.forEach((node, i) => {
+        if (node.h < 0.5) return;
+        const pct = Math.round(node.vol / grandProdTotal * 100);
+        const col = node.label === 'Others' ? OTH_COLOR : PROD_COLORS[Math.min(i, PROD_COLORS.length - 1)];
+        const t = svgEl('text', {
+          x: PX2 + 2, y: labelY(node, 1.8).toFixed(1),
+          'font-size': 4.5, fill: col, 'text-anchor': 'start', 'font-weight': '600'
+        });
+        t.textContent = `${node.label} ${pct}%`;
+        svg.appendChild(t);
+      });
+
+      // ── Processor labels (right of node, coloured) ───────────
+      hL.forEach((node, i) => {
+        if (node.h < 0.5) return;
+        const pct = Math.round(node.vol / grandHubTotal * 100);
+        const col = node.label === 'Others' ? OTH_COLOR : HUB_COLORS[Math.min(i, HUB_COLORS.length - 1)];
+        const t = svgEl('text', {
+          x: HX2 + 2, y: labelY(node, 1.2).toFixed(1),
+          'font-size': 4.5, fill: col, 'text-anchor': 'start', 'font-weight': '600'
+        });
+        t.textContent = `${node.label} ${pct}%`;
+        svg.appendChild(t);
+      });
+
+      // ── Consumer labels (right of node) ──────────────────────
+      dL.forEach((node, i) => {
+        if (node.h < 0.5) return;
+        const pct = Math.round(node.vol / grandDestTotal * 100);
+        const col = node.label === 'Others' ? OTH_COLOR : DEST_COLORS[Math.min(i, DEST_COLORS.length - 1)];
+        const t = svgEl('text', {
+          x: DX2 + 2, y: labelY(node, 1.8).toFixed(1),
+          'font-size': 4.5, fill: col, 'text-anchor': 'start', 'font-weight': '600'
+        });
+        t.textContent = `${node.label} ${pct}%`;
+        svg.appendChild(t);
+      });
+    }
+
+    /* ── SLIDER ───────────────────────────────────────────────── */
+    let playing = false;
+    let playInterval = null;
+
+    function setupSlider() {
+      const slider = document.getElementById('year-slider');
+      const display = document.getElementById('year-display');
+      const yearBadge = document.getElementById('topbar-year');
+      const playBtn = document.getElementById('slider-play');
+      const topPlay = document.getElementById('topbar-play');
+
+      const yearMin = 1986, yearMax = 2024;
+
+      function setYear(val) {
+        display.textContent = val;
+        yearBadge.textContent = val;
+        // Update slider fill via gradient
+        const pct = ((val - yearMin) / (yearMax - yearMin)) * 100;
+        slider.style.background = `linear-gradient(to right, #8B5E3C ${pct}%, #E8D5B0 ${pct}%)`;
+        // Progressive timeline redraw + cursor (delegated to setupTimeline)
+        if (timelineUpdate) timelineUpdate(parseInt(val));
+        // Drive year-indexed data
+        currentYear = parseInt(val);
+        onYearChange(currentYear);
+      }
+
+      slider.addEventListener('input', () => setYear(slider.value));
+
+      function togglePlay() {
+        playing = !playing;
+        const icon = playing ? '⏸' : '▶';
+        playBtn.textContent = icon;
+        topPlay.textContent = icon;
+
+        if (playing) {
+          playInterval = setInterval(() => {
+            let v = parseInt(slider.value) + 1;
+            if (v > 2024) v = 1986;
+            slider.value = v;
+            setYear(v);
+          }, 2000);
+        } else {
+          clearInterval(playInterval);
+        }
+      }
+
+      playBtn.addEventListener('click', togglePlay);
+      topPlay.addEventListener('click', togglePlay);
+
+      document.getElementById('flow-mode-btn').addEventListener('click', () => {
+        flowMode = flowMode === 'qty' ? 'val' : 'qty';
+        document.getElementById('flow-mode-btn').textContent =
+          flowMode === 'qty' ? 'Show Value' : 'Show Weight';
+        if (selectedMesh) updateSidePanel(selectedMesh.userData.name, currentYear);
+      });
+
+      setYear(2023);
+    }
+
+    /* ── YEAR CHANGE ──────────────────────────────────────────── */
+    function onYearChange(year) {
+      rebuildExportVolumes(year);
+
+      rebuildTransformationRanks(year);
+      const tiSnap = TRANSFORMATION_INDEX_BY_YEAR[year] || TRANSFORMATION_INDEX_BY_YEAR[2023] || {};
+
+      // Pre-compute inbound volumes for this year (for import hub heights)
+      const qtySnapYear = TRADE_QUANTITY_BY_YEAR[year] || TRADE_QUANTITY_BY_YEAR[2023] || TRADE_QUANTITY;
+      const inboundByKey = {};
+      Object.values(qtySnapYear).forEach(row => {
+        Object.entries(row).forEach(([dest, q]) => {
+          inboundByKey[dest] = (inboundByKey[dest] || 0) + q;
+        });
+      });
+
+      // Recolor and rescale country meshes
+      countryMeshes.forEach(mesh => {
+        const name = mesh.userData.name;
+        const key = GEO_NAME_MAP[name] || name;
+        const hasData = key in tiSnap;
+        const ti = hasData ? tiSnap[key] : 0;
+        mesh.userData.ti = ti;
+        if (Array.isArray(mesh.material)) {
+          mesh.material[1].color.setHex(getTopColor(ti, key, year));
+          mesh.material[0].color.setHex(getSideColor(ti, key, year));
+        }
+        let targetDepth;
+        if (hasData) {
+          targetDepth = getDepth(ti, key);
+        } else {
+          const inbound = inboundByKey[key] || 0;
+          const tiShare = Math.max(0, inbound) / maxTINet;
+          targetDepth = 0.5 + tiShare * 45;
+        }
+        const baseDepth = mesh.userData.baseDepth || 0.5;
+        mesh.scale.z = targetDepth / baseDepth;
+      });
+
+      // Refresh panel and arcs if a country is selected
+      if (selectedMesh) {
+        updateSidePanel(selectedMesh.userData.name, year);
+        drawArcs(selectedMesh.userData.name, year);
+      }
+
+      updateSankey(year);
+    }
+
+    /* ── TIMELINE ─────────────────────────────────────────────── */
+    function setupTimeline() {
+      // x: 1986→32, 2024→230  (xMax=230 leaves room for right-side labels)
+      const xMin = 32, xMax = 230, yearMin = 1986, yearMax = 2024;
+      const yBase = 88, yScale = 73, priceMax = 5500;
+
+      function toX(yr) { return +(xMin + ((yr - yearMin) / (yearMax - yearMin)) * (xMax - xMin)).toFixed(1); }
+      function toY(price) { return +(yBase - Math.min(price / priceMax, 1) * yScale).toFixed(1); }
+
+      const years = Object.keys(PRICE_TIMELINE).map(Number).sort((a, b) => a - b);
+
+      const allData = years.map(yr => ({
+        yr,
+        raw: [toX(yr), toY(PRICE_TIMELINE[yr].raw)],
+        proc: [toX(yr), toY(PRICE_TIMELINE[yr].processed)],
+        impRaw: [toX(yr), toY(PRICE_TIMELINE[yr].raw * 1.08)],
+        impProc: [toX(yr), toY(PRICE_TIMELINE[yr].processed * 1.08)],
+      }));
+
+      const toPts = pairs => pairs.map(([x, y]) => `${x},${y}`).join(' ');
+      const ns = 'http://www.w3.org/2000/svg';
+
+      function fillDots(groupId, pairs, color) {
+        const g = document.getElementById(groupId); if (!g) return;
+        g.innerHTML = '';
+        pairs.forEach(([cx, cy]) => {
+          const c = document.createElementNS(ns, 'circle');
+          c.setAttribute('cx', cx); c.setAttribute('cy', cy);
+          c.setAttribute('r', '1.2'); c.setAttribute('fill', color);
+          g.appendChild(c);
+        });
+      }
+
+      function updateToYear(year) {
+        const visible = allData.filter(d => d.yr <= year);
+        if (visible.length === 0) return;
+
+        const rawPairs = visible.map(d => d.raw);
+        const procPairs = visible.map(d => d.proc);
+        const impRawPairs = visible.map(d => d.impRaw);
+        const impProcPairs = visible.map(d => d.impProc);
+
+        document.getElementById('timeline-raw').setAttribute('points', toPts(rawPairs));
+        document.getElementById('timeline-proc').setAttribute('points', toPts(procPairs));
+        document.getElementById('timeline-impraw').setAttribute('points', toPts(impRawPairs));
+        document.getElementById('timeline-impproc').setAttribute('points', toPts(impProcPairs));
+
+        const lastX = visible[visible.length - 1].raw[0];
+        const corner = ` ${lastX},${yBase} ${xMin},${yBase}`;
+        document.getElementById('timeline-raw-area').setAttribute('points', toPts(rawPairs) + corner);
+        document.getElementById('timeline-proc-area').setAttribute('points', toPts(procPairs) + corner);
+        document.getElementById('timeline-impraw-area').setAttribute('points', toPts(impRawPairs) + corner);
+        document.getElementById('timeline-impproc-area').setAttribute('points', toPts(impProcPairs) + corner);
+
+        fillDots('timeline-dots', rawPairs, '#5C3317');
+        fillDots('timeline-dots-expproc', procPairs, '#A0522D');
+        fillDots('timeline-dots-impraw', impRawPairs, '#B8935A');
+        fillDots('timeline-dots-impproc', impProcPairs, '#E8C878');
+
+        const cursor = document.getElementById('timeline-cursor');
+        if (cursor) {
+          const cx = toX(year).toFixed(1);
+          cursor.setAttribute('x1', cx); cursor.setAttribute('x2', cx);
+        }
+
+        // Update bar-chart methodology hint with current year's prices
+        const pt = PRICE_TIMELINE[year] || PRICE_TIMELINE[2023];
+        const hint = document.getElementById('timeline-bar-hint');
+        if (hint && pt) {
+          hint.textContent = `Country panel bars: volumes × ${year} prices — `
+            + `raw ≈ ${(pt.raw / 1000).toFixed(1)}k$/t · roasted ≈ ${(pt.processed / 1000).toFixed(1)}k$/t. `
+            + `Bar gradient = raw (dark) → processed (light) share.`;
+        }
+      }
+
+      timelineUpdate = updateToYear;
+      updateToYear(2023);
+    }
+
+    /* ── INIT ─────────────────────────────────────────────────── */
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Show the loading screen while we fetch the data
+      const loadingEl = document.getElementById('map-loading');
+      loadingEl.textContent = 'Fetching global trade data...';
+      loadingEl.classList.remove('hidden');
+
+      // 2. Your new GitHub Pages link
+      const DATA_URL = 'https://mass-14.github.io/BeanMap-data/data_layer.json';
+
+      // 3. Fetch the data asynchronously
+      fetch(DATA_URL)
+        .then(response => {
+          if (!response.ok) throw new Error('Network response was not ok');
+          return response.json();
+        })
+        .then(data => {
+          // 4. Assign the fetched data to your global variables
+          TRADE_QUANTITY_BY_YEAR = data.TRADE_QUANTITY_BY_YEAR;
+          TRADE_VALUE_BY_YEAR = data.TRADE_VALUE_BY_YEAR;
+          TRADE_QTY_RAW_BY_YEAR = data.TRADE_QTY_RAW_BY_YEAR;
+          TRADE_QTY_PROC_BY_YEAR = data.TRADE_QTY_PROC_BY_YEAR;
+          PROCESSED_SHARE_BY_YEAR = data.PROCESSED_SHARE_BY_YEAR;
+          PRICE_TIMELINE = data.PRICE_TIMELINE;
+          TRADE_QUANTITY = data.TRADE_QUANTITY;
+          TRADE_VALUE = data.TRADE_VALUE;
+          TRANSFORMATION_INDEX_BY_YEAR = buildTransformationIndexByYear();
+          TRANSFORMATION_INDEX = TRANSFORMATION_INDEX_BY_YEAR[2023] || {};
+
+          Object.values(TRADE_QUANTITY_BY_YEAR).forEach(snap => {
+            Object.values(snap).forEach(row => { Object.keys(row).forEach(k => ALL_PARTNERS.add(k)); });
+          });
+
+          rebuildTransformationRanks(2023);
+
+          // 5. Initialize the application now that we have data
+          rebuildExportVolumes(2023);
+          setupTimeline();
+          setupSlider();
+          initThree();
+          loadMap();         // (loadMap handles hiding the loading screen when done)
+          updateSankey(2023);
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+          loadingEl.innerHTML = '<span style="color:#C8A96E;font-size:11px;">⚠ Could not load trade data. Check your GitHub Pages link.</span>';
+          loadingEl.style.flexDirection = 'column';
+        });
     });
-});
-</script>
+  </script>
 </body>
+
 </html>

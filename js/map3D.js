@@ -2,6 +2,32 @@ import { CENTROIDS, FLOW_COLORS, GEO_NAME_MAP } from './config.js';
 import { getDepth, getSideColor, getTI, getTopColor, getTransformationNet, state } from './dataService.js';
 import { fmtQty, hexToInt, makeShape, project, ringToPoints } from './utils.js';
 
+const SCENE_COLORS = {
+  background: 0xE2D8C3,
+  fog: 0xE2D8C3
+};
+
+const LIGHT_COLORS = {
+  ambient: 0xF5ECD7,
+  directional: 0xFFFAF0,
+  fill: 0xC8A96E
+};
+
+const COUNTRY_COLORS = {
+  topEmissiveDefault: 0x000000,
+  sideEmissiveDefault: 0x000000,
+  // Intentionally equal to default to keep clicked state visually identical.
+  topEmissiveSelected: 0x000000,
+  sideEmissiveSelected: 0x000000,
+  topEmissiveHover: 0x4A3A2A,
+  sideEmissiveHover: 0x4A3A2A,
+  border: 0x8B6040
+};
+
+const UI_COLORS = {
+  mapLoadErrorText: '#C8A96E'
+};
+
 let scene, camera, renderer, controls;
 let countryMeshes = [];
 let arcMeshes = [];
@@ -26,8 +52,8 @@ export function initThreeMap(onCountrySelectCallback) {
   const H = container.clientHeight;
 
   scene = new window.THREE.Scene();
-  scene.background = new window.THREE.Color(0xE2D8C3);
-  scene.fog = new window.THREE.Fog(0xE2D8C3, 600, 1200);
+  scene.background = new window.THREE.Color(SCENE_COLORS.background);
+  scene.fog = new window.THREE.Fog(SCENE_COLORS.fog, 600, 1200);
 
   // Rotate scene so XY plane becomes XZ (standard top-down map view)
   scene.rotation.x = -Math.PI / 2;
@@ -43,14 +69,14 @@ export function initThreeMap(onCountrySelectCallback) {
   container.appendChild(renderer.domElement);
 
   // Lights
-  const ambient = new window.THREE.AmbientLight(0xF5ECD7, 0.55);
+  const ambient = new window.THREE.AmbientLight(LIGHT_COLORS.ambient, 0.55);
   scene.add(ambient);
 
-  const dirLight = new window.THREE.DirectionalLight(0xFFFAF0, 0.95);
+  const dirLight = new window.THREE.DirectionalLight(LIGHT_COLORS.directional, 0.95);
   dirLight.position.set(50, 400, 80);
   scene.add(dirLight);
 
-  const fillLight = new window.THREE.DirectionalLight(0xC8A96E, 0.25);
+  const fillLight = new window.THREE.DirectionalLight(LIGHT_COLORS.fill, 0.25);
   fillLight.position.set(-80, 200, -60);
   scene.add(fillLight);
 
@@ -110,8 +136,8 @@ function onMapClick() {
     clearArrows();
     if (selectedMeshes) {
       selectedMeshes.forEach(sm => {
-        sm.material[1].emissive.setHex(0x1a0e06);
-        sm.material[0].emissive.setHex(0x0f0804);
+        sm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
+        sm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
       });
       selectedMesh = null;
       selectedMeshes = null;
@@ -124,16 +150,16 @@ function onMapClick() {
 
   if (selectedMeshes) {
     selectedMeshes.forEach(sm => {
-      sm.material[1].emissive.setHex(0x1a0e06);
-      sm.material[0].emissive.setHex(0x0f0804);
+      sm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
+      sm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
     });
   }
 
   selectedMesh = m;
   selectedMeshes = getMeshGroup(m.userData.name);
   selectedMeshes.forEach(sm => {
-    sm.material[1].emissive.setHex(0xCCCCCC);
-    sm.material[0].emissive.setHex(0xAAAAAA);
+    sm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveSelected);
+    sm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveSelected);
   });
 
   state.selectedCountry = m.userData.name;
@@ -161,15 +187,19 @@ function animate() {
       if (m !== hoveredMesh) {
         if (hoveredGroup) {
           hoveredGroup.forEach(hm => {
-            if (!selectedMeshes || !selectedMeshes.includes(hm))
-              hm.material[1].emissive.setHex(0x1a0e06);
+            if (!selectedMeshes || !selectedMeshes.includes(hm)) {
+              hm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
+              hm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
+            }
           });
         }
         hoveredMesh = m;
         hoveredGroup = getMeshGroup(m.userData.name);
         hoveredGroup.forEach(hm => {
-          if (!selectedMeshes || !selectedMeshes.includes(hm))
-            hm.material[1].emissive.setHex(0x4A3A2A);
+          if (!selectedMeshes || !selectedMeshes.includes(hm)) {
+            hm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveHover);
+            hm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveHover);
+          }
         });
       }
 
@@ -185,8 +215,10 @@ function animate() {
     } else {
       if (hoveredGroup) {
         hoveredGroup.forEach(hm => {
-          if (!selectedMeshes || !selectedMeshes.includes(hm))
-            hm.material[1].emissive.setHex(0x1a0e06);
+          if (!selectedMeshes || !selectedMeshes.includes(hm)) {
+            hm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
+            hm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
+          }
         });
       }
       hoveredMesh = null;
@@ -248,7 +280,7 @@ export function loadMap() {
     })
     .catch(err => {
       const el = document.getElementById('map-loading');
-      el.innerHTML = '<span style="color:#C8A96E;font-size:11px;">⚠ Could not load map.<br>Requires internet access.</span>';
+      el.innerHTML = `<span style="color:${UI_COLORS.mapLoadErrorText};font-size:11px;">⚠ Could not load map.<br>Requires internet access.</span>`;
       el.style.flexDirection = 'column';
       console.error('GeoJSON load error:', err);
     });
@@ -306,7 +338,7 @@ function buildCountry(feature) {
       const lineGeo = new window.THREE.BufferGeometry();
       const pts3 = ringToPoints(outer, step).map(p => new window.THREE.Vector3(p.x, p.y, 0.1));
       lineGeo.setFromPoints(pts3);
-      const lineMat = new window.THREE.LineBasicMaterial({ color: 0x8B6040, opacity: 0.35, transparent: true });
+      const lineMat = new window.THREE.LineBasicMaterial({ color: COUNTRY_COLORS.border, opacity: 0.35, transparent: true });
       scene.add(new window.THREE.LineLoop(lineGeo, lineMat));
 
     } catch (_) { /* skip malformed geometries */ }

@@ -34,7 +34,7 @@ export function setupUI(onYearChange, onFlowModeChange) {
         if (v > 2024) v = 1986;
         slider.value = v;
         setYear(v);
-      }, 2000);
+      }, 900);
     } else {
       clearInterval(playInterval);
     }

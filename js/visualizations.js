@@ -4,150 +4,106 @@ let timelineUpdateRef = null;
 
 /* ── TIMELINE (D3) ────────────────────────────────────────── */
 export function drawPriceChart(priceData) {
-    // Select your chart container (adjust the selector as needed for your HTML)
     const svg = d3.select("#price-chart-svg");
-    svg.selectAll("*").remove(); // Clear previous renders
+    svg.selectAll("*").remove();
 
     const margin = { top: 20, right: 80, bottom: 30, left: 50 };
-
-    // Fallbacks provided in case bounding client rect is not immediately available
     const width = (svg.node().getBoundingClientRect().width || 600) - margin.left - margin.right;
     const height = (svg.node().getBoundingClientRect().height || 250) - margin.top - margin.bottom;
 
     const chartGroup = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Format data into an array of objects
+    // Format data
     const years = Object.keys(priceData).sort((a, b) => a - b);
     const data = years.map(y => ({
         year: d3.timeParse("%Y")(y),
+        yearNum: parseInt(y),
         yearStr: y,
         raw: priceData[y].raw,
         processed: priceData[y].processed
     })).filter(d => d.raw != null && d.processed != null);
 
-    // X and Y Scales
-    const x = d3.scaleTime()
-        .domain(d3.extent(data, d => d.year))
-        .range([0, width]);
+    // Scales
+    const x = d3.scaleTime().domain(d3.extent(data, d => d.year)).range([0, width]);
+    const y = d3.scaleLinear().domain([0, d3.max(data, d => d.processed) * 1.15]).range([height, 0]);
 
-    const y = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d.processed) * 1.15]) // 15% headroom for tooltips
-        .range([height, 0]);
-
-    // 1. Subtle Horizontal Gridlines (removes the solid Y-axis spine)
-    chartGroup.append("g")
-        .attr("class", "grid")
+    // Gridlines
+    chartGroup.append("g").attr("class", "grid")
         .call(d3.axisLeft(y).tickSize(-width).tickFormat("").ticks(5))
-        .style("stroke", "#d7ccc8")
-        .style("stroke-dasharray", "3,3")
-        .style("stroke-opacity", 0.3)
+        .style("stroke", "#d7ccc8").style("stroke-dasharray", "3,3").style("stroke-opacity", 0.3)
         .call(g => g.select(".domain").remove());
 
-    // 2. The Value-Added Gap (Shaded Area)
-    const area = d3.area()
-        .curve(d3.curveMonotoneX) // Smooths the jagged edges
-        .x(d => x(d.year))
-        .y0(d => y(d.raw))
-        .y1(d => y(d.processed));
+    // Generators
+    const area = d3.area().curve(d3.curveMonotoneX)
+        .x(d => x(d.year)).y0(d => y(d.raw)).y1(d => y(d.processed));
+    const lineRaw = d3.line().curve(d3.curveMonotoneX)
+        .x(d => x(d.year)).y(d => y(d.raw));
+    const lineProc = d3.line().curve(d3.curveMonotoneX)
+        .x(d => x(d.year)).y(d => y(d.processed));
 
-    chartGroup.append("path")
-        .datum(data)
-        .attr("fill", "#c4a482") // Warm tan to match the map
-        .attr("opacity", 0.3)
-        .attr("d", area);
+    // Paths (Empty at first, they will be drawn by the update function)
+    const pathArea = chartGroup.append("path").attr("fill", "#c4a482").attr("opacity", 0.3);
+    const pathRaw = chartGroup.append("path").attr("fill", "none").attr("stroke", "#8d6e63").attr("stroke-width", 2.5);
+    const pathProc = chartGroup.append("path").attr("fill", "none").attr("stroke", "#3e2723").attr("stroke-width", 3);
 
-    // 3. Smooth Lines
-    const lineRaw = d3.line()
-        .curve(d3.curveMonotoneX)
-        .x(d => x(d.year))
-        .y(d => y(d.raw));
-
-    const lineProc = d3.line()
-        .curve(d3.curveMonotoneX)
-        .x(d => x(d.year))
-        .y(d => y(d.processed));
-
-    chartGroup.append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "#8d6e63") // Light brown for raw
-        .attr("stroke-width", 2.5)
-        .attr("d", lineRaw);
-
-    chartGroup.append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "#3e2723") // Dark roast for processed
-        .attr("stroke-width", 3)
-        .attr("d", lineProc);
-
-    // 4. Clean Axes Formatting
-    chartGroup.append("g")
-        .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(x).ticks(5))
+    // Axes
+    chartGroup.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x).ticks(5))
         .call(g => g.select(".domain").attr("stroke", "#8d6e63"))
         .call(g => g.selectAll(".tick line").attr("stroke", "#8d6e63"))
         .call(g => g.selectAll("text").attr("fill", "#4e342e").style("font-family", "sans-serif"));
 
-    chartGroup.append("g")
-        .call(d3.axisLeft(y).ticks(5).tickFormat(d => "$" + d.toLocaleString()))
-        .call(g => g.select(".domain").remove()) // Hide the vertical spine
-        .call(g => g.selectAll(".tick line").remove()) // Hide tick lines
+    chartGroup.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(d => "$" + d.toLocaleString()))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.selectAll(".tick line").remove())
         .call(g => g.selectAll("text").attr("fill", "#4e342e").style("font-weight", "500"));
 
-    // 5. Direct Line Labels (Replaces the clunky legend)
-    const lastPoint = data[data.length - 1];
+    // Labels
+    const lblProc = chartGroup.append("text").attr("fill", "#3e2723").style("font-weight", "bold").style("font-size", "12px").text("Processed");
+    const lblRaw = chartGroup.append("text").attr("fill", "#8d6e63").style("font-weight", "bold").style("font-size", "12px").text("Raw");
 
-    chartGroup.append("text")
-        .attr("x", x(lastPoint.year) + 8)
-        .attr("y", y(lastPoint.processed) + 4)
-        .attr("fill", "#3e2723")
-        .style("font-weight", "bold")
-        .style("font-size", "12px")
-        .text("Processed");
+    // Vertical Timeline Cursor
+    const yearCursor = chartGroup.append("line")
+        .attr("y1", 0).attr("y2", height)
+        .style("stroke", "rgba(74,44,23,0.45)")
+        .style("stroke-width", "1px")
+        .style("stroke-dasharray", "2,2");
 
-    chartGroup.append("text")
-        .attr("x", x(lastPoint.year) + 8)
-        .attr("y", y(lastPoint.raw) + 4)
-        .attr("fill", "#8d6e63")
-        .style("font-weight", "bold")
-        .style("font-size", "12px")
-        .text("Raw");
+    // Dynamic update linked to slider
+    timelineUpdateRef = function (currentYear) {
+        // 1. Slice data up to the slider's year
+        const visibleData = data.filter(d => d.yearNum <= currentYear);
+        if (visibleData.length === 0) return;
 
-    // 6. Interactive Hover Elements
+        // 2. Redraw the lines and shaded area
+        pathArea.datum(visibleData).attr("d", area);
+        pathRaw.datum(visibleData).attr("d", lineRaw);
+        pathProc.datum(visibleData).attr("d", lineProc);
+
+        // 3. Move the text labels to follow the end of the line
+        const lastPoint = visibleData[visibleData.length - 1];
+        lblProc.attr("x", x(lastPoint.year) + 8).attr("y", y(lastPoint.processed) + 4);
+        lblRaw.attr("x", x(lastPoint.year) + 8).attr("y", y(lastPoint.raw) + 4);
+
+        // 4. Move the vertical cursor
+        const cx = x(d3.timeParse("%Y")(currentYear));
+        yearCursor.attr("x1", cx).attr("x2", cx);
+    };
+
+    // Hover interactivity
     const focus = chartGroup.append("g").style("display", "none");
 
-    focus.append("line")
-        .attr("class", "hover-line")
-        .attr("y1", 0)
-        .attr("y2", height)
-        .style("stroke", "#3e2723")
-        .style("stroke-width", "1px")
-        .style("stroke-dasharray", "4,4")
-        .style("opacity", 0.5);
-
+    focus.append("line").attr("class", "hover-line").attr("y1", 0).attr("y2", height).style("stroke", "#3e2723").style("stroke-width", "1px").style("stroke-dasharray", "4,4").style("opacity", 0.5);
     focus.append("circle").attr("class", "dot-raw").attr("r", 4).attr("fill", "#8d6e63").attr("stroke", "#fff").attr("stroke-width", 1.5);
     focus.append("circle").attr("class", "dot-proc").attr("r", 4).attr("fill", "#3e2723").attr("stroke", "#fff").attr("stroke-width", 1.5);
 
     const tooltip = focus.append("g").attr("class", "tooltip-box");
-    tooltip.append("rect")
-        .attr("width", 125)
-        .attr("height", 55)
-        .attr("fill", "#3e2723")
-        .attr("rx", 4)
-        .attr("opacity", 0.95);
-
+    tooltip.append("rect").attr("width", 125).attr("height", 55).attr("fill", "#3e2723").attr("rx", 4).attr("opacity", 0.95);
     const tooltipYear = tooltip.append("text").attr("x", 8).attr("y", 16).attr("fill", "#d7ccc8").style("font-size", "10px").style("font-weight", "bold");
     const tooltipProc = tooltip.append("text").attr("x", 8).attr("y", 32).attr("fill", "#fff").style("font-size", "11px");
     const tooltipRaw = tooltip.append("text").attr("x", 8).attr("y", 46).attr("fill", "#fff").style("font-size", "11px");
 
-    // Invisible rect for capturing mouse movements
-    chartGroup.append("rect")
-        .attr("width", width)
-        .attr("height", height)
-        .style("fill", "none")
-        .style("pointer-events", "all")
+    chartGroup.append("rect").attr("width", width).attr("height", height).style("fill", "none").style("pointer-events", "all")
         .on("mouseover", () => focus.style("display", null))
         .on("mouseout", () => focus.style("display", "none"))
         .on("mousemove", mousemove);
@@ -155,7 +111,7 @@ export function drawPriceChart(priceData) {
     const bisectDate = d3.bisector(d => d.year).left;
 
     function mousemove(event) {
-        // d3.pointer works for D3 v6+ (use d3.mouse(this) if using v5 or lower)
+        // Users can hover over the full data range, even the "future" faded out section
         const x0 = x.invert(d3.pointer(event)[0]);
         const i = bisectDate(data, x0, 1);
         const d0 = data[i - 1];
@@ -170,13 +126,10 @@ export function drawPriceChart(priceData) {
         focus.select(".dot-raw").attr("transform", `translate(${cx}, ${cyRaw})`);
         focus.select(".dot-proc").attr("transform", `translate(${cx}, ${cyProc})`);
 
-        // Dynamic tooltip positioning to prevent it from bleeding off the right side
         let tooltipX = cx + 12;
         if (tooltipX + 125 > width) tooltipX = cx - 137;
 
-        // Anchor tooltip above the highest data point (Processed)
         tooltip.attr("transform", `translate(${tooltipX}, ${cyProc - 20})`);
-
         tooltipYear.text(`YEAR: ${d.yearStr}`);
         tooltipProc.text(`Processed: $${d.processed.toLocaleString()}`);
         tooltipRaw.text(`Raw: $${d.raw.toLocaleString()}`);

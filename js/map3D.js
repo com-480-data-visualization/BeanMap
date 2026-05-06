@@ -96,6 +96,42 @@ export function initThreeMap(onCountrySelectCallback) {
   controls.maxAzimuthAngle = ROT_MAX;
   controls.update();
 
+  // Custom handler to allow trackpad users to pan the map by "scrolling" in any direction, without triggering the zoom behavior in OrbitControls.
+  renderer.domElement.addEventListener('wheel', (e) => {
+    // 1. Determine if this is a trackpad pan vs. a zoom action
+    const isPinch = e.ctrlKey; // Browsers flag trackpad pinches with ctrlKey
+    const isSmoothScroll = Math.abs(e.deltaX) > 0 || Math.abs(e.deltaY) < 50 || !Number.isInteger(e.deltaY);
+    const isTrackpadPan = !isPinch && isSmoothScroll;
+
+    // If it's a pinch or a standard physical mouse wheel, let OrbitControls zoom normally
+    if (!isTrackpadPan) return;
+
+    // 2. Intercept the event so OrbitControls doesn't zoom
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 3. Calculate pan speed relative to how far zoomed in the camera is
+    const distance = camera.position.distanceTo(controls.target);
+    const panSpeed = distance * 0.0015;
+
+    // 4. Get the camera's local Right and Up vectors, flattened to the XZ map plane
+    const right = new window.THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+    right.y = 0;
+    right.normalize();
+
+    const up = new window.THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+    up.y = 0;
+    up.normalize();
+
+    // 5. Apply the physical movement to the camera and its orbit target
+    const panVector = new window.THREE.Vector3();
+    panVector.addScaledVector(right, e.deltaX * panSpeed);
+    panVector.addScaledVector(up, -e.deltaY * panSpeed);
+
+    camera.position.add(panVector);
+    controls.target.add(panVector);
+  }, { passive: false, capture: true }); // 'capture: true' is required to intercept before OrbitControls
+
   // Events
   window.addEventListener('resize', () => {
     const W2 = container.clientWidth;

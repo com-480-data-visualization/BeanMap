@@ -466,8 +466,6 @@ export function drawArcs(countryName, year) {
 }
 
 function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
-  const midX = (srcPos.x + dstPos.x) / 2;
-  const midY = (srcPos.y + dstPos.y) / 2;
   const dist = Math.sqrt(
     (dstPos.x - srcPos.x) ** 2 +
     (dstPos.y - srcPos.y) ** 2 +
@@ -475,14 +473,37 @@ function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
   );
   if (dist < 1) return;
 
-  // 1. Define the Master Curve
-  const peakZ = Math.max(srcPos.z, dstPos.z) + 18 + dist * 0.12;
-  const p0 = new window.THREE.Vector3(srcPos.x, srcPos.y, srcPos.z);
-  const p1 = new window.THREE.Vector3(midX, midY, peakZ);
-  const p2 = new window.THREE.Vector3(dstPos.x, dstPos.y, dstPos.z);
-  const curve = new window.THREE.QuadraticBezierCurve3(p0, p1, p2);
+  // 1. Calculate a dynamic peak height
+  const maxZ = Math.max(srcPos.z, dstPos.z);
+  const heightDiff = Math.abs(srcPos.z - dstPos.z);
 
-  // 2. Sizing and Materials
+  // The lift guarantees it clears the tallest country, plus padding based on distance and cliff height
+  const arcLift = 20 + (dist * 0.15) + (heightDiff * 0.4);
+  const peakZ = maxZ + arcLift;
+
+  // 2. Upgrade to a Cubic Bezier Curve for a "rainbow" trajectory
+  const p0 = new window.THREE.Vector3(srcPos.x, srcPos.y, srcPos.z);
+
+  // Control point 1: 25% of the way horizontally, pulled up to the sky
+  const p1 = new window.THREE.Vector3(
+    srcPos.x + (dstPos.x - srcPos.x) * 0.25,
+    srcPos.y + (dstPos.y - srcPos.y) * 0.25,
+    peakZ
+  );
+
+  // Control point 2: 75% of the way horizontally, also pulled up to the sky
+  const p2 = new window.THREE.Vector3(
+    srcPos.x + (dstPos.x - srcPos.x) * 0.75,
+    srcPos.y + (dstPos.y - srcPos.y) * 0.75,
+    peakZ
+  );
+
+  const p3 = new window.THREE.Vector3(dstPos.x, dstPos.y, dstPos.z);
+
+  // This curve will climb fast, flatten out, and drop down cleanly.
+  const curve = new window.THREE.CubicBezierCurve3(p0, p1, p2, p3);
+
+  // 3. Sizing and Materials
   const shaftR = Math.max(0.25, 0.25 + (pct / 100) * 1.0);
   const headR = shaftR * 2.8;
   const headH = shaftR * 9;
@@ -491,7 +512,7 @@ function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
     color: hexColor,
     emissive: hexColor,
     emissiveIntensity: 0.18,
-    shininess: 0,
+    shininess: 20,
     transparent: true,
     opacity: 0
   });
@@ -503,43 +524,34 @@ function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
     arcMeshes.push(mesh);
   }
 
-  // 3. Arrowhead Placement
-  const tipPos = curve.getPoint(1);
-  const tangent = curve.getTangent(1).normalize();
-
-  const headGeo = new window.THREE.ConeGeometry(headR, headH, 8);
-  const headMesh = new window.THREE.Mesh(headGeo, mat.clone());
-
-  // Shift cone back so its absolute tip touches the destination
-  headMesh.position.copy(tipPos).sub(tangent.clone().multiplyScalar(headH / 2));
-
-  // Point the cone along the tangent
-  const up = new window.THREE.Vector3(0, 1, 0);
-  headMesh.quaternion.setFromUnitVectors(up, tangent);
-  addMesh(headMesh);
-
-  // 4. The Shaft: Shorten the tube so it stops exactly at the cone's base
-  // The base of the cone is headH distance away from the tip along the tangent
-  const coneBase = tipPos.clone().sub(tangent.clone().multiplyScalar(headH));
-
+  // 4. Calculate the exact stopping point on the curve for the tube
   const L = curve.getLength();
-  // Calculate how far along the curve to stop (0.0 to 1.0) to avoid the cone
   const uStop = Math.max(0, (L - headH) / L);
   const tStop = curve.getUtoTmapping(uStop);
 
+  const basePos = curve.getPoint(tStop);
+  const baseTangent = curve.getTangent(tStop).normalize();
+
+  // 5. Arrowhead Placement
+  const headGeo = new window.THREE.ConeGeometry(headR, headH, 16);
+  const headMesh = new window.THREE.Mesh(headGeo, mat.clone());
+
+  headMesh.position.copy(basePos).add(baseTangent.clone().multiplyScalar(headH / 2));
+
+  const up = new window.THREE.Vector3(0, 1, 0);
+  headMesh.quaternion.setFromUnitVectors(up, baseTangent);
+  addMesh(headMesh);
+
+  // 6. The Shaft
   const shaftPts = [];
   const segments = 20;
 
-  // Sample points along the curve only up to the tStop limit
-  for (let i = 0; i < segments; i++) {
+  for (let i = 0; i <= segments; i++) {
     shaftPts.push(curve.getPoint(i * tStop / segments));
   }
-  // Guarantee the final point connects seamlessly to the center of the cone's base
-  shaftPts.push(coneBase);
 
-  // Extrude the tube along this newly shortened path
   const shaftCurve = new window.THREE.CatmullRomCurve3(shaftPts);
-  const tubeGeo = new window.THREE.TubeGeometry(shaftCurve, segments, shaftR, 8, false);
+  const tubeGeo = new window.THREE.TubeGeometry(shaftCurve, segments, shaftR, 16, false);
   addMesh(new window.THREE.Mesh(tubeGeo, mat.clone()));
 }
 

@@ -75,6 +75,7 @@ async function init() {
     // We pass a callback so the map can tell the app when a user clicks a country
     initThreeMap((countryName) => {
       updateSidePanel(countryName, state.currentYear);
+      updateVisualizationsOnYearChange(state.currentYear);
     });
 
     // 6. Load the GeoJSON geometry (This hides the loading screen when finished)

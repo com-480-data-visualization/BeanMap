@@ -398,7 +398,7 @@ export function drawArcs(countryName, year) {
         dst: { x: dstProj.x, y: dstProj.y, z: topZ(dest) },
         qty,
         color: flowExportColor(key, dest),
-        opacity: 0.88
+        opacity: 0.90
       });
     });
   }
@@ -419,7 +419,7 @@ export function drawArcs(countryName, year) {
       dst: srcPos,
       qty,
       color: flowImportColor(src, key),
-      opacity: 0.75
+      opacity: 0.90
     });
   });
 
@@ -439,58 +439,72 @@ function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
   );
   if (dist < 1) return;
 
+  // 1. Define the Master Curve
   const peakZ = Math.max(srcPos.z, dstPos.z) + 18 + dist * 0.12;
-
   const p0 = new window.THREE.Vector3(srcPos.x, srcPos.y, srcPos.z);
   const p1 = new window.THREE.Vector3(midX, midY, peakZ);
   const p2 = new window.THREE.Vector3(dstPos.x, dstPos.y, dstPos.z);
   const curve = new window.THREE.QuadraticBezierCurve3(p0, p1, p2);
 
+  // 2. Sizing and Materials
   const shaftR = Math.max(0.25, 0.25 + (pct / 100) * 1.0);
   const headR = shaftR * 2.8;
   const headH = shaftR * 9;
 
   const mat = new window.THREE.MeshPhongMaterial({
-    color: hexColor, emissive: hexColor,
-    emissiveIntensity: 0.18, shininess: 75,
-    transparent: true, opacity: 0
+    color: hexColor,
+    emissive: hexColor,
+    emissiveIntensity: 0.18,
+    shininess: 0,
+    transparent: true,
+    opacity: 0
   });
 
-  function addMesh(geo) {
-    const m = new window.THREE.Mesh(geo, mat.clone());
-    m.userData.fadeStart = Date.now();
-    m.userData.targetOpacity = opacity;
-    scene.add(m);
-    arcMeshes.push(m);
-    return m;
+  function addMesh(mesh) {
+    mesh.userData.fadeStart = Date.now();
+    mesh.userData.targetOpacity = opacity;
+    scene.add(mesh);
+    arcMeshes.push(mesh);
   }
 
-  const N = 12;
-  const pts = curve.getPoints(N + 1);
+  // 3. Arrowhead Placement
+  const tipPos = curve.getPoint(1);
+  const tangent = curve.getTangent(1).normalize();
 
-  const tipA = pts[pts.length - 2];
-  const tipB = pts[pts.length - 1];
-  const tipDir = new window.THREE.Vector3().subVectors(tipB, tipA).normalize();
+  const headGeo = new window.THREE.ConeGeometry(headR, headH, 8);
+  const headMesh = new window.THREE.Mesh(headGeo, mat.clone());
 
-  for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i], b = pts[i + 1];
-    const segDir = new window.THREE.Vector3().subVectors(b, a);
-    const segLen = segDir.length();
-    if (segLen < 0.01) continue;
-    segDir.normalize();
+  // Shift cone back so its absolute tip touches the destination
+  headMesh.position.copy(tipPos).sub(tangent.clone().multiplyScalar(headH / 2));
 
-    const seg = addMesh(new window.THREE.CylinderGeometry(shaftR, shaftR, segLen, 7, 1));
-    seg.position.set((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
-    seg.quaternion.setFromUnitVectors(new window.THREE.Vector3(0, 1, 0), segDir);
+  // Point the cone along the tangent
+  const up = new window.THREE.Vector3(0, 1, 0);
+  headMesh.quaternion.setFromUnitVectors(up, tangent);
+  addMesh(headMesh);
+
+  // 4. The Shaft: Shorten the tube so it stops exactly at the cone's base
+  // The base of the cone is headH distance away from the tip along the tangent
+  const coneBase = tipPos.clone().sub(tangent.clone().multiplyScalar(headH));
+
+  const L = curve.getLength();
+  // Calculate how far along the curve to stop (0.0 to 1.0) to avoid the cone
+  const uStop = Math.max(0, (L - headH) / L);
+  const tStop = curve.getUtoTmapping(uStop);
+
+  const shaftPts = [];
+  const segments = 20;
+
+  // Sample points along the curve only up to the tStop limit
+  for (let i = 0; i < segments; i++) {
+    shaftPts.push(curve.getPoint(i * tStop / segments));
   }
+  // Guarantee the final point connects seamlessly to the center of the cone's base
+  shaftPts.push(coneBase);
 
-  const head = addMesh(new window.THREE.ConeGeometry(headR, headH, 8));
-  head.position.set(
-    tipB.x - tipDir.x * headH / 2,
-    tipB.y - tipDir.y * headH / 2,
-    tipB.z - tipDir.z * headH / 2
-  );
-  head.quaternion.setFromUnitVectors(new window.THREE.Vector3(0, 1, 0), tipDir);
+  // Extrude the tube along this newly shortened path
+  const shaftCurve = new window.THREE.CatmullRomCurve3(shaftPts);
+  const tubeGeo = new window.THREE.TubeGeometry(shaftCurve, segments, shaftR, 8, false);
+  addMesh(new window.THREE.Mesh(tubeGeo, mat.clone()));
 }
 
 export function onYearChangeMap(year) {

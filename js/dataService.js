@@ -154,12 +154,32 @@ export function getProcessedShare(key, year = state.currentYear) {
  */
 export function getTopColor(tiVisualScore, key, year = state.currentYear) {
   const tiRaw = getTransformationNet(key, year);
-  const ratio = Math.max(0, Math.min(1, tiRaw / state.maxTINet));
 
-  // Interpolate between Low TI (#E2D8BF) and High TI (#7A5234)
-  const r = Math.round(0xE2 + (0x7A - 0xE2) * ratio);
-  const g = Math.round(0xD7 + (0x52 - 0xD7) * ratio);
-  const b = Math.round(0xBF + (0x34 - 0xBF) * ratio);
+  const linearRatio = Math.max(0, Math.min(1, tiRaw / state.maxTINet));
+
+  // Apply a Power Curve on linear TI ratio
+  const ratio = Math.pow(linearRatio, 0.20); // Lower exponent for more contrast in lower range
+
+  const gradient = [
+    { r: 0xff, g: 0xc3, b: 0x9b }, // 0 TI: #ffc39b
+    { r: 0xe3, g: 0x8d, b: 0x5f }, // Pass by 1: #e38d5f
+    { r: 0x9f, g: 0x62, b: 0x41 }, // Pass by 2: #9f6241
+    { r: 0x73, g: 0x45, b: 0x2c }, // Max TI: #73452c
+  ];
+
+  // Multi-stop interpolation math
+  const maxIndex = gradient.length - 1;
+  const scaledRatio = ratio * maxIndex;
+
+  const index = Math.min(Math.floor(scaledRatio), maxIndex - 1);
+  const localRatio = scaledRatio - index;
+
+  const c1 = gradient[index];
+  const c2 = gradient[index + 1];
+
+  const r = Math.round(c1.r + (c2.r - c1.r) * localRatio);
+  const g = Math.round(c1.g + (c2.g - c1.g) * localRatio);
+  const b = Math.round(c1.b + (c2.b - c1.b) * localRatio);
 
   return (r << 16) | (g << 8) | b;
 }

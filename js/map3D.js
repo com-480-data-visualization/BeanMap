@@ -1,4 +1,4 @@
-import { CENTROIDS, FLOW_COLORS, GEO_NAME_MAP } from './config.js';
+import { CENTROIDS, GEO_NAME_MAP } from './config.js';
 import { getDepth, getSideColor, getTI, getTopColor, getTransformationNet, state } from './dataService.js';
 import { fmtQty, hexToInt, makeShape, project, ringToPoints } from './utils.js';
 
@@ -42,6 +42,28 @@ let mouseDidMove = false;
 
 // Callback to trigger UI updates in app.js when a country is clicked
 let onCountrySelectGlobal = null;
+
+//  Dash texture for flow arrows
+function createDashTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 8;
+  const ctx = canvas.getContext('2d');
+
+  // White equals solid/visible in an alphaMap
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, 96, 8);
+
+  // Black equals transparent in an alphaMap
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(96, 0, 32, 8);
+
+  const tex = new window.THREE.CanvasTexture(canvas);
+  tex.wrapS = window.THREE.RepeatWrapping;
+  tex.wrapT = window.THREE.RepeatWrapping;
+  return tex;
+}
+const dashAlphaMap = createDashTexture();
 
 export function initThreeMap(onCountrySelectCallback) {
   onCountrySelectGlobal = onCountrySelectCallback;
@@ -385,6 +407,7 @@ function clearArrows() {
   arcMeshes = [];
 }
 
+/* 
 export function drawArcs(countryName, year) {
   if (year === undefined) year = state.currentYear;
   clearArrows();
@@ -429,12 +452,17 @@ export function drawArcs(countryName, year) {
     Object.entries(qtyRow).sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([dest, qty]) => {
       const c = CENTROIDS[dest]; if (!c) return;
       const dstProj = project(c[1], c[0]);
+
+      const isProcessed = (procSnap[key]?.[dest] || 0) > (rawSnap[key]?.[dest] || 0);
+      const isDashed = !isProcessed; // Dash if Export Raw
+
       arrows.push({
         src: srcPos,
         dst: { x: dstProj.x, y: dstProj.y, z: topZ(dest) },
         qty,
         color: flowExportColor(key, dest),
-        opacity: 0.90
+        opacity: 0.90,
+        isDashed
       });
     });
   }
@@ -450,22 +478,125 @@ export function drawArcs(countryName, year) {
   importSrcs.sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([src, qty]) => {
     const c = CENTROIDS[src]; if (!c) return;
     const srcProj2 = project(c[1], c[0]);
+
+    const isProcessed = (procSnap[src]?.[key] || 0) > (rawSnap[src]?.[key] || 0);
+    const isDashed = isProcessed; // Dash if Import Processed
+
     arrows.push({
       src: { x: srcProj2.x, y: srcProj2.y, z: topZ(src) },
       dst: srcPos,
       qty,
       color: flowImportColor(src, key),
-      opacity: 0.90
+      opacity: 0.90,
+      isDashed
+    });
+  });
+
+  importSrcs.sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([src, qty]) => {
+    const c = CENTROIDS[src]; if (!c) return;
+    const srcProj2 = project(c[1], c[0]);
+
+    const isDashed = (procSnap[src]?.[key] || 0) > (rawSnap[src]?.[key] || 0);
+
+    arrows.push({
+      src: { x: srcProj2.x, y: srcProj2.y, z: topZ(src) },
+      dst: srcPos,
+      qty,
+      color: flowImportColor(src, key),
+      opacity: 0.90,
+      isDashed
     });
   });
 
   const maxQty = Math.max(1, ...arrows.map(a => a.qty));
-  arrows.forEach(({ src, dst, qty, color, opacity }) => {
-    buildFlowArrow(src, dst, qty / maxQty * 100, color, opacity);
+  arrows.forEach(({ src, dst, qty, color, opacity, isDashed }) => {
+    buildFlowArrow(src, dst, qty / maxQty * 100, color, opacity, isDashed);
+  });
+}
+ */
+export function drawArcs(countryName, year) {
+  if (year === undefined) year = state.currentYear;
+  clearArrows();
+
+  const key = GEO_NAME_MAP[countryName] || countryName;
+  const srcCent = CENTROIDS[key] || CENTROIDS[countryName];
+  if (!srcCent) return;
+
+  const qtySnap = state.data.TRADE_QUANTITY_BY_YEAR[year] || state.data.TRADE_QUANTITY_BY_YEAR[2023] || state.data.TRADE_QUANTITY;
+  const rawSnap = state.data.TRADE_QTY_RAW_BY_YEAR[year] || state.data.TRADE_QTY_RAW_BY_YEAR[2023] || {};
+  const procSnap = state.data.TRADE_QTY_PROC_BY_YEAR[year] || state.data.TRADE_QTY_PROC_BY_YEAR[2023] || {};
+
+  const srcProj = project(srcCent[1], srcCent[0]);
+  const srcPos = { x: srcProj.x, y: srcProj.y, z: topZ(key) };
+
+  function topZ(k) {
+    const mesh = countryMeshes.find(m => {
+      const mapKey = GEO_NAME_MAP[m.userData.name] || m.userData.name;
+      return mapKey === k || m.userData.name === k;
+    });
+    if (!mesh) return 1;
+    return (mesh.userData.baseDepth || 0.5) * mesh.scale.z;
+  }
+
+  // Universal colors for Exports and Imports
+  function flowExportColor() { return hexToInt('a0522d'); }
+  function flowImportColor() { return hexToInt('c4a820'); }
+
+  const arrows = [];
+
+  // EXPORTS
+  const qtyRow = qtySnap[key];
+  if (qtyRow) {
+    Object.entries(qtyRow).sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([dest, qty]) => {
+      const c = CENTROIDS[dest]; if (!c) return;
+      const dstProj = project(c[1], c[0]);
+
+      const isProcessed = (procSnap[key]?.[dest] || 0) > (rawSnap[key]?.[dest] || 0);
+      const isDashed = !isProcessed; // Dash if Export Raw
+
+      arrows.push({
+        src: srcPos,
+        dst: { x: dstProj.x, y: dstProj.y, z: topZ(dest) },
+        qty,
+        color: flowExportColor(),
+        opacity: 0.90,
+        isDashed
+      });
+    });
+  }
+
+  // IMPORTS
+  const importSrcs = [];
+  Object.entries(qtySnap).forEach(([reporter, row]) => {
+    if (reporter === key) return;
+    const qty = row[key] || row[countryName];
+    if (qty) importSrcs.push([reporter, qty]);
+  });
+
+  importSrcs.sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([src, qty]) => {
+    const c = CENTROIDS[src]; if (!c) return;
+    const srcProj2 = project(c[1], c[0]);
+
+    const isProcessed = (procSnap[src]?.[key] || 0) > (rawSnap[src]?.[key] || 0);
+    const isDashed = isProcessed; // Dash if Import Processed
+
+    arrows.push({
+      src: { x: srcProj2.x, y: srcProj2.y, z: topZ(src) },
+      dst: srcPos,
+      qty,
+      color: flowImportColor(),
+      opacity: 0.90,
+      isDashed
+    });
+  });
+
+  const maxQty = Math.max(1, ...arrows.map(a => a.qty));
+  arrows.forEach(({ src, dst, qty, color, opacity, isDashed }) => {
+    buildFlowArrow(src, dst, qty / maxQty * 100, color, opacity, isDashed);
   });
 }
 
-function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
+function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity, isDashed) {
   const dist = Math.sqrt(
     (dstPos.x - srcPos.x) ** 2 +
     (dstPos.y - srcPos.y) ** 2 +
@@ -508,15 +639,6 @@ function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
   const headR = shaftR * 2.8;
   const headH = shaftR * 9;
 
-  const mat = new window.THREE.MeshPhongMaterial({
-    color: hexColor,
-    emissive: hexColor,
-    emissiveIntensity: 0.18,
-    shininess: 20,
-    transparent: true,
-    opacity: 0
-  });
-
   function addMesh(mesh) {
     mesh.userData.fadeStart = Date.now();
     mesh.userData.targetOpacity = opacity;
@@ -532,9 +654,33 @@ function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
   const basePos = curve.getPoint(tStop);
   const baseTangent = curve.getTangent(tStop).normalize();
 
+  // Create base material logic
+  const matOpts = {
+    color: hexColor,
+    emissive: hexColor,
+    emissiveIntensity: 0.18,
+    shininess: 75,
+    transparent: true,
+    opacity: 0 // Will fade to target opacity in animate()
+  };
+
+  const coneMat = new window.THREE.MeshPhongMaterial(matOpts);
+  const shaftMat = new window.THREE.MeshPhongMaterial(matOpts);
+
+  // If the flow is processed, apply the dashed alpha map exclusively to the shaft
+  if (isDashed) {
+    const arrowDash = dashAlphaMap.clone();
+    arrowDash.needsUpdate = true;
+
+    // Scale the dash repetitions based on the total length of the arc
+    // so short arcs and long arcs have consistently sized dashes
+    arrowDash.repeat.set(L / 8, 1);
+    shaftMat.alphaMap = arrowDash;
+  }
+
   // 5. Arrowhead Placement
   const headGeo = new window.THREE.ConeGeometry(headR, headH, 16);
-  const headMesh = new window.THREE.Mesh(headGeo, mat.clone());
+  const headMesh = new window.THREE.Mesh(headGeo, coneMat);
 
   headMesh.position.copy(basePos).add(baseTangent.clone().multiplyScalar(headH / 2));
 
@@ -552,7 +698,7 @@ function buildFlowArrow(srcPos, dstPos, pct, hexColor, opacity) {
 
   const shaftCurve = new window.THREE.CatmullRomCurve3(shaftPts);
   const tubeGeo = new window.THREE.TubeGeometry(shaftCurve, segments, shaftR, 16, false);
-  addMesh(new window.THREE.Mesh(tubeGeo, mat.clone()));
+  addMesh(new window.THREE.Mesh(tubeGeo, shaftMat));
 }
 
 export function onYearChangeMap(year) {

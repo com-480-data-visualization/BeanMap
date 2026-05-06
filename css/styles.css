@@ -1,5 +1,3 @@
-<style>
-
 /* ── VARIABLES ─────────────────────────────────────────── */
 :root {
     --cream: #F5ECD7;
@@ -587,5 +585,3 @@ body {
     background: var(--sand);
     border-radius: 2px;
 }
-
-</style>

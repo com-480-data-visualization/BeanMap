@@ -3,71 +3,184 @@ import { state } from './dataService.js';
 let timelineUpdateRef = null;
 
 /* ── TIMELINE (D3) ────────────────────────────────────────── */
-export function setupTimeline() {
-    const xMin = 32, xMax = 230, yearMin = 1986, yearMax = 2024;
-    const yBase = 88, yScale = 73, priceMax = 5500;
+export function drawPriceChart(priceData) {
+    // Select your chart container (adjust the selector as needed for your HTML)
+    const svg = d3.select("#price-chart-svg");
+    svg.selectAll("*").remove(); // Clear previous renders
 
-    // D3 Scales mapping years and prices to exact SVG pixels
-    const scaleX = d3.scaleLinear().domain([yearMin, yearMax]).range([xMin, xMax]);
-    const scaleY = d3.scaleLinear().domain([0, priceMax]).range([yBase, yBase - yScale]);
+    const margin = { top: 20, right: 80, bottom: 30, left: 50 };
 
-    const years = Object.keys(state.data.PRICE_TIMELINE).map(Number).sort((a, b) => a - b);
-    const allData = years.map(yr => ({
-        yr,
-        raw: state.data.PRICE_TIMELINE[yr].raw,
-        proc: state.data.PRICE_TIMELINE[yr].processed,
-        impRaw: state.data.PRICE_TIMELINE[yr].raw * 1.08,
-        impProc: state.data.PRICE_TIMELINE[yr].processed * 1.08,
-    }));
+    // Fallbacks provided in case bounding client rect is not immediately available
+    const width = (svg.node().getBoundingClientRect().width || 600) - margin.left - margin.right;
+    const height = (svg.node().getBoundingClientRect().height || 250) - margin.top - margin.bottom;
 
-    const drawLine = (key) => d3.line().x(d => scaleX(d.yr)).y(d => scaleY(d[key]));
-    const drawArea = (key) => d3.area().x(d => scaleX(d.yr)).y0(yBase).y1(d => scaleY(d[key]));
+    const chartGroup = svg.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    timelineUpdateRef = function (year) {
-        const visibleData = allData.filter(d => d.yr <= year);
-        if (visibleData.length === 0) return;
+    // Format data into an array of objects
+    const years = Object.keys(priceData).sort((a, b) => a - b);
+    const data = years.map(y => ({
+        year: d3.timeParse("%Y")(y),
+        yearStr: y,
+        raw: priceData[y].raw,
+        processed: priceData[y].processed
+    })).filter(d => d.raw != null && d.processed != null);
 
-        // Update Area Paths
-        d3.select('#timeline-raw-area').attr('d', drawArea('raw')(visibleData));
-        d3.select('#timeline-proc-area').attr('d', drawArea('proc')(visibleData));
-        d3.select('#timeline-impraw-area').attr('d', drawArea('impRaw')(visibleData));
-        d3.select('#timeline-impproc-area').attr('d', drawArea('impProc')(visibleData));
+    // X and Y Scales
+    const x = d3.scaleTime()
+        .domain(d3.extent(data, d => d.year))
+        .range([0, width]);
 
-        // Update Line Paths
-        d3.select('#timeline-raw').attr('d', drawLine('raw')(visibleData));
-        d3.select('#timeline-proc').attr('d', drawLine('proc')(visibleData));
-        d3.select('#timeline-impraw').attr('d', drawLine('impRaw')(visibleData));
-        d3.select('#timeline-impproc').attr('d', drawLine('impProc')(visibleData));
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.processed) * 1.15]) // 15% headroom for tooltips
+        .range([height, 0]);
 
-        // Update Dots
-        const dotGroups = [
-            { id: '#timeline-dots', key: 'raw', color: '#5C3317' },
-            { id: '#timeline-dots-expproc', key: 'proc', color: '#A0522D' },
-            { id: '#timeline-dots-impraw', key: 'impRaw', color: '#B8935A' },
-            { id: '#timeline-dots-impproc', key: 'impProc', color: '#E8C878' }
-        ];
+    // 1. Subtle Horizontal Gridlines (removes the solid Y-axis spine)
+    chartGroup.append("g")
+        .attr("class", "grid")
+        .call(d3.axisLeft(y).tickSize(-width).tickFormat("").ticks(5))
+        .style("stroke", "#d7ccc8")
+        .style("stroke-dasharray", "3,3")
+        .style("stroke-opacity", 0.3)
+        .call(g => g.select(".domain").remove());
 
-        dotGroups.forEach(g => {
-            d3.select(g.id).selectAll('circle')
-                .data(visibleData)
-                .join('circle')
-                .attr('cx', d => scaleX(d.yr))
-                .attr('cy', d => scaleY(d[g.key]))
-                .attr('r', 1.2)
-                .attr('fill', g.color);
-        });
+    // 2. The Value-Added Gap (Shaded Area)
+    const area = d3.area()
+        .curve(d3.curveMonotoneX) // Smooths the jagged edges
+        .x(d => x(d.year))
+        .y0(d => y(d.raw))
+        .y1(d => y(d.processed));
 
-        // Update Cursor and Hint
-        d3.select('#timeline-cursor').attr('x1', scaleX(year)).attr('x2', scaleX(year));
+    chartGroup.append("path")
+        .datum(data)
+        .attr("fill", "#c4a482") // Warm tan to match the map
+        .attr("opacity", 0.3)
+        .attr("d", area);
 
-        const pt = state.data.PRICE_TIMELINE[year] || state.data.PRICE_TIMELINE[2023];
-        const hint = document.getElementById('timeline-bar-hint');
-        if (hint && pt) {
-            hint.textContent = `Country panel bars: volumes × ${year} prices — `
-                + `raw ≈ ${(pt.raw / 1000).toFixed(1)}k$/t · roasted ≈ ${(pt.processed / 1000).toFixed(1)}k$/t. `
-                + `Bar gradient = raw (dark) → processed (light) share.`;
-        }
-    };
+    // 3. Smooth Lines
+    const lineRaw = d3.line()
+        .curve(d3.curveMonotoneX)
+        .x(d => x(d.year))
+        .y(d => y(d.raw));
+
+    const lineProc = d3.line()
+        .curve(d3.curveMonotoneX)
+        .x(d => x(d.year))
+        .y(d => y(d.processed));
+
+    chartGroup.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "#8d6e63") // Light brown for raw
+        .attr("stroke-width", 2.5)
+        .attr("d", lineRaw);
+
+    chartGroup.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "#3e2723") // Dark roast for processed
+        .attr("stroke-width", 3)
+        .attr("d", lineProc);
+
+    // 4. Clean Axes Formatting
+    chartGroup.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x).ticks(5))
+        .call(g => g.select(".domain").attr("stroke", "#8d6e63"))
+        .call(g => g.selectAll(".tick line").attr("stroke", "#8d6e63"))
+        .call(g => g.selectAll("text").attr("fill", "#4e342e").style("font-family", "sans-serif"));
+
+    chartGroup.append("g")
+        .call(d3.axisLeft(y).ticks(5).tickFormat(d => "$" + d.toLocaleString()))
+        .call(g => g.select(".domain").remove()) // Hide the vertical spine
+        .call(g => g.selectAll(".tick line").remove()) // Hide tick lines
+        .call(g => g.selectAll("text").attr("fill", "#4e342e").style("font-weight", "500"));
+
+    // 5. Direct Line Labels (Replaces the clunky legend)
+    const lastPoint = data[data.length - 1];
+
+    chartGroup.append("text")
+        .attr("x", x(lastPoint.year) + 8)
+        .attr("y", y(lastPoint.processed) + 4)
+        .attr("fill", "#3e2723")
+        .style("font-weight", "bold")
+        .style("font-size", "12px")
+        .text("Processed");
+
+    chartGroup.append("text")
+        .attr("x", x(lastPoint.year) + 8)
+        .attr("y", y(lastPoint.raw) + 4)
+        .attr("fill", "#8d6e63")
+        .style("font-weight", "bold")
+        .style("font-size", "12px")
+        .text("Raw");
+
+    // 6. Interactive Hover Elements
+    const focus = chartGroup.append("g").style("display", "none");
+
+    focus.append("line")
+        .attr("class", "hover-line")
+        .attr("y1", 0)
+        .attr("y2", height)
+        .style("stroke", "#3e2723")
+        .style("stroke-width", "1px")
+        .style("stroke-dasharray", "4,4")
+        .style("opacity", 0.5);
+
+    focus.append("circle").attr("class", "dot-raw").attr("r", 4).attr("fill", "#8d6e63").attr("stroke", "#fff").attr("stroke-width", 1.5);
+    focus.append("circle").attr("class", "dot-proc").attr("r", 4).attr("fill", "#3e2723").attr("stroke", "#fff").attr("stroke-width", 1.5);
+
+    const tooltip = focus.append("g").attr("class", "tooltip-box");
+    tooltip.append("rect")
+        .attr("width", 125)
+        .attr("height", 55)
+        .attr("fill", "#3e2723")
+        .attr("rx", 4)
+        .attr("opacity", 0.95);
+
+    const tooltipYear = tooltip.append("text").attr("x", 8).attr("y", 16).attr("fill", "#d7ccc8").style("font-size", "10px").style("font-weight", "bold");
+    const tooltipProc = tooltip.append("text").attr("x", 8).attr("y", 32).attr("fill", "#fff").style("font-size", "11px");
+    const tooltipRaw = tooltip.append("text").attr("x", 8).attr("y", 46).attr("fill", "#fff").style("font-size", "11px");
+
+    // Invisible rect for capturing mouse movements
+    chartGroup.append("rect")
+        .attr("width", width)
+        .attr("height", height)
+        .style("fill", "none")
+        .style("pointer-events", "all")
+        .on("mouseover", () => focus.style("display", null))
+        .on("mouseout", () => focus.style("display", "none"))
+        .on("mousemove", mousemove);
+
+    const bisectDate = d3.bisector(d => d.year).left;
+
+    function mousemove(event) {
+        // d3.pointer works for D3 v6+ (use d3.mouse(this) if using v5 or lower)
+        const x0 = x.invert(d3.pointer(event)[0]);
+        const i = bisectDate(data, x0, 1);
+        const d0 = data[i - 1];
+        const d1 = data[i] || d0;
+        const d = x0 - d0.year > d1.year - x0 ? d1 : d0;
+
+        const cx = x(d.year);
+        const cyRaw = y(d.raw);
+        const cyProc = y(d.processed);
+
+        focus.select(".hover-line").attr("transform", `translate(${cx}, 0)`);
+        focus.select(".dot-raw").attr("transform", `translate(${cx}, ${cyRaw})`);
+        focus.select(".dot-proc").attr("transform", `translate(${cx}, ${cyProc})`);
+
+        // Dynamic tooltip positioning to prevent it from bleeding off the right side
+        let tooltipX = cx + 12;
+        if (tooltipX + 125 > width) tooltipX = cx - 137;
+
+        // Anchor tooltip above the highest data point (Processed)
+        tooltip.attr("transform", `translate(${tooltipX}, ${cyProc - 20})`);
+
+        tooltipYear.text(`YEAR: ${d.yearStr}`);
+        tooltipProc.text(`Processed: $${d.processed.toLocaleString()}`);
+        tooltipRaw.text(`Raw: $${d.raw.toLocaleString()}`);
+    }
 }
 
 export function updateVisualizationsOnYearChange(year) {

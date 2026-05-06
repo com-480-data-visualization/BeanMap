@@ -554,7 +554,7 @@ const masterData = {
   TRANSFORMATION_INDEX: TI_BY_YEAR[2023] || {}
 };
 
-fs.writeFileSync(OUT_FILE, JSON.stringify(masterData, null, 2), 'utf8');
+fs.writeFileSync(OUT_FILE, JSON.stringify(masterData), 'utf8');
 console.log(`\nWritten → ${OUT_FILE}`);
 
 // ── SUMMARY ─────────────────────────────────────────────────────────────────

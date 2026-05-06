@@ -17,7 +17,7 @@ import {
 } from './uiController.js';
 
 import {
-  setupTimeline,
+  drawPriceChart,
   updateVisualizationsOnYearChange
 } from './visualizations.js';
 
@@ -37,8 +37,13 @@ async function init() {
     rebuildTransformationRanks(state.currentYear);
     rebuildExportVolumes(state.currentYear);
 
-    // 3. Initialize D3 Visualizations (Timeline and Sankey)
-    setupTimeline();
+    // 3. Initialize D3 Visualizations (Price Chart)
+    drawPriceChart(state.data.PRICE_TIMELINE);
+
+    // Ensure the chart stays responsive on window resize
+    window.addEventListener('resize', () => {
+      drawPriceChart(state.data.PRICE_TIMELINE);
+    });
 
     // 4. Wire up the UI (Sliders, Buttons)
     // We pass in callbacks so the UI controller doesn't need to know about the map or charts

@@ -80,7 +80,7 @@ export function initThreeMap(onCountrySelectCallback) {
   scene.rotation.x = -Math.PI / 2;
 
   camera = new window.THREE.PerspectiveCamera(38, W / H, 1, 1500);
-  camera.position.set(0, 420, 0);
+  camera.position.set(0, 300, 170);
   camera.up.set(0, 1, 0);
   camera.lookAt(0, 0, 0);
 

@@ -16,8 +16,7 @@ const LIGHT_COLORS = {
 const COUNTRY_COLORS = {
   topEmissiveDefault: 0x000000,
   sideEmissiveDefault: 0x000000,
-  // Intentionally equal to default to keep clicked state visually identical.
-  topEmissiveSelected: 0x000000,
+  topEmissiveSelected: 0x4A3A2A,
   sideEmissiveSelected: 0x000000,
   topEmissiveHover: 0x4A3A2A,
   sideEmissiveHover: 0x4A3A2A,
@@ -150,16 +149,16 @@ function onMapClick() {
 
   if (selectedMeshes) {
     selectedMeshes.forEach(sm => {
-      sm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
-      sm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
+      sm.material[0].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
+      sm.material[1].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
     });
   }
 
   selectedMesh = m;
   selectedMeshes = getMeshGroup(m.userData.name);
   selectedMeshes.forEach(sm => {
-    sm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveSelected);
-    sm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveSelected);
+    sm.material[0].emissive.setHex(COUNTRY_COLORS.topEmissiveSelected);
+    sm.material[1].emissive.setHex(COUNTRY_COLORS.sideEmissiveSelected);
   });
 
   state.selectedCountry = m.userData.name;

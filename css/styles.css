@@ -376,7 +376,8 @@ body {
     flex-shrink: 0;
 }
 
-#slider-play {
+#slider-play,
+#slider-fast-play {
     width: 26px;
     height: 26px;
     border-radius: 50%;
@@ -392,7 +393,8 @@ body {
     transition: background 0.15s;
 }
 
-#slider-play:hover {
+#slider-play:hover,
+#slider-fast-play:hover {
     background: rgba(255, 255, 255, 0.30);
 }
 

@@ -1,6 +1,7 @@
 import { FLOW_COLORS, GEO_NAME_MAP } from './config.js';
 import { state } from './dataService.js';
 import { fmtQty, fmtVal } from './utils.js';
+import { updateVisualizationsOnYearChange } from './visualizations.js';
 
 let playing = false;
 let playInterval = null;
@@ -9,48 +10,61 @@ export function setupUI(onYearChange, onFlowModeChange) {
   const slider = document.getElementById('year-slider');
   const display = document.getElementById('year-display');
   const yearBadge = document.getElementById('topbar-year');
+
+  let playInterval = null;
+  let currentSpeed = 900;
+
   const playBtn = document.getElementById('slider-play');
-  const topPlay = document.getElementById('topbar-play');
+  const fastPlayBtn = document.getElementById('slider-fast-play');
+  const yearSlider = document.getElementById('year-slider'); // Ensure this matches your slider's ID
 
-  function setYear(val) {
-    display.textContent = val;
-    yearBadge.textContent = val;
-    const pct = ((val - 1986) / (2024 - 1986)) * 100;
-    slider.style.background = `linear-gradient(to right, #8B5E3C ${pct}%, #E8D5B0 ${pct}%)`;
-    onYearChange(parseInt(val));
-  }
+  // Unified playback function
+  // Define our clean SVG icons
+  const ICON_PLAY = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M8 5v14l11-7z"/></svg>`;
+  const ICON_FAST = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>`;
+  const ICON_PAUSE = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
 
-  slider.addEventListener('input', (e) => setYear(e.target.value));
+  // Unified playback function
+  function togglePlayback(speed) {
+    if (playInterval && currentSpeed === speed) {
+      clearInterval(playInterval);
+      playInterval = null;
+      playBtn.innerHTML = ICON_PLAY;
+      fastPlayBtn.innerHTML = ICON_FAST;
+      return;
+    }
 
-  function togglePlay() {
-    playing = !playing;
-    const icon = playing ? '⏸' : '▶';
-    playBtn.textContent = icon;
-    topPlay.textContent = icon;
-
-    if (playing) {
-      playInterval = setInterval(() => {
-        let v = parseInt(slider.value) + 1;
-        if (v > 2024) v = 1986;
-        slider.value = v;
-        setYear(v);
-      }, 900);
-    } else {
+    if (playInterval) {
       clearInterval(playInterval);
     }
+
+    currentSpeed = speed;
+
+    if (speed === 250) {
+      fastPlayBtn.innerHTML = ICON_PAUSE;
+      playBtn.innerHTML = ICON_PLAY;
+    } else {
+      playBtn.innerHTML = ICON_PAUSE;
+      fastPlayBtn.innerHTML = ICON_FAST;
+    }
+
+    playInterval = setInterval(() => {
+      let currentYear = parseInt(yearSlider.value);
+      let maxYear = parseInt(yearSlider.max);
+
+      if (currentYear >= maxYear) {
+        clearInterval(playInterval);
+        playInterval = null;
+        playBtn.innerHTML = ICON_PLAY;
+        fastPlayBtn.innerHTML = ICON_FAST;
+      } else {
+        currentYear++;
+        yearSlider.value = currentYear;
+        state.currentYear = currentYear;
+        updateVisualizationsOnYearChange(currentYear);
+      }
+    }, speed);
   }
-
-  playBtn.addEventListener('click', togglePlay);
-  topPlay.addEventListener('click', togglePlay);
-
-  document.getElementById('flow-mode-btn').addEventListener('click', () => {
-    state.flowMode = state.flowMode === 'qty' ? 'val' : 'qty';
-    document.getElementById('flow-mode-btn').textContent =
-      state.flowMode === 'qty' ? 'Show Value' : 'Show Weight';
-    onFlowModeChange();
-  });
-
-  setYear(2023);
 }
 
 export function updateSidePanel(name, year) {

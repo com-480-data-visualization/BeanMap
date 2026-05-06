@@ -15,7 +15,6 @@
         style="color:#F0E4CC">a</span><span style="color:#FFFFFF">p</span></h1>
     <span style="font-size:10px;color:rgba(245,236,215,1);letter-spacing:.06em;font-weight:600;">YEAR</span>
     <span class="year-badge" id="topbar-year">2023</span>
-    <button id="topbar-play" title="Play timeline">▶</button>
   </div>
 
   <div id="main-row">
@@ -128,7 +127,17 @@
   </div>
 
   <div id="slider-row">
-    <button id="slider-play" title="Play / pause">▶</button>
+    <button id="slider-play" title="Play / pause">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7z" />
+      </svg>
+    </button>
+    <button id="slider-fast-play" title="Fast play / pause">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />
+      </svg>
+    </button>
+
     <input type="range" id="year-slider" min="1986" max="2024" value="2023">
     <span id="year-display">2023</span>
   </div>

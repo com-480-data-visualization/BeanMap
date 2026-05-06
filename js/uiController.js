@@ -11,18 +11,16 @@ export function setupUI(onYearChange, onFlowModeChange) {
   const display = document.getElementById('year-display');
   const yearBadge = document.getElementById('topbar-year');
 
-  let playInterval = null;
-  let currentSpeed = 900;
-
   const playBtn = document.getElementById('slider-play');
   const fastPlayBtn = document.getElementById('slider-fast-play');
-  const yearSlider = document.getElementById('year-slider'); // Ensure this matches your slider's ID
 
-  // Unified playback function
   // Define our clean SVG icons
-  const ICON_PLAY = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M8 5v14l11-7z"/></svg>`;
+  const ICON_PLAY = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
   const ICON_FAST = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>`;
   const ICON_PAUSE = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+
+  let playInterval = null;
+  let currentSpeed = 1000;
 
   // Unified playback function
   function togglePlayback(speed) {
@@ -34,9 +32,7 @@ export function setupUI(onYearChange, onFlowModeChange) {
       return;
     }
 
-    if (playInterval) {
-      clearInterval(playInterval);
-    }
+    if (playInterval) clearInterval(playInterval);
 
     currentSpeed = speed;
 
@@ -48,9 +44,24 @@ export function setupUI(onYearChange, onFlowModeChange) {
       fastPlayBtn.innerHTML = ICON_FAST;
     }
 
+    let currentYear = parseInt(slider.value);
+    let maxYear = parseInt(slider.max);
+    let minYear = parseInt(slider.min);
+
+    if (currentYear >= maxYear) {
+      currentYear = minYear;
+      slider.value = currentYear;
+      state.currentYear = currentYear;
+      display.textContent = currentYear;
+      yearBadge.textContent = currentYear;
+
+      updateVisualizationsOnYearChange(currentYear);
+      if (onYearChange) onYearChange(currentYear);
+    }
+
     playInterval = setInterval(() => {
-      let currentYear = parseInt(yearSlider.value);
-      let maxYear = parseInt(yearSlider.max);
+      let currentYear = parseInt(slider.value);
+      let maxYear = parseInt(slider.max);
 
       if (currentYear >= maxYear) {
         clearInterval(playInterval);
@@ -59,11 +70,42 @@ export function setupUI(onYearChange, onFlowModeChange) {
         fastPlayBtn.innerHTML = ICON_FAST;
       } else {
         currentYear++;
-        yearSlider.value = currentYear;
+        slider.value = currentYear;
         state.currentYear = currentYear;
+        display.textContent = currentYear;
+        yearBadge.textContent = currentYear;
+
         updateVisualizationsOnYearChange(currentYear);
+        if (onYearChange) onYearChange(currentYear);
       }
     }, speed);
+  }
+
+  // --- MISSING EVENT LISTENERS ADDED BACK HERE ---
+
+  // 1. Play Button Clicks
+  if (playBtn) playBtn.addEventListener('click', () => togglePlayback(1000));
+  if (fastPlayBtn) fastPlayBtn.addEventListener('click', () => togglePlayback(250));
+
+  // 2. Manual Slider Dragging
+  if (slider) {
+    slider.addEventListener('input', (e) => {
+      const y = parseInt(e.target.value);
+      display.textContent = y;
+      yearBadge.textContent = y;
+      state.currentYear = y;
+      updateVisualizationsOnYearChange(y);
+      if (onYearChange) onYearChange(y);
+    });
+  }
+
+  // 3. Flow Mode Toggle (Show Value / Show Volume)
+  const flowModeBtn = document.getElementById('flow-mode-btn');
+  if (flowModeBtn) {
+    flowModeBtn.addEventListener('click', () => {
+      if (onFlowModeChange) onFlowModeChange();
+      flowModeBtn.textContent = state.flowMode === 'val' ? 'Show Volume' : 'Show Value';
+    });
   }
 }
 

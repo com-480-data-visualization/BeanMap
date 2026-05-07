@@ -39,6 +39,7 @@ let hoveredGroup = null;
 const raycaster = new window.THREE.Raycaster();
 const mouse = new window.THREE.Vector2(-9999, -9999);
 let mouseDidMove = false;
+let mouseDownPos = { x: 0, y: 0 };
 
 // Callback to trigger UI updates in app.js when a country is clicked
 let onCountrySelectGlobal = null;
@@ -164,7 +165,22 @@ export function initThreeMap(onCountrySelectCallback) {
   });
 
   renderer.domElement.addEventListener('mousemove', onMouseMove);
-  renderer.domElement.addEventListener('click', onMapClick);
+
+  // Use pointerdown/pointerup to safely bypass OrbitControls intercepting the events
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return; // Only track left clicks
+    mouseDownPos.x = e.clientX;
+    mouseDownPos.y = e.clientY;
+  });
+
+  renderer.domElement.addEventListener('pointerup', onMapClick);
+
+  // Add the Escape key listener for deselection
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      deselectCountry();
+    }
+  });
 
   animate();
 }
@@ -185,47 +201,31 @@ function onMouseMove(e) {
   tooltip.style.top = (e.clientY - 34) + 'px';
 }
 
-function onMapClick() {
-  raycaster.setFromCamera(mouse, camera);
+function onMapClick(e) {
+  if (e.button !== 0) return; // Ignore right clicks
+
+  // Check if dragged
+  const dx = e.clientX - mouseDownPos.x;
+  const dy = e.clientY - mouseDownPos.y;
+  if (Math.sqrt(dx * dx + dy * dy) > 10) return;
+
+  // Recalculate exact click coordinates
+  const rect = renderer.domElement.getBoundingClientRect();
+  const clickMouse = new window.THREE.Vector2(
+    ((e.clientX - rect.left) / rect.width) * 2 - 1,
+    -((e.clientY - rect.top) / rect.height) * 2 + 1
+  );
+
+  raycaster.setFromCamera(clickMouse, camera);
   const hits = raycaster.intersectObjects(countryMeshes, false);
 
   if (!hits.length) {
-    clearArrows();
-    if (selectedMeshes) {
-      selectedMeshes.forEach(sm => {
-        sm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
-        sm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
-      });
-      selectedMesh = null;
-      selectedMeshes = null;
-      state.selectedCountry = null;
-    }
+    deselectCountry(); // Clicked empty ocean/space
     return;
   }
 
   const m = hits[0].object;
-
-  if (selectedMeshes) {
-    selectedMeshes.forEach(sm => {
-      sm.material[0].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
-      sm.material[1].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
-    });
-  }
-
-  selectedMesh = m;
-  selectedMeshes = getMeshGroup(m.userData.name);
-  selectedMeshes.forEach(sm => {
-    sm.material[0].emissive.setHex(COUNTRY_COLORS.topEmissiveSelected);
-    sm.material[1].emissive.setHex(COUNTRY_COLORS.sideEmissiveSelected);
-  });
-
-  state.selectedCountry = m.userData.name;
-
-  if (onCountrySelectGlobal) {
-    onCountrySelectGlobal(m.userData.name);
-  }
-
-  drawArcs(m.userData.name, state.currentYear);
+  selectCountryByName(m.userData.name);
 }
 
 function animate() {
@@ -770,4 +770,24 @@ export function selectCountryByName(name) {
   }
 
   drawArcs(actualName, state.currentYear);
+}
+
+export function deselectCountry() {
+  if (!selectedMeshes) return;
+
+  clearArrows();
+
+  selectedMeshes.forEach(sm => {
+    sm.material[1].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
+    sm.material[0].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
+  });
+
+  selectedMesh = null;
+  selectedMeshes = null;
+  state.selectedCountry = null;
+
+  // Inform the rest of the app that selection was cleared
+  if (onCountrySelectGlobal) {
+    onCountrySelectGlobal(null);
+  }
 }

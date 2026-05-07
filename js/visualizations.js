@@ -291,7 +291,7 @@ function updateSankey(year) {
 
     // Link Colors (rgba gives them the nice translucent overlap effect)
     const LINK_RAW_FLOW = 'rgba(74, 44, 23, 0.35)';   // Producer -> Hub Links
-    const LINK_PROC_FLOW = 'rgba(196, 168, 32, 0.35)'; // Hub -> Consumer Links
+    const LINK_PROC_FLOW = 'rgba(74, 44, 23, 0.35)'; // Hub -> Consumer Links
 
     // Text Labels Configuration
     const LABEL_SIZE = '5.5px';   // <-- TWEAK FONT SIZE HERE

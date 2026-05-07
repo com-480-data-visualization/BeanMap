@@ -8,7 +8,8 @@ import {
 import {
   initThreeMap,
   loadMap,
-  onYearChangeMap
+  onYearChangeMap,
+  selectCountryByName
 } from './map3D.js';
 
 import {
@@ -89,6 +90,29 @@ async function init() {
     loadingEl.innerHTML = '<span style="color:#C8A96E;font-size:11px;">⚠ Could not load trade data. Check your GitHub Pages link or network connection.</span>';
     loadingEl.style.flexDirection = 'column';
   }
+
+  // 8. Initialize Country Searchbar
+  const datalist = document.getElementById('country-list');
+  const searchInput = document.getElementById('country-search');
+
+  // Populate datalist with all known countries
+  const countries = Array.from(state.ALL_PARTNERS).sort();
+  countries.forEach(c => {
+    const option = document.createElement('option');
+    option.value = c;
+    datalist.appendChild(option);
+  });
+
+  // Listen for search selections
+  searchInput.addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (countries.includes(val)) {
+      selectCountryByName(val);
+      e.target.value = ''; // Clear input after selection
+      e.target.blur();     // Remove focus
+    }
+  });
+
 }
 
 // Boot up the application once the HTML is fully parsed

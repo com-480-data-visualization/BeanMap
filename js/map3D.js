@@ -742,3 +742,32 @@ export function onYearChangeMap(year) {
     drawArcs(state.selectedCountry, year);
   }
 }
+
+export function selectCountryByName(name) {
+  const meshes = getMeshGroup(name);
+  if (!meshes || meshes.length === 0) return; // Country not drawn on map
+
+  if (selectedMeshes) {
+    selectedMeshes.forEach(sm => {
+      sm.material[0].emissive.setHex(COUNTRY_COLORS.topEmissiveDefault);
+      sm.material[1].emissive.setHex(COUNTRY_COLORS.sideEmissiveDefault);
+    });
+  }
+
+  const m = meshes[0];
+  selectedMesh = m;
+  selectedMeshes = meshes;
+  selectedMeshes.forEach(sm => {
+    sm.material[0].emissive.setHex(COUNTRY_COLORS.topEmissiveSelected);
+    sm.material[1].emissive.setHex(COUNTRY_COLORS.sideEmissiveSelected);
+  });
+
+  const actualName = m.userData.name;
+  state.selectedCountry = actualName;
+
+  if (onCountrySelectGlobal) {
+    onCountrySelectGlobal(actualName);
+  }
+
+  drawArcs(actualName, state.currentYear);
+}

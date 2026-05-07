@@ -183,8 +183,21 @@ export function updateSidePanel(name, year) {
   document.getElementById('sp-exp-raw').textContent = getPillText(expRawQty, expRawVal);
   document.getElementById('sp-exp-proc').textContent = getPillText(expProcQty, expProcVal);
 
-  // TI remains strictly as Net Volume regardless of mode. If negative, display '—'.
-  document.getElementById('sp-ti').textContent = (ti !== null && ti >= 0) ? fmtQtyExpanded(ti) : '—';
+  // TI Calculation: Volume or Estimated Value
+  const pt = state.data.PRICE_TIMELINE[year] || state.data.PRICE_TIMELINE[2023];
+  let tiText = '—';
+  if (ti !== null && ti >= 0) {
+    if (isVal) {
+      // Determine country's specific average processed export price, fallback to global
+      const countryProcPrice = expProcQty > 0 ? ((expProcVal * 1000) / expProcQty) : pt.processed;
+      const tiUsd = ti * countryProcPrice;
+      // fmtValExpanded expects values in thousands of USD
+      tiText = fmtValExpanded(tiUsd / 1000);
+    } else {
+      tiText = '+' + fmtQtyExpanded(ti);
+    }
+  }
+  document.getElementById('sp-ti').textContent = tiText;
 
   // Dynamically update the single master label
   const metricLbl = document.getElementById('sp-metric-lbl');
@@ -223,7 +236,17 @@ function updateBarChart(key, year) {
 
   const expUV = expTotalQty > 0 ? Math.round((expRawQty * pRaw + expProcQty * pProc) / expTotalQty) : null;
   const impUV = impTotalQty > 0 ? Math.round((impRawQty * pRaw + impProcQty * pProc) / impTotalQty) : null;
-  const margin = (expUV !== null && impUV !== null) ? expUV - impUV : null;
+  let margin = null;
+  let isFallbackMargin = false;
+
+  if (expUV !== null && impUV !== null) {
+    // Standard Trade Margin ($/tonne)
+    margin = expUV - impUV;
+  } else if (expUV === null && impUV !== null) {
+    // NO EXPORTS fallback: Global avg processed - avg import price paid by country
+    margin = Math.round(pProc - impUV);
+    isFallbackMargin = true;
+  }
 
   function makePriceRow(lbl, uv) {
     if (uv === null) return null;
@@ -255,16 +278,28 @@ function updateBarChart(key, year) {
 
   if (margin !== null) {
     const marginStr = margin.toLocaleString('en-US').replace(/,/g, "'");
-    const mColor = margin > 800 ? '#B89028' : margin > 200 ? '#9A7A20' : margin > 0 ? '#7A6040' : '#8B4030';
+    let mColor, labelStr;
+
+    if (isFallbackMargin) {
+      mColor = margin > 0 ? '#B89028' : '#8B4030';
+      labelStr = 'Approx. Value Added'; // Clear indication it's an estimate
+    } else {
+      mColor = margin > 800 ? '#B89028' : margin > 200 ? '#9A7A20' : margin > 0 ? '#7A6040' : '#8B4030';
+      labelStr = 'Trade Margin';
+    }
+
     const sep = document.createElement('div');
     sep.style.cssText = 'border-top:1px solid rgba(74,44,23,0.12);margin:6px 0;';
     barContainer.appendChild(sep);
 
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+
+    // Add a plus sign for standard positive margins, but omit it for the fallback estimate
+    const sign = margin > 0 && !isFallbackMargin ? '+' : '';
     row.innerHTML =
-      `<span style="font-size:8px;color:var(--coffee);letter-spacing:.06em;text-transform:uppercase;">Trade Margin</span>` +
-      `<span style="font-size:12px;font-weight:700;color:${mColor};">${marginStr} $&thinsp;/&thinsp;t</span>`;
+      `<span style="font-size:8px;color:var(--coffee);letter-spacing:.06em;text-transform:uppercase;">${labelStr}</span>` +
+      `<span style="font-size:12px;font-weight:700;color:${mColor};">${sign}${marginStr} $&thinsp;/&thinsp;t</span>`;
     barContainer.appendChild(row);
   }
 }

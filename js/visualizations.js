@@ -347,8 +347,8 @@ function updateSankey(year) {
         .attr("stroke-width", 2)
         .attr("stroke-linejoin", "round")
         .text(d => {
+            if (d.value <= 0) return ""; // Only hide if absolutely zero
             const pct = (d.value / (colTotals[d.category] || 1)) * 100;
-            if (pct < 0.1) return "";
             return `${d.name} ${pct < 1 ? "<1" : Math.round(pct)}%`;
         });
 
@@ -361,8 +361,8 @@ function updateSankey(year) {
             return LABEL_COLOR;
         })
         .text(d => {
+            if (d.value <= 0) return ""; // Only hide if absolutely zero
             const pct = (d.value / (colTotals[d.category] || 1)) * 100;
-            if (pct < 0.1) return "";
             return `${d.name} ${pct < 1 ? "<1" : Math.round(pct)}%`;
         });
 }

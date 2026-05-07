@@ -103,17 +103,14 @@ export function setupUI(onYearChange, onFlowModeChange) {
   const flowModeBtn = document.getElementById('flow-mode-btn');
   if (flowModeBtn) {
     flowModeBtn.addEventListener('click', () => {
-      // Toggle the state explicitly
+      // Toggle the state between 'qty' and 'val'
       state.flowMode = state.flowMode === 'val' ? 'qty' : 'val';
-      flowModeBtn.textContent = state.flowMode === 'val' ? 'Show Volume' : 'Show Value';
 
-      // Force UI refresh for the side panel immediately
-      const currentCountry = state.selectedCountry || document.getElementById('sp-country-name').textContent;
-      if (currentCountry) {
-        updateSidePanel(currentCountry, state.currentYear);
-      }
-
+      // Notify the app
       if (onFlowModeChange) onFlowModeChange();
+
+      // Update the button text
+      flowModeBtn.textContent = state.flowMode === 'val' ? 'Show Volume' : 'Show Value';
     });
   }
 

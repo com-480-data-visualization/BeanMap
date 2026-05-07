@@ -416,9 +416,15 @@ export function drawArcs(countryName, year) {
   const srcCent = CENTROIDS[key] || CENTROIDS[countryName];
   if (!srcCent) return;
 
+  // 1. Fetch both datasets
   const qtySnap = state.data.TRADE_QUANTITY_BY_YEAR[year] || state.data.TRADE_QUANTITY_BY_YEAR[2023] || state.data.TRADE_QUANTITY;
+  const valSnap = state.data.TRADE_VALUE_BY_YEAR[year] || state.data.TRADE_VALUE_BY_YEAR[2023] || state.data.TRADE_VALUE;
+
   const rawSnap = state.data.TRADE_QTY_RAW_BY_YEAR[year] || state.data.TRADE_QTY_RAW_BY_YEAR[2023] || {};
   const procSnap = state.data.TRADE_QTY_PROC_BY_YEAR[year] || state.data.TRADE_QTY_PROC_BY_YEAR[2023] || {};
+
+  // 2. Select the active dataset based on the toggle state
+  const activeSnap = state.flowMode === 'val' ? valSnap : qtySnap;
 
   const srcProj = project(srcCent[1], srcCent[0]);
   const srcPos = { x: srcProj.x, y: srcProj.y, z: topZ(key) };
@@ -439,19 +445,20 @@ export function drawArcs(countryName, year) {
   const arrows = [];
 
   // EXPORTS
-  const qtyRow = qtySnap[key];
-  if (qtyRow) {
-    Object.entries(qtyRow).sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([dest, qty]) => {
+  const activeRow = activeSnap[key];
+  if (activeRow) {
+    Object.entries(activeRow).sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([dest, amount]) => {
       const c = CENTROIDS[dest]; if (!c) return;
       const dstProj = project(c[1], c[0]);
 
+      // We still use Quantity to determine dashed/solid (which type of coffee physically moved more)
       const isProcessed = (procSnap[key]?.[dest] || 0) > (rawSnap[key]?.[dest] || 0);
       const isDashed = !isProcessed; // Dash if Export Raw
 
       arrows.push({
         src: srcPos,
         dst: { x: dstProj.x, y: dstProj.y, z: topZ(dest) },
-        qty,
+        amount: amount, // Dynamic value based on active mode
         color: flowExportColor(),
         opacity: 0.90,
         isDashed
@@ -461,13 +468,13 @@ export function drawArcs(countryName, year) {
 
   // IMPORTS
   const importSrcs = [];
-  Object.entries(qtySnap).forEach(([reporter, row]) => {
+  Object.entries(activeSnap).forEach(([reporter, row]) => {
     if (reporter === key) return;
-    const qty = row[key] || row[countryName];
-    if (qty) importSrcs.push([reporter, qty]);
+    const amount = row[key] || row[countryName];
+    if (amount) importSrcs.push([reporter, amount]);
   });
 
-  importSrcs.sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([src, qty]) => {
+  importSrcs.sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([src, amount]) => {
     const c = CENTROIDS[src]; if (!c) return;
     const srcProj2 = project(c[1], c[0]);
 
@@ -477,27 +484,25 @@ export function drawArcs(countryName, year) {
     arrows.push({
       src: { x: srcProj2.x, y: srcProj2.y, z: topZ(src) },
       dst: srcPos,
-      qty,
+      amount: amount,
       color: flowImportColor(),
       opacity: 0.90,
       isDashed
     });
   });
 
-  // 1. Find the absolute maximum trade volume globally for the current year
-  let globalMaxQty = 1;
-  Object.values(qtySnap).forEach(row => {
+  // 3. Find Global Max of the ACTIVE metric to scale thickness accurately
+  let globalMaxAmount = 1;
+  Object.values(activeSnap).forEach(row => {
     Object.values(row).forEach(val => {
-      if (val > globalMaxQty) globalMaxQty = val;
+      if (val > globalMaxAmount) globalMaxAmount = val;
     });
   });
 
-  // 2. Draw arrows scaling against the global maximum using a Square Root factor
-  arrows.forEach(({ src, dst, qty, color, opacity, isDashed }) => {
+  // 4. Draw Arrows
+  arrows.forEach(({ src, dst, amount, color, opacity, isDashed }) => {
     // Sqrt scales surface areas/thicknesses smoothly compared to linear math
-    const pctScale = (Math.sqrt(qty) / Math.sqrt(globalMaxQty)) * 200;
-
-    // We increase the base size slightly so global miniscule trades are still visible
+    const pctScale = (Math.sqrt(amount) / Math.sqrt(globalMaxAmount)) * 100;
     buildFlowArrow(src, dst, pctScale, color, opacity, isDashed);
   });
 }

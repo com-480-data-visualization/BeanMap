@@ -6,6 +6,7 @@ import {
 } from './dataService.js';
 
 import {
+  drawArcs,
   initThreeMap,
   loadMap,
   onYearChangeMap,
@@ -64,10 +65,12 @@ async function init() {
           updateSidePanel(state.selectedCountry, newYear);
         }
       },
-      // Callback for when the "Show Value" / "Show Weight" toggle is clicked
+      // Callback for when the "Show Value" / "Show Volume" toggle is clicked
       () => {
         if (state.selectedCountry) {
           updateSidePanel(state.selectedCountry, state.currentYear);
+          // Tell the map to redraw the arrows using the new metric
+          drawArcs(state.selectedCountry, state.currentYear);
         }
       }
     );

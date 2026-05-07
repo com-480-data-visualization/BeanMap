@@ -267,7 +267,7 @@ function updateSankey(year) {
     const sankey = d3.sankey()
         .nodeId(d => d.id)
         .nodeWidth(12)
-        .nodePadding(2.5)
+        .nodePadding(3) // Slightly increased to give bigger text more vertical room 
         .extent([[6, 12], [364, 104]])
         .nodeSort((a, b) => {
             if (a.name === "Others" && b.name !== "Others") return 1;
@@ -282,6 +282,7 @@ function updateSankey(year) {
     // ─────────────────────────────────────────────────────────────
     // 🎨 SANKEY COLORS CONFIGURATION (Tweak these Hex codes)
     // ─────────────────────────────────────────────────────────────
+    // Node Colors
     const COLOR_PRODUCER = '#4A2C17'; // Col 1 Solid Color (Espresso)
     const COLOR_HUB = '#C4A820'; // Col 2 Solid Color (Gold)
     const COLOR_CONSUMER = '#8B5E3C'; // Col 3 Solid Color (Medium Brown)
@@ -291,6 +292,12 @@ function updateSankey(year) {
     // Link Colors (rgba gives them the nice translucent overlap effect)
     const LINK_RAW_FLOW = 'rgba(74, 44, 23, 0.35)';   // Producer -> Hub Links
     const LINK_PROC_FLOW = 'rgba(196, 168, 32, 0.35)'; // Hub -> Consumer Links
+
+    // Text Labels Configuration
+    const LABEL_SIZE = '5.5px';   // <-- TWEAK FONT SIZE HERE
+    const LABEL_COLOR = '#4A2C17'; // <-- TWEAK MAIN TEXT COLOR HERE (Dark Brown)
+    const LABEL_OTHERS = '#8B7D70'; // <-- TWEAK "OTHERS" TEXT COLOR HERE
+    const LABEL_SELECTED = '#987800'; // <-- TWEAK SELECTED COUNTRY TEXT COLOR HERE
     // ─────────────────────────────────────────────────────────────
 
     // Draw Links
@@ -325,9 +332,13 @@ function updateSankey(year) {
         colTotals[n.category] = (colTotals[n.category] || 0) + n.value;
     });
 
-    const labels = svg.append("g").style("font-size", "4px").style("font-weight", "600").selectAll("g")
+    const labels = svg.append("g")
+        .style("font-size", LABEL_SIZE) // Applied updated variable
+        .style("font-weight", "600")
+        .selectAll("g")
         .data(graph.nodes).join("g")
-        .attr("transform", d => `translate(${(d.category === "Consumer") ? d.x0 - 2 : d.x1 + 2}, ${(d.y1 + d.y0) / 2 + 1.5})`);
+        // Bumped Y-translation slightly (+1.8) to keep larger text vertically centered on the node
+        .attr("transform", d => `translate(${(d.category === "Consumer") ? d.x0 - 2 : d.x1 + 2}, ${(d.y1 + d.y0) / 2 + 1.8})`);
 
     // Crisp text halo outline
     labels.append("text")
@@ -344,7 +355,11 @@ function updateSankey(year) {
     // Inner text color
     labels.append("text")
         .attr("text-anchor", d => (d.category === "Consumer") ? "end" : "start")
-        .attr("fill", d => d.name === sel ? "#987800" : (d.name === "Others" ? "#7A6C60" : "#4A2C17"))
+        .attr("fill", d => {
+            if (d.name === sel) return LABEL_SELECTED;
+            if (d.name === "Others") return LABEL_OTHERS;
+            return LABEL_COLOR;
+        })
         .text(d => {
             const pct = (d.value / (colTotals[d.category] || 1)) * 100;
             if (pct < 0.1) return "";

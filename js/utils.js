@@ -10,34 +10,45 @@ export function hexToInt(h) {
 /**
  * Formats large quantity values compactly (input in tonnes).
  * @param {number} q - Quantity in tonnes.
- * @returns {string} Formatted string (e.g., '1.2M', '500k').
+ * @returns {string} Formatted string (e.g., '1.2 M t', '500 k t').
  */
 export function fmtQty(q) {
-  if (q >= 1000000) return (q / 1000000).toFixed(1) + 'M';
-  if (q >= 1000) return Math.round(q / 1000) + 'k';
-  return q.toString();
+  if (q >= 1000000) return (q / 1000000).toFixed(1) + ' M t';
+  if (q >= 1000) return Math.round(q / 1000) + ' k t';
+  return q.toString() + ' t';
 }
 
 /**
  * Formats large quantity values compactly, but uses '000 instead of k for wider UI areas.
  * @param {number} q - Quantity in tonnes.
- * @returns {string} Formatted string (e.g., '1.2M', "500'000").
+ * @returns {string} Formatted string (e.g., '1.2 M t', "500'000 t").
  */
 export function fmtQtyExpanded(q) {
-  if (q >= 1000000) return (q / 1000000).toFixed(1) + 'M';
-  if (q >= 1000) return Math.round(q / 1000) + "'000";
-  return q.toString();
+  if (q >= 1000000) return (q / 1000000).toFixed(1) + ' M t';
+  if (q >= 1000) return Math.round(q / 1000) + "'000 t";
+  return q.toString() + ' t';
 }
 
 /**
  * Formats trade values (input in 1000 USD).
  * @param {number} v - Value in thousands of USD.
- * @returns {string} Formatted string (e.g., '1.5B$', '800M$').
+ * @returns {string} Formatted string (e.g., '1.5 B $', '800 M $').
  */
 export function fmtVal(v) {
-  if (v >= 1000000) return (v / 1000000).toFixed(1) + 'B$';
-  if (v >= 1000) return Math.round(v / 1000) + 'M$';
-  return v + 'k$';
+  if (v >= 1000000) return (v / 1000000).toFixed(1) + ' B $';
+  if (v >= 1000) return Math.round(v / 1000) + ' M $';
+  return v + 'k $';
+}
+
+/**
+ * Formats trade values, but uses '000 $ instead of k$ for wider UI areas.
+ * @param {number} v - Value in thousands of USD.
+ * @returns {string} Formatted string (e.g., '1.5 B $', '800 M $', "500'000 $").
+ */
+export function fmtValExpanded(v) {
+  if (v >= 1000000) return (v / 1000000).toFixed(1) + ' B $';
+  if (v >= 1000) return Math.round(v / 1000) + ' M $';
+  return v + "'000 $";
 }
 
 /**

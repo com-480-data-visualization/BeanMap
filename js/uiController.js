@@ -1,6 +1,6 @@
 import { FLOW_COLORS, GEO_NAME_MAP } from './config.js';
 import { state } from './dataService.js';
-import { fmtQty, fmtQtyExpanded, fmtVal } from './utils.js';
+import { fmtQtyExpanded, fmtValExpanded } from './utils.js';
 import { updateVisualizationsOnYearChange } from './visualizations.js';
 
 let playing = false;
@@ -103,8 +103,17 @@ export function setupUI(onYearChange, onFlowModeChange) {
   const flowModeBtn = document.getElementById('flow-mode-btn');
   if (flowModeBtn) {
     flowModeBtn.addEventListener('click', () => {
-      if (onFlowModeChange) onFlowModeChange();
+      // Toggle the state explicitly
+      state.flowMode = state.flowMode === 'val' ? 'qty' : 'val';
       flowModeBtn.textContent = state.flowMode === 'val' ? 'Show Volume' : 'Show Value';
+
+      // Force UI refresh for the side panel immediately
+      const currentCountry = state.selectedCountry || document.getElementById('sp-country-name').textContent;
+      if (currentCountry) {
+        updateSidePanel(currentCountry, state.currentYear);
+      }
+
+      if (onFlowModeChange) onFlowModeChange();
     });
   }
 }
@@ -113,6 +122,8 @@ export function updateSidePanel(name, year) {
   const key = GEO_NAME_MAP[name] || name;
   const qtySnap = state.data.TRADE_QUANTITY_BY_YEAR[year] || state.data.TRADE_QUANTITY_BY_YEAR[2023] || state.data.TRADE_QUANTITY;
   const valSnap = state.data.TRADE_VALUE_BY_YEAR[year] || state.data.TRADE_VALUE_BY_YEAR[2023] || state.data.TRADE_VALUE;
+  const rawQtySnap = state.data.TRADE_QTY_RAW_BY_YEAR[year] || state.data.TRADE_QTY_RAW_BY_YEAR[2023] || {};
+  const procQtySnap = state.data.TRADE_QTY_PROC_BY_YEAR[year] || state.data.TRADE_QTY_PROC_BY_YEAR[2023] || {};
   const tiSnap = state.data.TRANSFORMATION_INDEX_BY_YEAR[year] || state.data.TRANSFORMATION_INDEX_BY_YEAR[2023] || {};
 
   const ti = tiSnap[key] ?? null;
@@ -124,69 +135,61 @@ export function updateSidePanel(name, year) {
   rankEl.textContent = rank ? `#${rank} by TI` : 'No TI data';
   rankEl.style.background = rank ? 'var(--tan)' : 'var(--sand)';
 
-  document.getElementById('sp-ti').textContent = ti !== null ? 'TI: ' + (ti < 0 ? '-' : '+') + fmtQty(Math.abs(ti)) + 't net' : 'TI: n/a';
-
-  const valRow = valSnap[key];
   const qtyRow = qtySnap[key];
 
-  // Top partner pill
-  const isValueMode = state.flowMode === 'val';
-  const activeRow = isValueMode ? valRow : qtyRow;
-  const activeSnap = isValueMode ? valSnap : qtySnap;
+  // Calculate the 4 buckets (Quantity and Value)
+  let expRawQty = 0, expProcQty = 0, expRawVal = 0, expProcVal = 0;
+  if (qtyRow) {
+    Object.keys(qtyRow).forEach(partner => {
+      const rq = (rawQtySnap[key] || {})[partner] || 0;
+      const pq = (procQtySnap[key] || {})[partner] || 0;
+      const tq = rq + pq;
+      const tv = (valSnap[key] || {})[partner] || 0;
 
-  if (activeRow && Object.keys(activeRow).length > 0) {
-    const top = Object.entries(activeRow).sort((a, b) => b[1] - a[1])[0];
-    document.getElementById('sp-top-export').textContent = top ? top[0] : '—';
-    const sl = document.getElementById('sp-top-export').closest('.stat-pill').querySelector('.sl');
-    if (sl) sl.innerHTML = 'Top export<br>partner';
-  } else {
-    let best = null, bestVal = 0;
-    Object.entries(activeSnap).forEach(([rep, row]) => {
-      const v = row[key] || 0;
-      if (v > bestVal) { bestVal = v; best = rep; }
+      expRawQty += rq;
+      expProcQty += pq;
+      if (tq > 0) {
+        expRawVal += (tv * rq / tq);
+        expProcVal += (tv * pq / tq);
+      }
     });
-    document.getElementById('sp-top-export').textContent = best || '—';
-    const sl = document.getElementById('sp-top-export').closest('.stat-pill').querySelector('.sl');
-    if (sl) sl.innerHTML = 'Top import<br>source';
   }
 
-  // Pill 3: Export total
-  const expQtyTot = qtyRow ? Object.values(qtyRow).reduce((s, v) => s + v, 0) : 0;
-  const expValTot = valRow ? Object.values(valRow).reduce((s, v) => s + v, 0) : 0;
-  const volEl = document.getElementById('sp-vol');
-  const volSlEl = document.getElementById('sp-vol-lbl');
+  let impRawQty = 0, impProcQty = 0, impRawVal = 0, impProcVal = 0;
+  Object.keys(qtySnap).forEach(reporter => {
+    if (reporter !== key && (qtySnap[reporter][key] || 0) > 0) {
+      const rq = (rawQtySnap[reporter] || {})[key] || 0;
+      const pq = (procQtySnap[reporter] || {})[key] || 0;
+      const tq = rq + pq;
+      const tv = (valSnap[reporter] || {})[key] || 0;
 
-  if (volEl) {
-    if (expQtyTot === 0 && expValTot === 0) {
-      volEl.textContent = '—';
-      if (volSlEl) volSlEl.innerHTML = 'No export<br>data';
-    } else if (state.flowMode === 'val') {
-      volEl.textContent = fmtVal(expValTot);
-      if (volSlEl) volSlEl.innerHTML = 'Total export<br>value';
-    } else {
-      volEl.textContent = fmtQty(expQtyTot) + 't total';
-      if (volSlEl) volSlEl.innerHTML = 'Total export<br>volume';
+      impRawQty += rq;
+      impProcQty += pq;
+      if (tq > 0) {
+        impRawVal += (tv * rq / tq);
+        impProcVal += (tv * pq / tq);
+      }
     }
-  }
+  });
 
-  // Pill 4: Import total
-  let totalImpQty = 0, totalImpVal = 0;
-  Object.values(qtySnap).forEach(row => { totalImpQty += (row[key] || 0); });
-  Object.values(valSnap).forEach(row => { totalImpVal += (row[key] || 0); });
-  const impVolEl = document.getElementById('sp-imp-vol');
-  const impVolLbl = document.getElementById('sp-imp-vol-lbl');
+  const isVal = state.flowMode === 'val';
 
-  if (impVolEl) {
-    if (totalImpQty === 0 && totalImpVal === 0) {
-      impVolEl.textContent = '—';
-      if (impVolLbl) impVolLbl.innerHTML = 'No import<br>data';
-    } else if (state.flowMode === 'val') {
-      impVolEl.textContent = fmtVal(totalImpVal);
-      if (impVolLbl) impVolLbl.innerHTML = 'Total import<br>value';
-    } else {
-      impVolEl.textContent = fmtQty(totalImpQty) + 't total';
-      if (impVolLbl) impVolLbl.innerHTML = 'Total import<br>volume';
-    }
+  // Helper to format text based on current mode using the Expanded format
+  const getPillText = (qty, val) => isVal ? (val > 0 ? fmtValExpanded(val) : '—') : (qty > 0 ? fmtQtyExpanded(qty) : '—');
+
+  // Inject Data
+  document.getElementById('sp-imp-raw').textContent = getPillText(impRawQty, impRawVal);
+  document.getElementById('sp-imp-proc').textContent = getPillText(impProcQty, impProcVal);
+  document.getElementById('sp-exp-raw').textContent = getPillText(expRawQty, expRawVal);
+  document.getElementById('sp-exp-proc').textContent = getPillText(expProcQty, expProcVal);
+
+  // TI remains strictly as Net Volume regardless of mode. If negative, display '—'.
+  document.getElementById('sp-ti').textContent = (ti !== null && ti >= 0) ? '+' + fmtQtyExpanded(ti) : '—';
+
+  // Dynamically update the single master label
+  const metricLbl = document.getElementById('sp-metric-lbl');
+  if (metricLbl) {
+    metricLbl.textContent = isVal ? 'Value (USD)' : 'Volume (Tonnes)';
   }
 
   updateBarChart(key, year);
@@ -224,6 +227,8 @@ function updateBarChart(key, year) {
 
   function makePriceRow(lbl, uv) {
     if (uv === null) return null;
+    // Format numbers with apostrophes
+    const formattedUV = uv.toLocaleString('en-US').replace(/,/g, "'");
     const el = document.createElement('div');
     el.className = 'bar-row';
     el.style.marginBottom = '5px';
@@ -231,7 +236,7 @@ function updateBarChart(key, year) {
 
     el.innerHTML =
       `<span class="bar-year" style="width:auto;">${lbl} Average</span>` +
-      `<span class="bar-val" style="font-size:10px; width:auto;">$${uv.toLocaleString()} / t</span>`;
+      `<span class="bar-val" style="font-size:10px; width:auto;">${formattedUV} $&thinsp;/&thinsp;t</span>`;
     return el;
   }
 
@@ -250,6 +255,7 @@ function updateBarChart(key, year) {
 
   if (margin !== null) {
     const sign = margin >= 0 ? '+' : '';
+    const marginStr = margin.toLocaleString('en-US').replace(/,/g, "'");
     const mColor = margin > 800 ? '#B89028' : margin > 200 ? '#9A7A20' : margin > 0 ? '#7A6040' : '#8B4030';
     const sep = document.createElement('div');
     sep.style.cssText = 'border-top:1px solid rgba(74,44,23,0.12);margin:6px 0;';
@@ -259,7 +265,7 @@ function updateBarChart(key, year) {
     row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
     row.innerHTML =
       `<span style="font-size:8px;color:var(--coffee);letter-spacing:.06em;text-transform:uppercase;">Trade Margin</span>` +
-      `<span style="font-size:12px;font-weight:700;color:${mColor};">${sign}$${margin.toLocaleString()} / t</span>`;
+      `<span style="font-size:12px;font-weight:700;color:${mColor};">${sign}${marginStr} $&thinsp;/&thinsp;t</span>`;
     barContainer.appendChild(row);
   }
 }
@@ -287,11 +293,11 @@ function populateTradeFlows(key, year) {
     if (state.flowMode === 'val') {
       const rawVal = total > 0 ? Math.round(val * rawQ / total) : 0;
       const procVal = total > 0 ? Math.round(val * procQ / total) : 0;
-      topLabel = fmtVal(rawVal);
-      botLabel = fmtVal(procVal);
+      topLabel = rawVal > 0 ? fmtValExpanded(rawVal) : '—';
+      botLabel = procVal > 0 ? fmtValExpanded(procVal) : '—';
     } else {
-      topLabel = rawQ > 0 ? `${fmtQtyExpanded(rawQ)} t` : '—';
-      botLabel = procQ > 0 ? `${fmtQtyExpanded(procQ)} t` : '—';
+      topLabel = rawQ > 0 ? `${fmtQtyExpanded(rawQ)}` : '—';
+      botLabel = procQ > 0 ? `${fmtQtyExpanded(procQ)}` : '—';
     }
 
     const row = document.createElement('div');

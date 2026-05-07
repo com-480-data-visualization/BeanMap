@@ -184,7 +184,7 @@ export function updateSidePanel(name, year) {
   document.getElementById('sp-exp-proc').textContent = getPillText(expProcQty, expProcVal);
 
   // TI remains strictly as Net Volume regardless of mode. If negative, display '—'.
-  document.getElementById('sp-ti').textContent = (ti !== null && ti >= 0) ? '+' + fmtQtyExpanded(ti) : '—';
+  document.getElementById('sp-ti').textContent = (ti !== null && ti >= 0) ? fmtQtyExpanded(ti) : '—';
 
   // Dynamically update the single master label
   const metricLbl = document.getElementById('sp-metric-lbl');
@@ -254,7 +254,6 @@ function updateBarChart(key, year) {
   }
 
   if (margin !== null) {
-    const sign = margin >= 0 ? '+' : '';
     const marginStr = margin.toLocaleString('en-US').replace(/,/g, "'");
     const mColor = margin > 800 ? '#B89028' : margin > 200 ? '#9A7A20' : margin > 0 ? '#7A6040' : '#8B4030';
     const sep = document.createElement('div');
@@ -265,7 +264,7 @@ function updateBarChart(key, year) {
     row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
     row.innerHTML =
       `<span style="font-size:8px;color:var(--coffee);letter-spacing:.06em;text-transform:uppercase;">Trade Margin</span>` +
-      `<span style="font-size:12px;font-weight:700;color:${mColor};">${sign}${marginStr} $&thinsp;/&thinsp;t</span>`;
+      `<span style="font-size:12px;font-weight:700;color:${mColor};">${marginStr} $&thinsp;/&thinsp;t</span>`;
     barContainer.appendChild(row);
   }
 }

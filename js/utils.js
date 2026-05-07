@@ -19,6 +19,17 @@ export function fmtQty(q) {
 }
 
 /**
+ * Formats large quantity values compactly, but uses '000 instead of k for wider UI areas.
+ * @param {number} q - Quantity in tonnes.
+ * @returns {string} Formatted string (e.g., '1.2M', "500'000").
+ */
+export function fmtQtyExpanded(q) {
+  if (q >= 1000000) return (q / 1000000).toFixed(1) + 'M';
+  if (q >= 1000) return Math.round(q / 1000) + "'000";
+  return q.toString();
+}
+
+/**
  * Formats trade values (input in 1000 USD).
  * @param {number} v - Value in thousands of USD.
  * @returns {string} Formatted string (e.g., '1.5B$', '800M$').

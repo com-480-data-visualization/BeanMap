@@ -1,6 +1,6 @@
 import { FLOW_COLORS, GEO_NAME_MAP } from './config.js';
 import { state } from './dataService.js';
-import { fmtQty, fmtVal } from './utils.js';
+import { fmtQty, fmtQtyExpanded, fmtVal } from './utils.js';
 import { updateVisualizationsOnYearChange } from './visualizations.js';
 
 let playing = false;
@@ -289,8 +289,8 @@ function populateTradeFlows(key, year) {
       topLabel = fmtVal(rawVal);
       botLabel = fmtVal(procVal);
     } else {
-      topLabel = rawQ > 0 ? `${fmtQty(rawQ)}t` : '—';
-      botLabel = procQ > 0 ? `${fmtQty(procQ)}t` : '—';
+      topLabel = rawQ > 0 ? `${fmtQtyExpanded(rawQ)} t` : '—';
+      botLabel = procQ > 0 ? `${fmtQtyExpanded(procQ)} t` : '—';
     }
 
     const row = document.createElement('div');

@@ -407,113 +407,7 @@ function clearArrows() {
   arcMeshes = [];
 }
 
-/* 
-export function drawArcs(countryName, year) {
-  if (year === undefined) year = state.currentYear;
-  clearArrows();
 
-  const key = GEO_NAME_MAP[countryName] || countryName;
-  const srcCent = CENTROIDS[key] || CENTROIDS[countryName];
-  if (!srcCent) return;
-
-  const qtySnap = state.data.TRADE_QUANTITY_BY_YEAR[year] || state.data.TRADE_QUANTITY_BY_YEAR[2023] || state.data.TRADE_QUANTITY;
-  const rawSnap = state.data.TRADE_QTY_RAW_BY_YEAR[year] || state.data.TRADE_QTY_RAW_BY_YEAR[2023] || {};
-  const procSnap = state.data.TRADE_QTY_PROC_BY_YEAR[year] || state.data.TRADE_QTY_PROC_BY_YEAR[2023] || {};
-
-  const srcProj = project(srcCent[1], srcCent[0]);
-  const srcPos = { x: srcProj.x, y: srcProj.y, z: topZ(key) };
-
-  function topZ(k) {
-    const mesh = countryMeshes.find(m => {
-      const mapKey = GEO_NAME_MAP[m.userData.name] || m.userData.name;
-      return mapKey === k || m.userData.name === k;
-    });
-    if (!mesh) return 1;
-    return (mesh.userData.baseDepth || 0.5) * mesh.scale.z;
-  }
-
-  function flowExportColor(reporter, partner) {
-    const r = (rawSnap[reporter] || {})[partner] || 0;
-    const p = (procSnap[reporter] || {})[partner] || 0;
-    return hexToInt(p > r ? FLOW_COLORS.exportProcessed : FLOW_COLORS.exportRaw);
-  }
-
-  function flowImportColor(reporter, partner) {
-    const r = (rawSnap[reporter] || {})[partner] || 0;
-    const p = (procSnap[reporter] || {})[partner] || 0;
-    return hexToInt(p > r ? FLOW_COLORS.importProcessed : FLOW_COLORS.importRaw);
-  }
-
-  const arrows = [];
-
-  // EXPORTS
-  const qtyRow = qtySnap[key];
-  if (qtyRow) {
-    Object.entries(qtyRow).sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([dest, qty]) => {
-      const c = CENTROIDS[dest]; if (!c) return;
-      const dstProj = project(c[1], c[0]);
-
-      const isProcessed = (procSnap[key]?.[dest] || 0) > (rawSnap[key]?.[dest] || 0);
-      const isDashed = !isProcessed; // Dash if Export Raw
-
-      arrows.push({
-        src: srcPos,
-        dst: { x: dstProj.x, y: dstProj.y, z: topZ(dest) },
-        qty,
-        color: flowExportColor(key, dest),
-        opacity: 0.90,
-        isDashed
-      });
-    });
-  }
-
-  // IMPORTS
-  const importSrcs = [];
-  Object.entries(qtySnap).forEach(([reporter, row]) => {
-    if (reporter === key) return;
-    const qty = row[key] || row[countryName];
-    if (qty) importSrcs.push([reporter, qty]);
-  });
-
-  importSrcs.sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([src, qty]) => {
-    const c = CENTROIDS[src]; if (!c) return;
-    const srcProj2 = project(c[1], c[0]);
-
-    const isProcessed = (procSnap[src]?.[key] || 0) > (rawSnap[src]?.[key] || 0);
-    const isDashed = isProcessed; // Dash if Import Processed
-
-    arrows.push({
-      src: { x: srcProj2.x, y: srcProj2.y, z: topZ(src) },
-      dst: srcPos,
-      qty,
-      color: flowImportColor(src, key),
-      opacity: 0.90,
-      isDashed
-    });
-  });
-
-  importSrcs.sort((a, b) => b[1] - a[1]).slice(0, 2).forEach(([src, qty]) => {
-    const c = CENTROIDS[src]; if (!c) return;
-    const srcProj2 = project(c[1], c[0]);
-
-    const isDashed = (procSnap[src]?.[key] || 0) > (rawSnap[src]?.[key] || 0);
-
-    arrows.push({
-      src: { x: srcProj2.x, y: srcProj2.y, z: topZ(src) },
-      dst: srcPos,
-      qty,
-      color: flowImportColor(src, key),
-      opacity: 0.90,
-      isDashed
-    });
-  });
-
-  const maxQty = Math.max(1, ...arrows.map(a => a.qty));
-  arrows.forEach(({ src, dst, qty, color, opacity, isDashed }) => {
-    buildFlowArrow(src, dst, qty / maxQty * 100, color, opacity, isDashed);
-  });
-}
- */
 export function drawArcs(countryName, year) {
   if (year === undefined) year = state.currentYear;
   clearArrows();
@@ -590,9 +484,21 @@ export function drawArcs(countryName, year) {
     });
   });
 
-  const maxQty = Math.max(1, ...arrows.map(a => a.qty));
+  // 1. Find the absolute maximum trade volume globally for the current year
+  let globalMaxQty = 1;
+  Object.values(qtySnap).forEach(row => {
+    Object.values(row).forEach(val => {
+      if (val > globalMaxQty) globalMaxQty = val;
+    });
+  });
+
+  // 2. Draw arrows scaling against the global maximum using a Square Root factor
   arrows.forEach(({ src, dst, qty, color, opacity, isDashed }) => {
-    buildFlowArrow(src, dst, qty / maxQty * 100, color, opacity, isDashed);
+    // Sqrt scales surface areas/thicknesses smoothly compared to linear math
+    const pctScale = (Math.sqrt(qty) / Math.sqrt(globalMaxQty)) * 200;
+
+    // We increase the base size slightly so global miniscule trades are still visible
+    buildFlowArrow(src, dst, pctScale, color, opacity, isDashed);
   });
 }
 

@@ -243,7 +243,7 @@ function updateSankey(year) {
         svg.selectAll("*").remove();
         svg.append("text")
             .attr("x", 210).attr("y", 54).attr("text-anchor", "middle")
-            .attr("fill", "#A0522D").attr("font-size", "7px")
+            .attr("fill", "#55230d").attr("font-size", "7px")
             .text(`No trade flows recorded for ${sel} in ${year}.`);
         return;
     }
@@ -268,7 +268,7 @@ function updateSankey(year) {
         .nodeId(d => d.id)
         .nodeWidth(12)
         .nodePadding(5.5) // <-- ENFORCES A MINIMUM VERTICAL GAP SO TEXT NEVER OVERLAPS
-        .extent([[6, 12], [364, 108]])
+        .extent([[20, 6], [394, 108]])
         .nodeSort((a, b) => {
             if (a.name === "Others" && b.name !== "Others") return 1;
             if (a.name !== "Others" && b.name === "Others") return -1;
@@ -324,8 +324,8 @@ function updateSankey(year) {
         });
 
     // Draw Headers
-    svg.append("g").selectAll("text").data([{ x: 6, a: 'start', t: 'Producers' }, { x: 185, a: 'middle', t: 'Processors' }, { x: 364, a: 'end', t: 'Consumers' }]).join("text")
-        .attr("x", d => d.x).attr("y", 9).attr("font-size", "5px").attr("fill", "#5C3820").attr("font-weight", "600").attr("text-anchor", d => d.a).text(d => d.t);
+    svg.append("g").selectAll("text").data([{ x: 20, a: 'start', t: 'Producers' }, { x: 207, a: 'middle', t: 'Processors' }, { x: 394, a: 'end', t: 'Consumers' }]).join("text")
+        .attr("x", d => d.x).attr("y", 2).attr("font-size", "6.5px").attr("fill", "#5C3820").attr("font-weight", "600").attr("text-anchor", d => d.a).text(d => d.t);
 
     const colTotals = {};
     graph.nodes.forEach(n => {

@@ -264,12 +264,10 @@ function updateBarChart(key, year) {
 }
 
 function populateTradeFlows(key, year) {
-  const exportContainer = document.getElementById('sp-flows-export');
-  const importContainer = document.getElementById('sp-flows-import');
-  if (!exportContainer || !importContainer) return;
+  const flowContainer = document.getElementById('sp-flows-combined');
+  if (!flowContainer) return;
 
-  exportContainer.innerHTML = '';
-  importContainer.innerHTML = '';
+  flowContainer.innerHTML = '';
 
   const qtySnap = state.data.TRADE_QUANTITY_BY_YEAR[year] || state.data.TRADE_QUANTITY_BY_YEAR[2023] || state.data.TRADE_QUANTITY;
   const valSnap = state.data.TRADE_VALUE_BY_YEAR[year] || state.data.TRADE_VALUE_BY_YEAR[2023] || state.data.TRADE_VALUE;
@@ -298,7 +296,7 @@ function populateTradeFlows(key, year) {
     const row = document.createElement('div');
     row.className = 'flow-row';
     row.innerHTML =
-      `<span class="flow-arrow" style="color:${arrowColor}">${arrow}</span>` +
+      `<span class="flow-arrow" style="color:${arrowColor}; font-size:16px; line-height:1; transform:translateY(-1px); margin-right:2px; display:inline-block;">${arrow}</span>` +
       `<span class="flow-country">${country}</span>` +
       `<div class="flow-bars">` +
       `<div class="flow-bar-wrap"><div class="flow-bar-fill" style="width:${rawW}%;background:${rawColor}"></div></div>` +
@@ -311,51 +309,51 @@ function populateTradeFlows(key, year) {
     return row;
   }
 
-  // Exports
+  let combinedRows = [];
+
+  // Gather Exports
   const qtyRow = qtySnap[key];
   if (qtyRow) {
-    const rows = Object.keys(qtyRow).map(partner => ({
-      partner,
-      rawQ: (rawFlowSnap[key] || {})[partner] || 0,
-      procQ: (procFlowSnap[key] || {})[partner] || 0,
-      qty: qtyRow[partner] || 0,
-      val: (valSnap[key] || {})[partner] || 0,
-    }));
-    rows.sort((a, b) => state.flowMode === 'val' ? b.val - a.val : b.qty - a.qty);
-    const top5ex = rows.slice(0, 5);
-
-    if (top5ex.length === 0) {
-      exportContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No export data</div>';
-    } else {
-      const maxExQty = Math.max(...top5ex.map(r => r.qty), 1);
-      top5ex.forEach(({ partner, rawQ, procQ, qty, val }) => {
-        exportContainer.appendChild(makeRow('→', partner, rawQ, procQ, val, maxExQty, true));
+    Object.keys(qtyRow).forEach(partner => {
+      combinedRows.push({
+        isExport: true,
+        partner: partner,
+        rawQ: (rawFlowSnap[key] || {})[partner] || 0,
+        procQ: (procFlowSnap[key] || {})[partner] || 0,
+        qty: qtyRow[partner] || 0,
+        val: (valSnap[key] || {})[partner] || 0,
       });
-    }
-  } else {
-    exportContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No export data for this country</div>';
+    });
   }
 
-  // Imports
-  const importRows = Object.keys(qtySnap)
-    .filter(reporter => reporter !== key && (qtySnap[reporter][key] || 0) > 0)
-    .map(reporter => ({
-      reporter,
-      rawQ: (rawFlowSnap[reporter] || {})[key] || 0,
-      procQ: (procFlowSnap[reporter] || {})[key] || 0,
-      qty: (qtySnap[reporter][key] || 0),
-      val: (valSnap[reporter] || {})[key] || 0,
-    }));
+  // Gather Imports
+  Object.keys(qtySnap).forEach(reporter => {
+    if (reporter !== key && (qtySnap[reporter][key] || 0) > 0) {
+      combinedRows.push({
+        isExport: false,
+        partner: reporter,
+        rawQ: (rawFlowSnap[reporter] || {})[key] || 0,
+        procQ: (procFlowSnap[reporter] || {})[key] || 0,
+        qty: qtySnap[reporter][key] || 0,
+        val: (valSnap[reporter] || {})[key] || 0,
+      });
+    }
+  });
 
-  importRows.sort((a, b) => state.flowMode === 'val' ? b.val - a.val : b.qty - a.qty);
-  const top5imp = importRows.slice(0, 5);
+  // Sort combined array
+  combinedRows.sort((a, b) => state.flowMode === 'val' ? b.val - a.val : b.qty - a.qty);
 
-  if (top5imp.length === 0) {
-    importContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No import data</div>';
+  // Take top 10 combined flows
+  const topFlows = combinedRows.slice(0, 10);
+
+  if (topFlows.length === 0) {
+    flowContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No trade data for this year</div>';
   } else {
-    const maxImpQty = Math.max(...top5imp.map(r => r.qty), 1);
-    top5imp.forEach(({ reporter, rawQ, procQ, qty, val }) => {
-      importContainer.appendChild(makeRow('←', reporter, rawQ, procQ, val, maxImpQty, false));
+    const maxQty = Math.max(...topFlows.map(r => r.qty), 1);
+    topFlows.forEach(({ partner, rawQ, procQ, qty, val, isExport }) => {
+      // ↦ (U+21A6) for Export, ⇥ (U+21E5) for Import
+      const arrow = isExport ? '↦' : '⇥';
+      flowContainer.appendChild(makeRow(arrow, partner, rawQ, procQ, val, maxQty, isExport));
     });
   }
 }

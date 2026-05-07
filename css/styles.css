@@ -532,14 +532,7 @@ body {
 
 /* ── ARC LEGEND ────────────────────────────────────────── */
 #arc-legend {
-    position: absolute;
-    bottom: 28px;
-    left: 8px;
-    background: rgba(42, 28, 14, 0.82);
-    border-radius: 4px;
-    padding: 6px 10px;
     pointer-events: none;
-    z-index: 3;
 }
 
 .arc-legend-row {

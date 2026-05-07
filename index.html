@@ -15,6 +15,10 @@
         style="color:#F0E4CC">a</span><span style="color:#FFFFFF">p</span></h1>
     <span style="font-size:10px;color:rgba(245,236,215,1);letter-spacing:.06em;font-weight:600;">YEAR</span>
     <span class="year-badge" id="topbar-year">2023</span>
+    <button id="info-btn" title="Methodology & Data"
+      style="margin-left: auto; background: none; border: 1px solid rgba(245, 236, 215, 0.4); border-radius: 4px; color: var(--cream); font-size: 10px; font-weight: 600; padding: 4px 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: background 0.2s;">Data
+      & Maths
+    </button>
   </div>
 
   <div id="main-row">
@@ -187,6 +191,46 @@
   </div>
 
   <div id="map-tooltip"></div>
+
+  <div id="info-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button id="close-modal-btn" class="modal-close">&times;</button>
+      <h2 style="color: var(--coffee); margin-bottom: 15px; font-size: 18px; font-weight: 600;">Data & Methodology</h2>
+
+      <div style="font-size: 11px; line-height: 1.6; color: var(--ink);">
+        <h3
+          style="margin-top: 12px; font-size: 12px; color: var(--espresso); border-bottom: 1px solid var(--border); padding-bottom: 3px;">
+          Data Sources</h3>
+        <p>Trade quantities and values are parsed directly from <strong>FAO (Food and Agriculture Organization)</strong>
+          and <strong>UN Comtrade</strong> raw datasets. Specifically, we aggregate Item 656 (Green Bean Exports) and
+          Item 657 (Roasted/Processed Coffee Exports).</p>
+
+        <h3
+          style="margin-top: 12px; font-size: 12px; color: var(--espresso); border-bottom: 1px solid var(--border); padding-bottom: 3px;">
+          Transformation Index (TI)</h3>
+        <p>The Transformation Index determines a country's status as a raw producer vs. a processing hub. It is
+          calculated by mathematically summing all raw coffee imports and subtracting raw coffee exports. A high net
+          positive TI indicates a Processing Hub, while a negative TI designates a primary Producer.</p>
+
+        <h3
+          style="margin-top: 12px; font-size: 12px; color: var(--espresso); border-bottom: 1px solid var(--border); padding-bottom: 3px;">
+          Sankey Flow Definitions</h3>
+        <p><strong>Producers → Processors:</strong> Raw green bean exports.<br>
+          <strong>Processors → Consumers:</strong> Roasted/processed coffee exports only.<br>
+          <em>Note: A country is categorized as a Processor visually in the Sankey chart if ≥30% of its total coffee
+            exports are roasted.</em>
+        </p>
+
+        <h3
+          style="margin-top: 12px; font-size: 12px; color: var(--espresso); border-bottom: 1px solid var(--border); padding-bottom: 3px;">
+          Global Weighted Prices & 3D Math</h3>
+        <p>The timeline's <strong>Global weighted average price (USD/tonne)</strong> divides total worldwide trade value
+          by total worldwide volume for that specific year. The map's 3D extrusion (depth) uses a normalization scale
+          matching maximum export volume, while mesh colors run through a power-curve interpolation applied to the
+          Transformation Index to increase visual contrast.</p>
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>

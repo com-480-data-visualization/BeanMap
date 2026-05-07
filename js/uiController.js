@@ -116,6 +116,30 @@ export function setupUI(onYearChange, onFlowModeChange) {
       if (onFlowModeChange) onFlowModeChange();
     });
   }
+
+  // 4. Info Modal Event Listeners
+  const infoBtn = document.getElementById('info-btn');
+  const modal = document.getElementById('info-modal');
+  const closeBtn = document.getElementById('close-modal-btn');
+
+  if (infoBtn && modal && closeBtn) {
+    // Open Modal
+    infoBtn.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+    });
+
+    // Close Modal via 'X'
+    closeBtn.addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
+
+    // Close Modal by clicking the dark overlay background
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+  }
 }
 
 export function updateSidePanel(name, year) {

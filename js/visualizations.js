@@ -267,8 +267,8 @@ function updateSankey(year) {
     const sankey = d3.sankey()
         .nodeId(d => d.id)
         .nodeWidth(12)
-        .nodePadding(3) // Slightly increased to give bigger text more vertical room 
-        .extent([[6, 12], [364, 104]])
+        .nodePadding(5.5) // <-- ENFORCES A MINIMUM VERTICAL GAP SO TEXT NEVER OVERLAPS
+        .extent([[6, 12], [364, 108]])
         .nodeSort((a, b) => {
             if (a.name === "Others" && b.name !== "Others") return 1;
             if (a.name !== "Others" && b.name === "Others") return -1;
@@ -284,10 +284,10 @@ function updateSankey(year) {
     // ─────────────────────────────────────────────────────────────
     // Node Colors
     const COLOR_PRODUCER = '#4A2C17'; // Col 1 Solid Color (Espresso)
-    const COLOR_HUB = '#C4A820'; // Col 2 Solid Color (Gold)
-    const COLOR_CONSUMER = '#8B5E3C'; // Col 3 Solid Color (Medium Brown)
+    const COLOR_HUB = '#8B5E3C'; // Col 2 Solid Color (Lighter Brown)
+    const COLOR_CONSUMER = '#a86948'; // Col 3 Solid Color (Latte)
     const COLOR_OTHERS = '#A89A8E'; // "Others" Base Nodes (Grey)
-    const COLOR_SELECTED = '#C4A820'; // Map Selection Highlight Node
+    const COLOR_SELECTED = '#a8911e'; // Map Selection Highlight Node
 
     // Link Colors (rgba gives them the nice translucent overlap effect)
     const LINK_RAW_FLOW = 'rgba(74, 44, 23, 0.35)';   // Producer -> Hub Links
@@ -297,7 +297,7 @@ function updateSankey(year) {
     const LABEL_SIZE = '5.5px';   // <-- TWEAK FONT SIZE HERE
     const LABEL_COLOR = '#4A2C17'; // <-- TWEAK MAIN TEXT COLOR HERE (Dark Brown)
     const LABEL_OTHERS = '#8B7D70'; // <-- TWEAK "OTHERS" TEXT COLOR HERE
-    const LABEL_SELECTED = '#987800'; // <-- TWEAK SELECTED COUNTRY TEXT COLOR HERE
+    const LABEL_SELECTED = '#6d5705'; // <-- TWEAK SELECTED COUNTRY TEXT COLOR HERE
     // ─────────────────────────────────────────────────────────────
 
     // Draw Links
@@ -313,7 +313,7 @@ function updateSankey(year) {
     // Draw Nodes
     svg.append("g").selectAll("rect").data(graph.nodes).join("rect")
         .attr("x", d => d.x0).attr("y", d => d.y0)
-        .attr("height", d => Math.max(1, d.y1 - d.y0))
+        .attr("height", d => Math.max(1.5, d.y1 - d.y0)) // <-- MINIMUM VISIBLE HEIGHT FOR TINY SLIVERS
         .attr("width", d => d.x1 - d.x0).attr("rx", 1)
         .attr("fill", d => {
             if (d.name === "Others") return COLOR_OTHERS;
@@ -333,7 +333,7 @@ function updateSankey(year) {
     });
 
     const labels = svg.append("g")
-        .style("font-size", LABEL_SIZE) // Applied updated variable
+        .style("font-size", LABEL_SIZE)
         .style("font-weight", "600")
         .selectAll("g")
         .data(graph.nodes).join("g")

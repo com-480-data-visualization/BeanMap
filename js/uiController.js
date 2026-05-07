@@ -187,7 +187,6 @@ export function updateSidePanel(name, year) {
 
   updateBarChart(key, year);
   populateTradeFlows(key, year);
-  updateConcentrationBars(key, year);
 }
 
 function updateBarChart(key, year) {
@@ -351,15 +350,6 @@ function populateTradeFlows(key, year) {
   importRows.sort((a, b) => state.flowMode === 'val' ? b.val - a.val : b.qty - a.qty);
   const top5imp = importRows.slice(0, 5);
 
-  const impSummaryEl = document.getElementById('sp-import-summary');
-  if (impSummaryEl) {
-    const totalImpQty = importRows.reduce((s, r) => s + r.qty, 0);
-    const totalImpVal = importRows.reduce((s, r) => s + r.val, 0);
-    const summaryText = state.flowMode === 'val' ? fmtVal(totalImpVal) : `${fmtQty(totalImpQty)}t total`;
-    impSummaryEl.textContent = summaryText;
-    impSummaryEl.style.display = summaryText ? 'block' : 'none';
-  }
-
   if (top5imp.length === 0) {
     importContainer.innerHTML = '<div style="font-size:9px;color:var(--coffee);font-style:italic;padding:4px 0;">No import data</div>';
   } else {
@@ -368,91 +358,4 @@ function populateTradeFlows(key, year) {
       importContainer.appendChild(makeRow('←', reporter, rawQ, procQ, val, maxImpQty, false));
     });
   }
-}
-
-function updateConcentrationBars(key, year) {
-  const concDiv = document.getElementById('sp-concentration');
-  if (!concDiv) return;
-  concDiv.innerHTML = '';
-
-  const qtySnapC = state.data.TRADE_QUANTITY_BY_YEAR[year] || state.data.TRADE_QUANTITY_BY_YEAR[2023] || state.data.TRADE_QUANTITY;
-  const rawSnapC = state.data.TRADE_QTY_RAW_BY_YEAR[year] || state.data.TRADE_QTY_RAW_BY_YEAR[2023] || {};
-  const procSnapC = state.data.TRADE_QTY_PROC_BY_YEAR[year] || state.data.TRADE_QTY_PROC_BY_YEAR[2023] || {};
-
-  // Export concentration
-  let expSegments = [], expTopName = '—', expTopShare = 0, expHHI = 0, expTotal = 0;
-  const qtyRowC = qtySnapC[key];
-  if (qtyRowC) {
-    const sorted = Object.entries(qtyRowC).sort((a, b) => b[1] - a[1]);
-    expTotal = sorted.reduce((s, [, v]) => s + v, 0);
-    if (expTotal > 0) {
-      let rawSum = 0, procSum = 0;
-      sorted.forEach(([partner]) => {
-        rawSum += (rawSnapC[key] || {})[partner] || 0;
-        procSum += (procSnapC[key] || {})[partner] || 0;
-      });
-      if (rawSum > 0) expSegments.push({ share: rawSum / expTotal, color: FLOW_COLORS.exportRaw });
-      if (procSum > 0) expSegments.push({ share: procSum / expTotal, color: FLOW_COLORS.exportProcessed });
-      expTopName = sorted[0]?.[0] || '—';
-      expTopShare = Math.round(((sorted[0]?.[1] || 0) / expTotal) * 100);
-      expHHI = Math.round(sorted.reduce((s, [, v]) => s + (v / expTotal) ** 2, 0) * 10000);
-    }
-  }
-
-  // Import concentration
-  let impSegments = [], impTopName = '—', impTopShare = 0, impHHI = 0;
-  const impSrcs = [];
-  Object.entries(qtySnapC).forEach(([rep, row]) => {
-    const q = row[key]; if (q) impSrcs.push([rep, q]);
-  });
-  impSrcs.sort((a, b) => b[1] - a[1]);
-  const impTotal = impSrcs.reduce((s, [, v]) => s + v, 0);
-  if (impTotal > 0 && impSrcs.length > 0) {
-    let rawSum = 0, procSum = 0;
-    impSrcs.forEach(([src]) => {
-      rawSum += (rawSnapC[src] || {})[key] || 0;
-      procSum += (procSnapC[src] || {})[key] || 0;
-    });
-    if (rawSum > 0) impSegments.push({ share: rawSum / impTotal, color: FLOW_COLORS.importRaw });
-    if (procSum > 0) impSegments.push({ share: procSum / impTotal, color: FLOW_COLORS.importProcessed });
-    impTopName = impSrcs[0]?.[0] || '—';
-    impTopShare = Math.round(((impSrcs[0]?.[1] || 0) / impTotal) * 100);
-    impHHI = Math.round(impSrcs.reduce((s, [, v]) => s + (v / impTotal) ** 2, 0) * 10000);
-  }
-
-  function makeConBar(label, segments, topName, topShare, hhi, hasData) {
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'margin-bottom:6px;';
-    const lbl = document.createElement('div');
-    lbl.style.cssText = 'font-size:7px;letter-spacing:.06em;text-transform:uppercase;color:rgba(74,44,23,0.55);margin-bottom:3px;';
-    lbl.textContent = label;
-    wrap.appendChild(lbl);
-
-    if (!hasData || segments.length === 0) {
-      const na = document.createElement('div');
-      na.style.cssText = 'font-size:8px;color:rgba(74,44,23,0.35);font-style:italic;';
-      na.textContent = 'No data for this year';
-      wrap.appendChild(na);
-      return wrap;
-    }
-
-    const bar = document.createElement('div');
-    bar.style.cssText = 'display:flex;height:8px;border-radius:3px;overflow:hidden;width:100%;';
-    segments.forEach(({ share, color }) => {
-      const seg = document.createElement('div');
-      seg.style.cssText = `flex:0 0 ${(share * 100).toFixed(1)}%;background:${color};min-width:${share > 0 ? '2px' : '0'};`;
-      bar.appendChild(seg);
-    });
-    wrap.appendChild(bar);
-
-    const sub = document.createElement('div');
-    sub.style.cssText = 'margin-top:2px;font-size:7.5px;color:rgba(74,44,23,0.6);display:flex;justify-content:space-between;';
-    sub.innerHTML = `<span>Top: ${topName} ${topShare}%</span><span title="Herfindahl index">HHI ${hhi}</span>`;
-    wrap.appendChild(sub);
-
-    return wrap;
-  }
-
-  concDiv.appendChild(makeConBar('EXPORT CONCENTRATION', expSegments, expTopName, expTopShare, expHHI, expTotal > 0));
-  concDiv.appendChild(makeConBar('IMPORT CONCENTRATION', impSegments, impTopName, impTopShare, impHHI, impTotal > 0));
 }

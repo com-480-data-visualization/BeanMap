@@ -296,15 +296,15 @@ function populateTradeFlows(key, year) {
     const row = document.createElement('div');
     row.className = 'flow-row';
     row.innerHTML =
-      `<span class="flow-arrow" style="color:${arrowColor}; font-size:16px; line-height:1; transform:translateY(-1px); margin-right:2px; display:inline-block;">${arrow}</span>` +
+      `<span class="flow-arrow" style="color:var(--coffee); font-size:16px; line-height:1; transform:translateY(-1px); margin-right:2px; display:inline-block;">${arrow}</span>` +
       `<span class="flow-country">${country}</span>` +
-      `<div class="flow-bars">` +
+      `<div class="flow-bars" style="padding-top:2px;">` +
       `<div class="flow-bar-wrap"><div class="flow-bar-fill" style="width:${rawW}%;background:${rawColor}"></div></div>` +
       `<div class="flow-bar-wrap"><div class="flow-bar-fill" style="width:${procW}%;background:${procColor}"></div></div>` +
       `</div>` +
       `<div style="text-align:right;flex-shrink:0;width:36px;">` +
-      `<div style="font-size:8px;font-weight:600;color:${rawColor};line-height:1.3;">${topLabel}</div>` +
-      `<div style="font-size:8px;font-weight:600;color:${procColor};line-height:1.3;">${botLabel}</div>` +
+      `<div style="font-size:8px;font-weight:600;color:var(--coffee);line-height:1.3;">${topLabel}</div>` +
+      `<div style="font-size:8px;font-weight:600;color:var(--coffee);line-height:1.3;">${botLabel}</div>` +
       `</div>`;
     return row;
   }

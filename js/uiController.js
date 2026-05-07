@@ -130,14 +130,18 @@ export function updateSidePanel(name, year) {
   const qtyRow = qtySnap[key];
 
   // Top partner pill
-  if (valRow) {
-    const top = Object.entries(valRow).sort((a, b) => b[1] - a[1])[0];
+  const isValueMode = state.flowMode === 'val';
+  const activeRow = isValueMode ? valRow : qtyRow;
+  const activeSnap = isValueMode ? valSnap : qtySnap;
+
+  if (activeRow && Object.keys(activeRow).length > 0) {
+    const top = Object.entries(activeRow).sort((a, b) => b[1] - a[1])[0];
     document.getElementById('sp-top-export').textContent = top ? top[0] : '—';
     const sl = document.getElementById('sp-top-export').closest('.stat-pill').querySelector('.sl');
     if (sl) sl.innerHTML = 'Top export<br>partner';
   } else {
     let best = null, bestVal = 0;
-    Object.entries(valSnap).forEach(([rep, row]) => {
+    Object.entries(activeSnap).forEach(([rep, row]) => {
       const v = row[key] || 0;
       if (v > bestVal) { bestVal = v; best = rep; }
     });
@@ -195,6 +199,8 @@ function updateBarChart(key, year) {
 
   barContainer.innerHTML = '';
   const pt = state.data.PRICE_TIMELINE[year] || state.data.PRICE_TIMELINE[2023];
+
+  // Use global baseline prices if specific country data is missing
   const pRaw = pt.raw;
   const pProc = pt.processed;
 
@@ -215,33 +221,27 @@ function updateBarChart(key, year) {
   const expUV = expTotalQty > 0 ? Math.round((expRawQty * pRaw + expProcQty * pProc) / expTotalQty) : null;
   const impUV = impTotalQty > 0 ? Math.round((impRawQty * pRaw + impProcQty * pProc) / impTotalQty) : null;
   const margin = (expUV !== null && impUV !== null) ? expUV - impUV : null;
-  const maxUV = Math.max(expUV || 0, impUV || 0, 1);
 
-  function makeSplitBar(lbl, totalQty, rawQty, procQty, uv, rawColor, procColor) {
+  function makePriceRow(lbl, uv) {
     if (uv === null) return null;
-    const totalW = Math.round((uv / maxUV) * 100);
-    const rawFrac = totalQty > 0 ? rawQty / totalQty : 1;
     const el = document.createElement('div');
     el.className = 'bar-row';
     el.style.marginBottom = '5px';
-    const rawPct = Math.round(rawFrac * 100);
-    const gradient = `linear-gradient(to right, ${rawColor} ${rawPct}%, ${procColor} ${rawPct}%)`;
+    el.style.justifyContent = 'space-between';
+
     el.innerHTML =
-      `<span class="bar-year" style="width:38px;">${lbl}</span>` +
-      `<div class="bar-track" style="flex:1;">` +
-      `<div class="bar-fill" style="width:${totalW}%;background:${gradient}"></div>` +
-      `</div>` +
-      `<span class="bar-val">${uv.toLocaleString()}</span>`;
+      `<span class="bar-year" style="width:auto;">${lbl} Average</span>` +
+      `<span class="bar-val" style="font-size:10px; width:auto;">$${uv.toLocaleString()} / t</span>`;
     return el;
   }
 
-  const expBar = makeSplitBar('Export', expTotalQty, expRawQty, expProcQty, expUV, FLOW_COLORS.exportRaw, FLOW_COLORS.exportProcessed);
-  const impBar = makeSplitBar('Import', impTotalQty, impRawQty, impProcQty, impUV, FLOW_COLORS.importRaw, FLOW_COLORS.importProcessed);
+  const expRow = makePriceRow('Export', expUV);
+  const impRow = makePriceRow('Import', impUV);
 
-  if (expBar) barContainer.appendChild(expBar);
-  if (impBar) barContainer.appendChild(impBar);
+  if (expRow) barContainer.appendChild(expRow);
+  if (impRow) barContainer.appendChild(impRow);
 
-  if (!expBar && !impBar) {
+  if (!expRow && !impRow) {
     const na = document.createElement('div');
     na.style.cssText = 'font-size:9px;color:rgba(74,44,23,0.4);text-align:center;padding:6px 0;';
     na.textContent = 'No trade data for this year';
@@ -252,13 +252,14 @@ function updateBarChart(key, year) {
     const sign = margin >= 0 ? '+' : '';
     const mColor = margin > 800 ? '#B89028' : margin > 200 ? '#9A7A20' : margin > 0 ? '#7A6040' : '#8B4030';
     const sep = document.createElement('div');
-    sep.style.cssText = 'border-top:1px solid rgba(74,44,23,0.12);margin:3px 0 5px;';
+    sep.style.cssText = 'border-top:1px solid rgba(74,44,23,0.12);margin:6px 0;';
     barContainer.appendChild(sep);
+
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
     row.innerHTML =
-      `<span style="font-size:8px;color:var(--coffee);letter-spacing:.06em;text-transform:uppercase;">Margin</span>` +
-      `<span style="font-size:13px;font-weight:700;color:${mColor};">${sign}${margin.toLocaleString()} USD/t</span>`;
+      `<span style="font-size:8px;color:var(--coffee);letter-spacing:.06em;text-transform:uppercase;">Trade Margin</span>` +
+      `<span style="font-size:12px;font-weight:700;color:${mColor};">${sign}$${margin.toLocaleString()} / t</span>`;
     barContainer.appendChild(row);
   }
 }

@@ -107,10 +107,19 @@
 
     <div id="side-panel">
       <div class="sp-section" style="flex-shrink:0;">
-        <div>
-          <span id="sp-country-name">Brazil</span>
-          <span class="sp-rank" id="sp-rank">#1 Producer</span>
+        <div class="sp-section" style="flex-shrink:0; padding-right: 90px; ">
+          <div>
+            <span id="sp-country-name">Brazil</span>
+            <span class="sp-rank" id="sp-rank">#1 Producer</span>
+          </div>
+          <div class="stat-pills">
+          </div>
         </div>
+
+        <button id="flow-mode-btn"
+          style="position:absolute; top:18px; right:12px; font-size:10px; font-weight:500; padding:6px 6px; border-radius:6px; border:1px solid var(--tan); background:var(--espresso); color:var(--cream); cursor:pointer; letter-spacing:.04em; box-shadow: 0 0px 3px rgba(0,0,0,0.2); transition: background 0.2s;">
+          Show Value
+        </button>
 
         <div style="margin-top: 8px;">
           <div
@@ -149,10 +158,6 @@
         <div class="sp-title">Average Trade Prices</div>
         <div id="sp-bar-chart-rows"></div>
       </div>
-
-      <button id="flow-mode-btn"
-        style="position:absolute;top:10px;right:10px;z-index:10;font-size:8px;padding:2px 8px;border-radius:8px;border:1px solid var(--tan);background:var(--espresso);color:var(--cream);cursor:pointer;letter-spacing:.04em;">Show
-        Value</button>
 
       <div class="sp-section" style="flex:1;overflow-y:auto;min-height:0;">
         <div class="sp-title" style="margin-bottom:6px;">Top Trade Flows</div>

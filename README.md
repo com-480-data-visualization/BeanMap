@@ -57,6 +57,9 @@ BeanMap/
 │   └── build_data.js       # Node.js script — builds data_layer.json from CSVs
 ├── data/
 │   └── UNComtrade/         # Raw CSV trade matrices (quantity + value)
+├── report/
+│   ├── milestone1_BeanMap.pdf
+│   └── Milestone2_BeanMap.pdf
 ├── data_layer.json         # Pre-built data payload loaded at runtime
 └── EDA.ipynb               # Exploratory data analysis notebook
 ```
@@ -85,6 +88,6 @@ Requires `Trade_Matrix_Quantity.csv` and `Trade_Matrix_Value.csv` in `data/UNCom
 
 | Milestone | Deadline | Report | 
 |---|---|---|
-| 1 | 20 March 2026 | [Report](./milestone1_BeanMap.pdf) |
-| 2 | 17 April 2026 | [Report](./Milestone2_BeanMap.pdf) |
+| 1 | 20 March 2026 | [Report](report/milestone1_BeanMap.pdf) |
+| 2 | 17 April 2026 | [Report](report/Milestone2_BeanMap.pdf) |
 | 3 | 29 May 2026 | — |

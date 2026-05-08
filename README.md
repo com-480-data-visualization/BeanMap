@@ -1,105 +1,90 @@
-# Project of Data Visualization (COM-480)
+# BeanMap
 
-| Student's name | SCIPER |
-| -------------- | ------ |
-|Massimo Berardi|345943|
-|Noam Ifergan|341405|
-|Victor Nahoul|339407|
+Interactive 3D dashboard visualising the global coffee trade from 1986 to 2024.
 
-[Milestone 1](#milestone-1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
+Countries are extruded and coloured by their **Transformation Index** — a measure of how much raw coffee a country imports versus exports, indicating whether it acts as a raw producer or a processing hub. A Sankey flow chart, price timeline, and country side panel complete the picture.
 
-## Milestone 1 (20th March, 5pm)
+**Live demo:** https://beanmap.vercel.app
 
-**10% of the final grade**
+---
 
-This is a preliminary milestone to let you set up goals for your final project and assess the feasibility of your ideas.
-Please, fill the following sections about your project.
+## Authors
 
-*(max. 2000 characters per section)*
+| Name | SCIPER |
+|---|---|
+| Massimo Berardi | 345943 |
+| Noam Ifergan | 341405 |
+| Victor Nahoul | 339407 |
 
-### Dataset
+---
 
-> Find a dataset (or multiple) that you will explore. Assess the quality of the data it contains and how much preprocessing / data-cleaning it will require before tackling visualization. We recommend using a standard dataset as this course is not about scraping nor data processing.
->
-> Hint: some good pointers for finding quality publicly available datasets ([Google dataset search](https://datasetsearch.research.google.com/), [Kaggle](https://www.kaggle.com/datasets), [OpenSwissData](https://opendata.swiss/en/), [SNAP](https://snap.stanford.edu/data/) and [FiveThirtyEight](https://data.fivethirtyeight.com/)).
+## Features
 
+- **3D map** — country depth and colour driven by Transformation Index (Three.js)
+- **Trade flow arcs** — top import/export arrows per selected country
+- **Sankey chart** — producers → processors → consumers flow (D3)
+- **Price timeline** — global weighted average raw vs. processed price per tonne (D3)
+- **Side panel** — per-country trade volumes, prices, value added, and top flows
+- **Year slider** — scrub or play through 1986–2024
 
-We base our analysis on the [FAO Detailed Trade Matrix dataset (1986–2024)](https://www.fao.org/faostat/en/#data/TM/), compiled by the Food and Agriculture Organization of the United Nations (FAO). The data follow the standard International Merchandise Trade Statistics (IMTS) methodology and are mainly sourced from UNSD, Eurostat, and national authorities. For each pair of countries and year, the database reports export quantity, export value, import quantity, and import value for a wide range of food and agricultural products.
+---
 
-The dataset is designed for global coverage rather than completeness of every bilateral flow: many country pairs never trade a given product, which results in a relatively sparse matrix, but the reported figures are based on official national statistics and undergo consistency checks by FAO. This makes it well suited for high-level analyses of trade patterns and value chains.
+## Data
 
-To use the dataset for our project, we will have to narrow it down and reshape it. In particular, we will restrict the bulk download to coffee-related products only (for example keeping items such as “Coffee, green” and “Coffee, decaffeinated or roasted”), drop variables that are not relevant for our questions, and ensure that the remaining fields are consistent across years and reporters.
+Source: **UN Comtrade** raw trade matrices.
+- Item 656 — green bean (raw) exports
+- Item 657 — roasted/processed coffee exports
 
-Our goal is to construct two working datasets: one for trade values and one for trade quantities. In both cases, we aim for a format where each row corresponds to a single, economically meaningful flow of coffee between two countries in a given year. This structure will allow us to interpret the global transformation chain, from raw beans to processed products.
+The Transformation Index is computed as: `raw imports − raw exports` per country per year. A positive value indicates a processing hub; a negative value indicates a raw producer.
 
-Note. The original FAO bulk download is too large to be pushed to GitHub. However, the smaller preprocessed datasets resulting from these steps are included in the repository.
+---
 
-### Problematic
+## Project Structure
 
-> Frame the general topic of your visualization and the main axis that you want to develop.
-> - What am I trying to show with my visualization?
-> - Think of an overview for the project, your motivation, and the target audience.
+```
+BeanMap/
+├── index.html              # Single-page app entry point
+├── css/
+│   └── styles.css          # All styling
+├── js/
+│   ├── app.js              # Boot, wiring, top-level event callbacks
+│   ├── config.js           # Constants, colour maps, country name aliases
+│   ├── dataService.js      # Data fetching, TI calculation, shared state
+│   ├── map3D.js            # Three.js 3D map, arc flows, country selection
+│   ├── uiController.js     # Side panel, year slider, flow-mode toggle
+│   ├── visualizations.js   # D3 Sankey chart and price timeline
+│   ├── utils.js            # Pure helpers (number formatting, geometry)
+│   └── build_data.js       # Node.js script — builds data_layer.json from CSVs
+├── data/
+│   └── UNComtrade/         # Raw CSV trade matrices (quantity + value)
+├── data_layer.json         # Pre-built data payload loaded at runtime
+└── EDA.ipynb               # Exploratory data analysis notebook
+```
 
-**The Hidden Coffee Chain. Who Really Transforms the Bean?**
+---
 
-Coffee is one of the most traded commodities in the world, yet its supply chain remains deeply misunderstood. When observing only bilateral trade flows between countries, the picture becomes misleading.
+## Running
 
-Our visualization aims to reveal which countries are the true coffee transformers, those that import raw beans, process them through roasting, encapsulating, and packaging, and re-export them as higher-value products. To measure this, we will look at the difference between processed and raw coffee trade, and their respective values. This approach isolates the value genuinely added by each country.
-The central axis is transformation: tracing the journey from raw beans to finished products. Rather than simply mapping who sells to whom, we want to show where economic value is actually captured along the chain.
+The frontend is a static site — no build step or dependencies required.
 
-Our target audience is the general public and students interested in economics or sustainability, who question the North-South inequalities embedded in global value chains. The motivation is straightforward: behind every cup of coffee lies an economic geography.
+**Serve locally:**
+```bash
+python3 -m http.server 8080
+```
+Then open http://localhost:8080.
 
-### Exploratory Data Analysis
+**Rebuild `data_layer.json`** (only needed when the raw CSVs change):
+```bash
+node js/build_data.js
+```
+Requires `Trade_Matrix_Quantity.csv` and `Trade_Matrix_Value.csv` in `data/UNComtrade/`.
 
-> Pre-processing of the data set you chose
-> - Show some basic statistics and get insights about the data
+---
 
-Starting from the full FAO table, we isolated coffee by keeping only “Coffee, green” and “Coffee, decaffeinated or roasted”. We removed redundant columns and split the data into two aligned tables for trade values and quantities, keeping only import and export flows.
+## Milestones
 
-We then assessed data completeness over time. While coverage is generally low (<45%) due to rare bilateral combinations, quality is high: official national statistics (flag A) account for ~98% of entries. Consequently, we dropped auxiliary source flags to focus on the primary series.
-
-To avoid structural zeros and structurally empty records, we removed: (i) columns that are entirely missing, and (ii) rows with only zero or missing trade across all years. We also aligned the value and quantity tables so that they share the same subset of observations, and saved the resulting matrices for downstream analysis.
-
-Finally, we produced exploratory plots of coffee trade quantities for specific countries. For Germany, Brazil, and Switzerland, we visualized (i) total imports vs exports over time, and (ii) a more detailed breakdown into raw vs processed coffee. These first visualizations already hint at the distinct functional roles of countries in the supply chain. For example, Brazil as a major exporter of green coffee, Germany as an important hub for importing and re-exporting (including processed coffee), and Switzerland as a high-value processing and re-export center. In our final plot, we explicitly contrast Switzerland's trade in physical quantities with trade values, highlighting how relatively modest volumes can translate into disproportionately high export value once coffee is processed and re-exported. Together, these patterns provide an initial empirical basis for our subsequent value-chain analysis of where coffee is processed and where value is captured.
-
-All the steps are detailed in the EDA notebook: [EDA.ipynb](./EDA.ipynb)
-
-### Related work
-
-
-> - What others have already done with the data?
-> - Why is your approach original?
-> - What source of inspiration do you take? Visualizations that you found on other websites or magazines (might be unrelated to your data).
-> - In case you are using a dataset that you have already explored in another context (ML or ADA course, semester project...), you are required to share the report of that work to outline the differences with the submission for this class.
-
-
-Several existing projects already visualize global coffee data, but most focus on country-level summaries or bilateral exchanges rather than modeling coffee as a transformation process along a global value chain.
-
-A useful reference is the [coffee_worldwide_ETL](https://github.com/datng87/coffee_worldwide_ETL) project, which combines choropleths and standard charts to explore global coffee production, consumption, and trade. It highlights key patterns such as the divide between producing and consuming countries, but treats geography mainly as a set of indicators rather than a system of flows.
-
-A closely related project from previous years is the [Sundial Coffee Visualization Project](https://github.com/com-480-data-visualization/Sundial/tree/master?tab=readme-ov-file). It explores coffee trade with an emphasis on monetary flows and qualitative aspects such as aromas. While conceptually similar, it focuses on value representation, whereas our project targets structural transformation in the supply chain, identifying where raw coffee is processed and value is added.
-
-The closest inspiration is [Resource Trade Earth](https://resourcetrade.earth/?year=2017&category=904&units=weight&autozoom=1), which provides interactive flow maps of global trade. While it effectively shows bilateral exchanges, it does not capture the functional role of countries within the value chain. Our approach builds on such flows to distinguish producers, processors, and consumers, and to reveal where value is created and captured.
-
-Academic work, such as [Utrilla-Catalan et al. (2022)](https://www.mdpi.com/2071-1050/14/2/672), models coffee trade as a network and highlights structural inequalities, but remains focused on analysis rather than interactive storytelling.
-
-Our contribution combines these perspectives while shifting the focus toward a central question: where is coffee actually processed, and who captures its value?
-
-This dataset has not been used by our team before.
-
-## Milestone 2 (17th April, 5pm)
-
-**10% of the final grade**
-
-The second milestone report is available here: [Milestone 2 Report](./Milestone2_BeanMap.pdf), with the MVP available here: [Milestone 2 MVP](https://beanmap.vercel.app). 
-
-## Milestone 3 (29th May, 5pm)
-
-**80% of the final grade**
-
-
-## Late policy
-
-- < 24h: 80% of the grade for the milestone
-- < 48h: 70% of the grade for the milestone
-
+| Milestone | Deadline | Report | 
+|---|---|---|
+| 1 | 20 March 2026 | [Report](./milestone1_BeanMap.pdf) |
+| 2 | 17 April 2026 | [Report](./Milestone2_BeanMap.pdf) |
+| 3 | 29 May 2026 | — |

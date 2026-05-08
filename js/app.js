@@ -14,6 +14,7 @@ import {
 } from './map3D.js';
 
 import {
+  clearSidePanel,
   setupUI,
   updateSidePanel
 } from './uiController.js';
@@ -50,40 +51,43 @@ async function init() {
     // 4. Wire up the UI (Sliders, Buttons)
     // We pass in callbacks so the UI controller doesn't need to know about the map or charts
     setupUI(
-      // Callback for when the year slider changes
       (newYear) => {
         state.currentYear = newYear;
         rebuildExportVolumes(newYear);
         rebuildTransformationRanks(newYear);
 
-        // Broadcast the year change to all components
         onYearChangeMap(newYear);
         updateVisualizationsOnYearChange(newYear);
 
-        // Update the side panel if a country is currently selected
         if (state.selectedCountry) {
           updateSidePanel(state.selectedCountry, newYear);
+        } else {
+          clearSidePanel();
         }
       },
-      // Callback for when the "Show Value" / "Show Volume" toggle is clicked
       () => {
         if (state.selectedCountry) {
           updateSidePanel(state.selectedCountry, state.currentYear);
-          // Tell the map to redraw the arrows using the new metric
           drawArcs(state.selectedCountry, state.currentYear);
         }
       }
     );
 
     // 5. Initialize the 3D Map
-    // We pass a callback so the map can tell the app when a user clicks a country
     initThreeMap((countryName) => {
-      updateSidePanel(countryName, state.currentYear);
+      if (countryName) {
+        updateSidePanel(countryName, state.currentYear);
+      } else {
+        clearSidePanel();
+      }
       updateVisualizationsOnYearChange(state.currentYear);
     });
 
-    // 6. Load the GeoJSON geometry (This hides the loading screen when finished)
-    loadMap();
+    // 6. Load the map and set default country (FIX #11)
+    loadMap(() => {
+      // This callback fires exactly when the 3D map finishes building
+      selectCountryByName('Germany');
+    });
 
     // 7. Render initial data for the visualizations
     updateVisualizationsOnYearChange(state.currentYear);

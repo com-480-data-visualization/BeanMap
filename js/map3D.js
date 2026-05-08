@@ -297,7 +297,7 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-export function loadMap() {
+export function loadMap(onCompleteCallback) {
   const GEOJSON_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
 
   fetch(GEOJSON_URL)
@@ -334,6 +334,10 @@ export function loadMap() {
       });
 
       document.getElementById('map-loading').classList.add('hidden');
+
+      if (typeof onCompleteCallback === 'function') {
+        onCompleteCallback();
+      }
     })
     .catch(err => {
       const el = document.getElementById('map-loading');

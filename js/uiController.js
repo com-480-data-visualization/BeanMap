@@ -140,6 +140,8 @@ export function setupUI(onYearChange, onFlowModeChange) {
 }
 
 export function updateSidePanel(name, year) {
+  setLowerPanelsVisibility(true);
+
   const key = GEO_NAME_MAP[name] || name;
   const qtySnap = state.data.TRADE_QUANTITY_BY_YEAR[year] || state.data.TRADE_QUANTITY_BY_YEAR[2023] || state.data.TRADE_QUANTITY;
   const valSnap = state.data.TRADE_VALUE_BY_YEAR[year] || state.data.TRADE_VALUE_BY_YEAR[2023] || state.data.TRADE_VALUE;
@@ -417,5 +419,65 @@ function populateTradeFlows(key, year) {
       const arrow = isExport ? '↦' : '⇥';
       flowContainer.appendChild(makeRow(arrow, partner, rawQ, procQ, val, maxQty, isExport));
     });
+  }
+}
+
+export function clearSidePanel() {
+  // 1. Force everything below the toggle button to completely hide
+  setLowerPanelsVisibility(false);
+
+  // 2. Set Header
+  document.getElementById('sp-country-name').textContent = 'Global Overview';
+  const rankEl = document.getElementById('sp-rank');
+  if (rankEl) {
+    rankEl.textContent = 'All Countries';
+    rankEl.style.background = 'var(--tan)';
+  }
+
+  // 3. Calculate actual global trade data for the current year
+  const year = state.currentYear;
+  const qtySnap = state.data.TRADE_QUANTITY_BY_YEAR?.[year] || state.data.TRADE_QUANTITY_BY_YEAR?.[2023] || state.data.TRADE_QUANTITY || {};
+  const valSnap = state.data.TRADE_VALUE_BY_YEAR?.[year] || state.data.TRADE_VALUE_BY_YEAR?.[2023] || state.data.TRADE_VALUE || {};
+
+  let globalQty = 0;
+  let globalVal = 0;
+  Object.values(qtySnap).forEach(row => {
+    Object.values(row).forEach(v => globalQty += v);
+  });
+  Object.values(valSnap).forEach(row => {
+    Object.values(row).forEach(v => globalVal += v);
+  });
+
+  // 4. Update the stat pills
+  const safeSetText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+
+  safeSetText('sp-ti', '—');
+  safeSetText('sp-top-export', '—');
+
+  const volLbl = document.getElementById('sp-vol-lbl');
+  const impLbl = document.getElementById('sp-imp-vol-lbl');
+
+  if (state.flowMode === 'val') {
+    safeSetText('sp-vol', fmtVal(globalVal));
+    if (volLbl) volLbl.innerHTML = 'Global export<br>value';
+
+    safeSetText('sp-imp-vol', fmtVal(globalVal));
+    if (impLbl) impLbl.innerHTML = 'Global import<br>value';
+  } else {
+    safeSetText('sp-vol', fmtQty(globalQty) + 't');
+    if (volLbl) volLbl.innerHTML = 'Global export<br>volume';
+
+    safeSetText('sp-imp-vol', fmtQty(globalQty) + 't');
+    if (impLbl) impLbl.innerHTML = 'Global import<br>volume';
+  }
+}
+
+export function setLowerPanelsVisibility(isVisible) {
+  const lowerContent = document.getElementById('sp-lower-content');
+  if (lowerContent) {
+    lowerContent.style.display = isVisible ? 'block' : 'none';
   }
 }

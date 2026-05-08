@@ -1,6 +1,6 @@
 import { CENTROIDS, GEO_NAME_MAP } from './config.js';
 import { getDepth, getSideColor, getTI, getTopColor, getTransformationNet, state } from './dataService.js';
-import { fmtQty, hexToInt, makeShape, project, ringToPoints } from './utils.js';
+import { fmtQtyExpanded, hexToInt, makeShape, project, ringToPoints } from './utils.js';
 
 const SCENE_COLORS = {
   background: 0xE2D8C3,
@@ -266,7 +266,7 @@ function animate() {
       const qtySnap = state.data.TRADE_QUANTITY_BY_YEAR[state.currentYear] || state.data.TRADE_QUANTITY || {};
 
       tooltip.textContent = qtySnap[_ttKey]
-        ? `${name} · TI: ${(ti < 0 ? '-' : '+')}${fmtQty(Math.abs(ti))}t net`
+        ? `${name} · TI: ${fmtQtyExpanded(Math.abs(ti))}`
         : `${name}`;
       tooltip.classList.add('show');
     } else {

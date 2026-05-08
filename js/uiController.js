@@ -217,7 +217,7 @@ export function updateSidePanel(name, year) {
       // fmtValExpanded expects values in thousands of USD
       tiText = fmtValExpanded(tiUsd / 1000);
     } else {
-      tiText = '+' + fmtQtyExpanded(ti);
+      tiText = fmtQtyExpanded(ti);
     }
   }
   document.getElementById('sp-ti').textContent = tiText;
@@ -319,10 +319,9 @@ function updateBarChart(key, year) {
     row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
 
     // Add a plus sign for standard positive margins, but omit it for the fallback estimate
-    const sign = margin > 0 && !isFallbackMargin ? '+' : '';
     row.innerHTML =
       `<span style="font-size:8px;color:var(--coffee);letter-spacing:.06em;text-transform:uppercase;">${labelStr}</span>` +
-      `<span style="font-size:12px;font-weight:700;color:${mColor};">${sign}${marginStr} $&thinsp;/&thinsp;t</span>`;
+      `<span style="font-size:12px;font-weight:700;color:${mColor};">${marginStr} $&thinsp;/&thinsp;t</span>`;
     barContainer.appendChild(row);
   }
 }

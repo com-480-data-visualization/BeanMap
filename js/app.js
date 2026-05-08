@@ -106,13 +106,13 @@ async function init() {
     datalist.appendChild(option);
   });
 
-  // Listen for search selections
-  searchInput.addEventListener('change', (e) => {
+  // Listen for search input (Fires immediately when datalist is clicked)
+  searchInput.addEventListener('input', (e) => {
     const val = e.target.value;
     if (countries.includes(val)) {
       selectCountryByName(val);
-      e.target.value = ''; // Clear input after selection
-      e.target.blur();     // Remove focus
+      e.target.value = ''; // Clear input
+      e.target.blur();     // Remove focus to trigger the CSS collapse
     }
   });
 

@@ -25,30 +25,7 @@
     <div id="map-container">
       <div id="map-loading">Loading map data…</div>
 
-      <style>
-        #country-search {
-          width: 36px;
-          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
-          cursor: pointer;
-          color: transparent;
-        }
-
-        #country-search:focus,
-        #country-search:not(:placeholder-shown) {
-          width: 200px;
-          cursor: text;
-          color: #4A2C17;
-          background: rgba(245, 236, 215, 0.98) !important;
-          border-color: var(--tan) !important;
-        }
-
-        #country-search::-webkit-calendar-picker-indicator {
-          display: none !important;
-        }
-
-        /* Hide default dropdown arrow */
-      </style>
-      <div id="search-container"
+<div id="search-container"
         style="position: absolute; top: 12px; left: 12px; z-index: 10; display: flex; align-items: center;">
         <div style="position: absolute; left: 10px; pointer-events: none; font-size: 14px;">🔍</div>
         <input type="text" id="country-search" list="country-list" placeholder="Search a country..."
@@ -106,6 +83,7 @@
     </div>
 
     <div id="side-panel">
+      <div id="sp-main-content" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
       <div class="sp-section" style="flex-shrink:0;">
         <div class="sp-section" style="flex-shrink:0; padding-right: 90px; ">
           <div>
@@ -165,16 +143,27 @@
           <div style="font-size:9px;color:var(--coffee);padding:4px 0;">Click a country to see flows.</div>
         </div>
       </div>
+      </div>
+      <div id="sp-placeholder" style="display:none;flex:1;align-items:center;justify-content:center;padding:24px;text-align:center;">
+        <span style="font-size:13px;color:var(--coffee);opacity:0.6;">Select a country on the map to explore its trade data</span>
+      </div>
     </div>
   </div>
 
   <div id="tick-row">
-    <div style="width:44px;flex-shrink:0;"></div>
+    <div style="width:76px;flex-shrink:0;"></div>
     <div class="tick-labels-inner">
-      <span>1986</span><span>1990</span><span>1995</span><span>2000</span>
-      <span>2005</span><span>2010</span><span>2015</span><span>2020</span><span>2024</span>
+      <span style="left:0%">1986</span>
+      <span style="left:10.53%;transform:translateY(-50%) translateX(-50%)">1990</span>
+      <span style="left:23.68%;transform:translateY(-50%) translateX(-50%)">1995</span>
+      <span style="left:36.84%;transform:translateY(-50%) translateX(-50%)">2000</span>
+      <span style="left:50%;transform:translateY(-50%) translateX(-50%)">2005</span>
+      <span style="left:63.16%;transform:translateY(-50%) translateX(-50%)">2010</span>
+      <span style="left:76.32%;transform:translateY(-50%) translateX(-50%)">2015</span>
+      <span style="left:89.47%;transform:translateY(-50%) translateX(-50%)">2020</span>
+      <span style="left:100%;transform:translateY(-50%) translateX(-100%)">2024</span>
     </div>
-    <div style="width:42px;flex-shrink:0;"></div>
+    <div style="width:48px;flex-shrink:0;"></div>
   </div>
 
   <div id="slider-row">
@@ -237,9 +226,8 @@
         <h3
           style="margin-top: 12px; font-size: 12px; color: var(--espresso); border-bottom: 1px solid var(--border); padding-bottom: 3px;">
           Data Sources</h3>
-        <p>Trade quantities and values are parsed directly from <strong>FAO (Food and Agriculture Organization)</strong>
-          and <strong>UN Comtrade</strong> raw datasets. Specifically, we aggregate Item 656 (Green Bean Exports) and
-          Item 657 (Roasted/Processed Coffee Exports).</p>
+        <p>Trade quantities and values are parsed directly from <strong>UN Comtrade</strong> raw datasets.
+          Specifically, we aggregate Item 656 (Green Bean Exports) and Item 657 (Roasted/Processed Coffee Exports).</p>
 
         <h3
           style="margin-top: 12px; font-size: 12px; color: var(--espresso); border-bottom: 1px solid var(--border); padding-bottom: 3px;">
@@ -252,7 +240,8 @@
           style="margin-top: 12px; font-size: 12px; color: var(--espresso); border-bottom: 1px solid var(--border); padding-bottom: 3px;">
           Sankey Flow Definitions</h3>
         <p><strong>Producers → Processors:</strong> Raw green bean exports.<br>
-          <strong>Processors → Consumers:</strong> Roasted/processed coffee exports only.<br>
+          <strong>Processors → Consumers:</strong> Roasted/processed coffee exports, plus a mass-balance
+          retained flow representing raw coffee imported but not re-exported (domestic consumption).<br>
           <em>Note: A country is categorized as a Processor visually in the Sankey chart if ≥30% of its total coffee
             exports are roasted.</em>
         </p>
@@ -261,9 +250,10 @@
           style="margin-top: 12px; font-size: 12px; color: var(--espresso); border-bottom: 1px solid var(--border); padding-bottom: 3px;">
           Global Weighted Prices & 3D Math</h3>
         <p>The timeline's <strong>Global weighted average price (USD/tonne)</strong> divides total worldwide trade value
-          by total worldwide volume for that specific year. The map's 3D extrusion (depth) uses a normalization scale
-          matching maximum export volume, while mesh colors run through a power-curve interpolation applied to the
-          Transformation Index to increase visual contrast.</p>
+          by total worldwide volume for that specific year. The map's 3D extrusion (depth) is scaled by each country's
+          Transformation Index, normalized against the global maximum TI, so processing hubs rise taller than raw
+          producers. Mesh colors run through a power-curve interpolation applied to the same Transformation Index to
+          increase visual contrast.</p>
       </div>
     </div>
   </div>

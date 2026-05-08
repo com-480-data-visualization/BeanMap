@@ -349,20 +349,27 @@ body {
     border-bottom: 1px solid rgba(92, 56, 28, 0.3);
     display: flex;
     align-items: center;
-    padding: 0 70px 0 58px;
+    padding: 0 16px;
     overflow: hidden;
     flex-shrink: 0;
 }
 
 .tick-labels-inner {
     flex: 1;
-    display: flex;
-    justify-content: space-between;
+    position: relative;
+    height: 14px;
     font-size: 9px;
     font-weight: 500;
     color: #FFFFFF;
     letter-spacing: 0.04em;
     pointer-events: none;
+}
+
+.tick-labels-inner span {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
 }
 
 /* ── ROW 4: SLIDER ─────────────────────────────────────── */
@@ -432,6 +439,16 @@ body {
     background: #FFFFFF;
     border: 2px solid rgba(245, 236, 215, 0.9);
     cursor: grab;
+}
+
+#year-display {
+    min-width: 36px;
+    text-align: right;
+    color: #FFFFFF;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
 }
 
 #year-display {
@@ -632,4 +649,25 @@ body {
 
 #info-btn:hover {
     background: rgba(245, 236, 215, 0.15) !important;
+}
+
+/* ── SEARCH INPUT ──────────────────────────────────── */
+#country-search {
+    width: 36px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+    cursor: pointer;
+    color: transparent;
+}
+
+#country-search:focus,
+#country-search:not(:placeholder-shown) {
+    width: 200px;
+    cursor: text;
+    color: #4A2C17;
+    background: rgba(245, 236, 215, 0.98) !important;
+    border-color: var(--tan) !important;
+}
+
+#country-search::-webkit-calendar-picker-indicator {
+    display: none !important;
 }

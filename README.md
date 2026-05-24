@@ -31,7 +31,7 @@ Countries are extruded and coloured by their **Transformation Index** — a meas
 
 ## Data
 
-Source: **UN Comtrade** raw trade matrices.
+Source: **FAO** (Food and Agriculture Organization) raw trade matrices ([data](https://www.fao.org/faostat/en/#data/TM)).
 - Item 656 — green bean (raw) exports
 - Item 657 — roasted/processed coffee exports
 
@@ -56,7 +56,7 @@ BeanMap/
 │   ├── utils.js            # Pure helpers (number formatting, geometry)
 │   └── build_data.js       # Node.js script — builds data_layer.json from CSVs
 ├── data/
-│   └── UNComtrade/         # Raw CSV trade matrices (quantity + value)
+│   └── FAO/         # Raw CSV trade matrices (quantity + value)
 ├── report/
 │   ├── milestone1_BeanMap.pdf
 │   └── Milestone2_BeanMap.pdf
@@ -80,7 +80,7 @@ Then open http://localhost:8080.
 ```bash
 node js/build_data.js
 ```
-Requires `Trade_Matrix_Quantity.csv` and `Trade_Matrix_Value.csv` in `data/UNComtrade/`.
+Requires `Trade_Matrix_Quantity.csv` and `Trade_Matrix_Value.csv` in `data/FAO/`.
 
 ---
 

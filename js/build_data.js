@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-// build_data.js — Generates data_layer.json from FAO/UNComtrade trade matrix CSVs.
+// build_data.js — Generates data_layer.json from FAO trade matrix CSVs.
 // Usage: node build_data.js
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
 
-const QTY_CSV = path.join(__dirname, '../data/UNComtrade/Trade_Matrix_Quantity.csv');
-const VAL_CSV = path.join(__dirname, '../data/UNComtrade/Trade_Matrix_Value.csv');
-const OUT_FILE = path.join(__dirname, '../data_layer.json'); // Changed to .json
+const QTY_CSV = path.join(__dirname, '../data/FAO/Trade_Matrix_Quantity.csv');
+const VAL_CSV = path.join(__dirname, '../data/FAO/Trade_Matrix_Value.csv');
+const OUT_FILE = path.join(__dirname, '../data_layer.json');
 
 const YEARS = [];
 for (let y = 1986; y <= 2024; y++) YEARS.push(y);

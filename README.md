@@ -90,4 +90,4 @@ Requires `Trade_Matrix_Quantity.csv` and `Trade_Matrix_Value.csv` in `data/FAO/`
 |---|---|---|
 | 1 | 20 March 2026 | [Report](report/milestone1_BeanMap.pdf) |
 | 2 | 17 April 2026 | [Report](report/Milestone2_BeanMap.pdf) |
-| 3 | 29 May 2026 | — |
+| 3 | 29 May 2026 | [Process Book](report/Milestone3_BeanMap.pdf) |
